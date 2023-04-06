@@ -6,9 +6,9 @@
         <div class="demo-home__title">VUE H5开发模板</div>
         <div class="item">
           项目地址:
-          <a href="https://github.com/sunniejs/vue-h5-template">https://github.com/sunniejs/vue-h5-template</a>
+          <a href="https://github.com/evllis/vue-h5">https://github.com/evllis/vue-h5</a>
         </div>
-        <div class="item">项目作者: sunnie</div>
+        <div class="item">项目作者: Alliestrasza</div>
         <div class="item"></div>
         <div class="wechat">
           <img :src="this.wechat" alt="" />
@@ -43,7 +43,7 @@ export default {
     // 请求数据案例
     initData() {
       // 请求接口数据，仅作为展示，需要配置src->config下环境文件
-      const params = { user: 'sunnie' }
+      const params = { user: 'alliestrasza' }
       getUserInfo(params)
         .then(() => {})
         .catch(() => {})
@@ -53,7 +53,7 @@ export default {
       this.$store.dispatch('setUserName', '真乖，赶紧关注公众号，组织都在等你~')
     },
     goGithub() {
-      window.location.href = 'https://github.com/sunniejs/vue-h5-template'
+      window.location.href = 'https://github.com/evllis/vue-h5'
     }
   }
 }

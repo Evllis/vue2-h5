@@ -1,8 +1,8 @@
 {
-  "name": "vue-h5-template",
+  "name": "vue-h5",
   "version": "2.1.0",
   "description": "A vue h5 template with Vant UI",
-  "author": "Sunnie <sunniejs@163.com>",
+  "author": "Alliestrasza <evllis.jolia@gmail.com>",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
