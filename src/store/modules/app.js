@@ -1,19 +1,19 @@
 const state = {
-  userName: ''
+    userName: ''
 }
 const mutations = {
-  SET_USER_NAME(state, name) {
-    state.userName = name
-  }
+    SET_USER_NAME(state, name) {
+        state.userName = name
+    }
 }
 const actions = {
-  // 设置name
-  setUserName({ commit }, name) {
-    commit('SET_USER_NAME', name)
-  }
+    // 设置name
+    setUserName({ commit }, name) {
+        commit('SET_USER_NAME', name)
+    }
 }
 export default {
-  state,
-  mutations,
-  actions
+    state,
+    mutations,
+    actions
 }

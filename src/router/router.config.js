@@ -3,27 +3,38 @@
  * @type { *[] }
  */
 export const constantRouterMap = [
-  {
-    path: '/',
-    component: () => import('@/views/layouts/index'),
-    redirect: '/home',
-    meta: {
-      title: '首页',
-      keepAlive: false
+    {
+        path: '/',
+        component: () => import('@/views/Layouts/index'),
+        redirect: '/login',
+        meta: {
+            title: '注册登录',
+            keepAlive: false
+        },
+        children: [
+            {
+                path: '/login',
+                name: 'Login',
+                component: () => import('@/views/Login/index'),
+                meta: { title: '注册登录', keepAlive: false }
+            }
+        ]
     },
-    children: [
-      {
-        path: '/home',
-        name: 'Home',
-        component: () => import('@/views/home/index'),
-        meta: { title: '首页', keepAlive: false }
-      },
-      {
-        path: '/about',
-        name: 'About',
-        component: () => import('@/views/home/about'),
-        meta: { title: '关于我', keepAlive: false }
-      }
-    ]
-  }
+    {
+        path: '/redirect',
+        component: () => import('@/views/Layouts/index'),
+        name: 'Redirect',
+        children: [
+            {
+                path: '/redirect/:path(.*)',
+                name: 'Redirect',
+                component: () => import('@/views/Redirect/index')
+            }
+        ]
+    },
+    {
+        path: '*',
+        component: () => import('@/views/Error/index'),
+        name: 'NoFind'
+    }
 ]
