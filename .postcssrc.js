@@ -1,9 +1,19 @@
 // https://github.com/michael-ciniawsky/postcss-load-config
 
-module.exports = ({ file }) => {
+module.exports = ({
+    file
+}) => {
     return {
         plugins: {
-            autoprefixer: {},
+            autoprefixer: {
+                overrideBrowserslist: [
+                    "Android 4.1",
+                    "iOS 7.1",
+                    "Chrome > 31",
+                    "ff > 31",
+                    "ie >= 8",
+                ],
+            },
             'postcss-px-to-viewport': {
                 unitToConvert: 'px', // 要转化的单位
                 viewportWidth: file.includes('vant') ? 375 : 750, // 视窗的宽度，对应的是我们设计稿的宽度，一般是750
