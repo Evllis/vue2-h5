@@ -1,5 +1,11 @@
 <template>
-    <div class="login">11111111</div>
+    <div class="flex login">
+        <div class="flex-1 relative login__body">
+            <div class="flex items-center justify-center login__body-mask">
+                <h1 class="text-[var(--primary-active-text-color)]">登录注册</h1>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -28,6 +34,28 @@
 
 <style lang="scss" scoped>
 .login {
-    background-color: red;
+    background: url('~@/assets/img/login-bg.png') no-repeat top / cover;
+    &__body {
+        background-color: white;
+        border-radius: 20px 20px 0 0;
+        margin: 0 12px;
+        margin-top: 250px;
+    }
+    &__body-mask {
+        width: 100%;
+        border-radius: 20px 20px 0 0;
+        position: absolute;
+        left: 0;
+        top: -40px;
+        height: 66px;
+        background: url('~@/assets/img/login-bg-mask.png') no-repeat top / cover;
+        h1 {
+            font-size: 15px;
+            position: absolute;
+            left: 50%;
+            top: 10px;
+            transform: translateX(-50%);
+        }
+    }
 }
 </style>

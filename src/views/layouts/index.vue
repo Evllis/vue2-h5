@@ -1,11 +1,9 @@
 <template>
-    <div class="app-container">
-        <div class="layout-content">
-            <keep-alive v-if="$route.meta.keepAlive">
-                <router-view :key="$route.fullPath"></router-view>
-            </keep-alive>
-            <router-view v-else :key="$route.fullPath"></router-view>
-        </div>
+    <div class="layout">
+        <keep-alive v-if="$route.meta.keepAlive">
+            <router-view :key="$route.fullPath"></router-view>
+        </keep-alive>
+        <router-view v-else :key="$route.fullPath"></router-view>
     </div>
 </template>
 
@@ -19,3 +17,11 @@ export default {
     methods: {}
 }
 </script>
+
+<style lang="scss" scoped>
+.layout {
+    & > * {
+        height: 100vh;
+    }
+}
+</style>
