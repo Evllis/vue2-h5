@@ -1,0 +1,24 @@
+@import './mixin.scss';
+
+.van-cell {
+    &.error-pos {
+        .van-field__error-message {
+            position: absolute;
+            top: 16px;
+        }
+    }
+}
+.van-nav-bar {
+    @include border-1px(bottom, #E5E5E5);
+    .van-nav-bar__title,
+    .van-icon {
+        color: var(--header-text-color) !important;
+        font-weight: bold;
+    }
+    .van-nav-bar__title {
+        margin: 0;
+    }
+    .van-nav-bar__left {
+        position: relative;
+    }
+}

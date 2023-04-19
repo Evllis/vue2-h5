@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import { constantRouterMap } from './router.config.js'
+import { cloneDeep } from 'lodash-es'
+import { constantRouterMap, asyncRouterMap } from './router.config.js'
 
 // hack router push callback
 const originalPush = Router.prototype.push
@@ -16,7 +17,7 @@ const createRouter = () =>
         // mode: 'history', // 如果你是 history模式 需要配置vue.config.js publicPath
         // base: process.env.BASE_URL,
         scrollBehavior: () => ({ y: 0 }),
-        routes: constantRouterMap
+        routes: cloneDeep(constantRouterMap).concat(asyncRouterMap)
     })
 
 const router = createRouter()

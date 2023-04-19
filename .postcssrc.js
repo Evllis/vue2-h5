@@ -8,7 +8,7 @@ module.exports = ({ file }) => {
             },
             'postcss-px-to-viewport': {
                 unitToConvert: 'px', // 要转化的单位
-                // viewportWidth: file && file.dirname && file.dirname.includes('vant') ? 375 : 750, // 视窗的宽度，对应的是我们设计稿的宽度，一般是750
+                // viewportWidth: file.includes('vant') ? 375 : 750, // 视窗的宽度，对应的是我们设计稿的宽度，一般是750
                 viewportWidth: 375,
                 viewportHeight: 812,
                 propList: ['*'], // 指定转换的css属性的单位，*代表全部css属性的单位都进行转换
@@ -20,7 +20,7 @@ module.exports = ({ file }) => {
                 minPixelValue: 1, // 小于或等于`1px`不转换为视窗单位，你也可以设置为你想要的值
                 mediaQuery: true, // 是否在媒体查询的css代码中也进行转换，默认false
                 replace: true, // 是否转换后直接更换属性值
-                exclude: [/node_modules/], // 设置忽略文件，用正则做目录名匹配
+                // exclude: [/node_modules/], // 设置忽略文件，用正则做目录名匹配
                 landscape: false // 是否处理横屏情况
             }
         }

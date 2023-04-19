@@ -1,6 +1,15 @@
 // variables
 :root {
-    --background-color: #f8f8f8;
+    --background-color: #ffffff;
+    --color-primary: #409eff;
+    // 通用字体颜色
+    --primary-text-color: #2A314D;
     // 主要高亮颜色
     --primary-active-text-color: #FF5F01;
+    // 普通字体大小
+    --primary-text-size: 12px;
+    // 头部导航字体颜色
+    --header-text-color: #2A314D;
+    // 头部导航字体大小
+    --header-text-size: 16px;
 }

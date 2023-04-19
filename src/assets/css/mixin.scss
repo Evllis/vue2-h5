@@ -34,3 +34,53 @@
     flex-wrap: $fw;
     -webkit-flex-wrap: $fw;
 }
+
+// 透明度
+@mixin opacity($opacity: 100) {
+    $new_opacity: $opacity * 100;
+    opacity: $opacity;
+    filter : 'alpha(opacity=#{$new_opacity}%)';
+}
+
+@mixin border-radius($radius: px2vw(5)) {
+    @include pre(border-radius, $radius);
+}
+
+@mixin pre($style, $value) {
+    -webkit-#{$style}: #{$value};
+    -moz-#{$style}: #{$value};
+    -ms-#{$style}: #{$value};
+    -o-#{$style}: #{$value};
+    #{$style}: #{$value};
+}
+
+// 1像素边框
+@mixin border-1px($type: full, $color: #e5e5e5, $radius: 0, $opacity: 1, $borderType: solid) {
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 200% !important;
+        height: 200% !important;
+        color: $color;
+        -webkit-transform-origin: left top;
+        transform-origin: left top;
+        pointer-events: none;
+        box-sizing: border-box;
+        @include opacity($opacity);
+        @if $type == full {
+            border: 1px $borderType $color;
+            @include border-radius($radius);
+        }
+        @if $type == right {
+            border-right: 1px $borderType $color;
+        }
+        @if $type == bottom {
+            border-bottom: 1px $borderType $color;
+        }
+        @include pre(transform, scale(0.5));
+    }
+}

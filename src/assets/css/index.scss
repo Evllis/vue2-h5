@@ -1,9 +1,10 @@
 // @import './variables.scss';
+@import './reset.scss';
 @import './mixin.scss';
 
 html,
 body #app {
     color: #333333;
-    font-family: Arial, Helvetica, 'STHeiti STXihei', 'Microsoft YaHei', Tohoma, sans-serif;
+    font-family: 'PingFang SC', 'PingFang SC-Medium', 'STHeiti STXihei', 'Microsoft YaHei', Arial, Helvetica, Tohoma, sans-serif;
     background-color: var(--background-color);
 }
