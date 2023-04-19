@@ -2,7 +2,7 @@
     <div class="flex login">
         <div class="flex-1 relative login__body">
             <div class="flex items-center justify-center login__body-mask">
-                <h1 class="text-[var(--primary-active-text-color)]">登录注册</h1>
+                <h1 class="text-[var(--primary-active-color)]">登录注册</h1>
             </div>
             <Form @submit="onSubmit" class="relative h-full">
                 <Field v-model="phone" type="tel" name="手机号" label="" placeholder="请输入手机号码" class="mb-15px" />
@@ -12,14 +12,14 @@
                             :disabled="codeButton.data.disabled"
                             @click="getCode"
                             native-type="button"
-                            class="text-[var(--primary-active-text-color)] get-code"
+                            class="text-[var(--primary-active-color)] get-code"
                             >{{ codeButton.data.text }}</VanButton
                         >
                     </template>
                 </Field>
                 <Field name="agreement" class="w-full agreement-input">
                     <template #input>
-                        <VanCheckbox v-model="agreement" checked-color="var(--primary-active-text-color)">
+                        <VanCheckbox v-model="agreement" checked-color="var(--primary-active-color)">
                             <template #icon>
                                 <img class="img-icon" :src="agreement ? activeIcon : inactiveIcon" />
                             </template>
@@ -154,7 +154,7 @@ const onSubmit = values => {
         top: -5px;
     }
     .submit-button {
-        background-color: var(--primary-active-text-color);
+        background-color: var(--primary-active-color);
         margin-top: 23px;
         line-height: 45px;
         height: 45px;
@@ -186,7 +186,7 @@ const onSubmit = values => {
             margin-left: 7px;
         }
         a {
-            color: var(--primary-active-text-color);
+            color: var(--primary-active-color);
         }
     }
 }

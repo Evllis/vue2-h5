@@ -73,19 +73,8 @@ const onConfirm = val => {
             font-size: 13px;
         }
     }
-    .select-wrap {
-        padding: 12px 0 15px 0;
-        font-size: 16px;
-        &:active {
-            background-color: transparent;
-        }
-    }
-    :deep(.van-icon__image) {
-        width: 10px;
-        height: 10px;
-    }
     .submit-button {
-        background-color: var(--primary-active-text-color);
+        background-color: var(--primary-active-color);
         margin-top: 23px;
         line-height: 40px;
         height: 40px;

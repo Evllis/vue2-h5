@@ -64,13 +64,13 @@ export const asyncRouterMap = [
                 path: 'person',
                 name: 'Person',
                 component: () => import('@/views/Customer/person.vue'),
-                meta: { title: '法人', keepAlive: false }
+                meta: { title: '企业经办人信息', keepAlive: false }
             },
             {
                 path: 'operator',
                 name: 'Operator',
                 component: () => import('@/views/Customer/operator.vue'),
-                meta: { title: '经办人', keepAlive: false }
+                meta: { title: '企业门头社保信息', keepAlive: false }
             }
         ]
     }
