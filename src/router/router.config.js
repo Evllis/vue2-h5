@@ -107,5 +107,73 @@ export const asyncRouterMap = [
                 meta: { title: '入网清单', keepAlive: false }
             }
         ]
+    },
+    {
+        path: '/procurement',
+        component: () => import('@/views/Layouts/index'),
+        redirect: '/procurement/home',
+        meta: {
+            title: '采购清单',
+            keepAlive: false
+        },
+        children: [
+            {
+                path: 'home',
+                name: 'Procurement',
+                component: () => import('@/views/Procurement/index'),
+                meta: { title: '采购清单', keepAlive: false }
+            }
+        ]
+    },
+    {
+        path: '/receipt',
+        component: () => import('@/views/Layouts/index'),
+        redirect: '/receipt/home',
+        meta: {
+            title: '合计与收货',
+            keepAlive: false
+        },
+        children: [
+            {
+                path: 'home',
+                name: 'Receipt',
+                component: () => import('@/views/Receipt/index'),
+                meta: { title: '合计与收货', keepAlive: false }
+            }
+        ]
+    },
+    {
+        path: '/preview',
+        component: () => import('@/views/Layouts/index'),
+        redirect: '/preview/home',
+        meta: {
+            title: '协议预览',
+            keepAlive: false
+        },
+        children: [
+            {
+                path: 'home',
+                name: 'Preview',
+                component: () => import('@/views/Preview/index'),
+                meta: { title: '协议预览', keepAlive: false }
+            }
+        ]
+    },
+    {
+        path: '/audit',
+        component: () => import('@/views/Layouts/index'),
+        redirect: '/audit/home',
+        meta: {
+            title: '审核结果',
+            keepAlive: false
+        },
+        children: [
+            {
+                path: 'home',
+                name: 'Audit',
+                component: () => import('@/views/Audit/index'),
+                meta: { title: '审核结果', keepAlive: false }
+            }
+        ]
     }
 ]

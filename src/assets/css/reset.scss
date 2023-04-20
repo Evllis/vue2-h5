@@ -178,3 +178,20 @@
         color: var(--secondary-color);
     }
 }
+.van-popup {
+    &.custom {
+        padding: 36px 15px 39px 15px;
+        border-radius: 10px 10px 0 0;
+        .close-icon {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 14px;
+            color: #AEB3C1;
+            font-weight: 700;
+        }
+        .submit-footer {
+            padding: 15px 18px 0 18px;
+        }
+    }
+}

@@ -4,20 +4,19 @@
         <div class="body-container network-page__body">
             <div class="van-form">
                 <div class="form-wrap">
-                    <h3 class="fs-13">入网清单</h3>
+                    <h3 class="fs-13">采购清单</h3>
                     <div class="scroll-wrap">
                         <ul class="package-list">
                             <li class="package-item">
                                 <div class="flex items-center package-body">
                                     <div class="flex-1 flex flex-col package-wrap">
                                         <div class="flex package-info">
-                                            <span>冰激凌199套餐</span>
-                                            <span>199元/月</span>
-                                            <span>24期</span>
+                                            <span>华为P40</span>
+                                            <span>8+64G</span>
                                         </div>
                                         <div class="text-[var(--primary-active-color)]">
-                                            <span>电子券109元</span>
-                                            <span>办理数量x9999</span>
+                                            <span>共9999台</span>
+                                            <span>月支付金额50元/台</span>
                                         </div>
                                     </div>
                                     <div class="package-opts">
@@ -30,7 +29,6 @@
                                         >
                                     </div>
                                 </div>
-                                <div class="package-desc">2023年3月入网</div>
                             </li>
                         </ul>
                     </div>
@@ -38,30 +36,12 @@
                 <div class="flex submit-footer">
                     <VanButton block type="info" native-type="button" class="submit-button mr-10px">上一步</VanButton>
                     <VanButton block type="info" native-type="submit" class="submit-button" @click="showPicker = true"
-                        >新增套餐信息</VanButton
+                        >新增采购信息</VanButton
                     >
                 </div>
                 <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom">
                     <VanIcon name="cross" class="close-icon" @click="showPicker = false" />
                     <Form @submit="onSubmit">
-                        <Field
-                            v-model="packageData.data.name"
-                            name="name"
-                            label="套餐名称"
-                            placeholder="请输入套餐名称"
-                        />
-                        <Field
-                            v-model="packageData.data.number"
-                            name="number"
-                            label="办理数量"
-                            placeholder="请输入办理数量"
-                        />
-                        <Field
-                            v-model="packageData.data.monthlyPayment"
-                            name="monthlyPayment"
-                            label="月套餐费用(元)"
-                            placeholder="请输入月套餐费用(元)"
-                        />
                         <Field
                             v-model="packageData.data.period"
                             name="period"
@@ -69,16 +49,29 @@
                             placeholder="请输入合约期"
                         />
                         <Field
-                            v-model="packageData.data.voucherAmount"
-                            name="voucherAmount"
-                            label="定向电子券金额(元)"
-                            placeholder="请输入定向电子券金额(元)"
+                            v-model="packageData.data.category"
+                            name="category"
+                            label="品类"
+                            placeholder="请选择品类"
                         />
                         <Field
-                            v-model="packageData.data.tradeTime"
-                            name="tradeTime"
-                            label="入网日期"
-                            placeholder="请输入入网日期"
+                            v-model="packageData.data.brand"
+                            name="brand"
+                            label="品牌/型号"
+                            placeholder="请输入品牌/型号"
+                        />
+                        <Field
+                            v-model="packageData.data.dispose"
+                            name="dispose"
+                            label="配置"
+                            placeholder="请输入配置"
+                        />
+                        <Field v-model="packageData.data.count" name="count" label="数量" placeholder="请输入数量" />
+                        <Field
+                            v-model="packageData.data.monthlyPayment"
+                            name="monthlyPayment"
+                            label="月支付金额(元/台)"
+                            placeholder="请输入月支付金额(元/台)"
                         />
                         <div class="shadow-none p-0 submit-footer">
                             <VanButton block type="info" native-type="submit" class="submit-button">确定</VanButton>
@@ -99,13 +92,12 @@ import addIcon from '@/assets/icon/add-icon.png'
 
 const packageData = reactive({
     data: {
-        enterpriseId: '', // 企业id
-        name: '', // 套餐名称
-        number: '', // 办理数量
-        monthlyPayment: '', // 月套餐费用(元)
         period: '', // 合约期
-        voucherAmount: '', // 定向电子券金额(元)
-        tradeTime: '' // 入网时间
+        category: '', // 品类：1  手机 2  平板电脑 3  TV终端 4  路由 5  智能家居 6  监控设备 7  耳机 8  其它
+        brand: '', // 品牌/型号
+        dispose: '', // 配置
+        count: '', // 数量
+        monthlyPayment: '' // 月支付金额(元)
     }
 })
 // 社保缴纳方式：1-公司自缴 2-三方机构代办
