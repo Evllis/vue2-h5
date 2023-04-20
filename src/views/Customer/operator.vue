@@ -1,7 +1,7 @@
 <template>
     <div class="operator-page">
         <NavBar title="企业门头/社保信息" left-arrow />
-        <div class="operator-page__body">
+        <div class="body-container operator-page__body">
             <Form @submit="onSubmit">
                 <div class="form-wrap">
                     <Field name="doorHeadPhoto" label="门头照片" class="custom-wrap">
@@ -145,7 +145,6 @@ const onSubmit = values => {
 @import '../../assets/css/mixin.scss';
 .operator-page {
     &__body {
-        padding-top: 25px;
         :deep(.van-cell) {
             flex-direction: column;
             padding: 0;

@@ -2,6 +2,10 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import { cloneDeep } from 'lodash-es'
 import { constantRouterMap, asyncRouterMap } from './router.config.js'
+import { useTitle } from '@/hooks/useTitle'
+import { useNProgress } from '@/hooks/useNProgress'
+
+const { start, done } = useNProgress()
 
 // hack router push callback
 const originalPush = Router.prototype.push
@@ -21,6 +25,22 @@ const createRouter = () =>
     })
 
 const router = createRouter()
+
+// const whiteList = ['/login'] // 不重定向白名单
+
+// TODO 待更新路由守卫配置
+
+router.beforeEach(async (to, from, next) => {
+    start()
+    next()
+})
+
+router.afterEach(to => {
+    if (to && to.meta && to.meta.title) {
+        useTitle(to.meta.title)
+    }
+    done() // 结束Progress
+})
 
 // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 export function resetRouter() {

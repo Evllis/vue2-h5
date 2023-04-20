@@ -1,7 +1,7 @@
 <template>
     <div class="person-page">
         <NavBar title="企业经办人信息" left-arrow />
-        <div class="person-page__body">
+        <div class="body-container person-page__body">
             <Form @submit="onSubmit">
                 <div class="form-wrap">
                     <Field
@@ -110,7 +110,6 @@ const onSubmit = values => {
 @import '../../assets/css/mixin.scss';
 .person-page {
     &__body {
-        padding-top: 25px;
         :deep(.van-cell) {
             flex-direction: column;
             padding: 0;

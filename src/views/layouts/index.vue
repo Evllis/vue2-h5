@@ -18,10 +18,19 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .layout {
     & > * {
         height: 100vh;
+        display: flex;
+        flex-direction: column;
+        & > .body-container,
+        & > .body-container > .van-form,
+        .form-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
     }
 }
 </style>

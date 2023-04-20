@@ -1,7 +1,7 @@
 <template>
     <div class="enterprise-page">
         <NavBar title="企业基本信息" left-arrow />
-        <div class="enterprise-page__body">
+        <div class="body-container enterprise-page__body">
             <Form @submit="onSubmit">
                 <div class="form-wrap">
                     <Field v-model="formData.data.name" name="name" label="企业名称" placeholder="请输入您的企业名称" />
@@ -133,7 +133,6 @@ const onSubmit = values => {
 @import '../../assets/css/mixin.scss';
 .enterprise-page {
     &__body {
-        padding-top: 25px;
         :deep(.van-cell) {
             flex-direction: column;
             padding: 0;

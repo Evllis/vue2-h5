@@ -73,5 +73,39 @@ export const asyncRouterMap = [
                 meta: { title: '企业门头社保信息', keepAlive: false }
             }
         ]
+    },
+    {
+        path: '/cooperate',
+        component: () => import('@/views/Layouts/index'),
+        redirect: '/cooperate/home',
+        meta: {
+            title: '与联通合作相关信息',
+            keepAlive: false
+        },
+        children: [
+            {
+                path: 'home',
+                name: 'Cooperate',
+                component: () => import('@/views/Cooperate/index'),
+                meta: { title: '与联通合作相关信息', keepAlive: false }
+            }
+        ]
+    },
+    {
+        path: '/network',
+        component: () => import('@/views/Layouts/index'),
+        redirect: '/network/home',
+        meta: {
+            title: '入网清单',
+            keepAlive: false
+        },
+        children: [
+            {
+                path: 'home',
+                name: 'Network',
+                component: () => import('@/views/Network/index'),
+                meta: { title: '入网清单', keepAlive: false }
+            }
+        ]
     }
 ]
