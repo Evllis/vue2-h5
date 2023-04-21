@@ -50,8 +50,9 @@ service.interceptors.response.use(
     },
     error => {
         Toast.clear()
-        console.log('err' + error) // for debug
-        return Promise.reject(error)
+        const data = error?.response?.data
+        Toast.fail(data.returnMsg || error.message)
+        return Promise.reject(data || error)
     }
 )
 

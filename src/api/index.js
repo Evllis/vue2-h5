@@ -5,7 +5,8 @@
 // }
 const api = {
     Login: {
-        sendMsg: '/commercialenterpriseservice/login/sendMsg'
+        userLogin: '/api/commercialenterpriseservice/login',
+        sendMsg: '/api/commercialenterpriseservice/login/sendMsg'
     }
 }
 

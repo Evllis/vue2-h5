@@ -46,6 +46,7 @@ module.exports = defineConfig({
     productionSourceMap: false, // 如果你不需要生产环境的 source map，可以将其设置为 false 以加速生产环境构建。
     devServer: {
         port: 9020, // 端口
+        host: '0.0.0.0',
         open: false, // 启动后打开浏览器
         client: {
             overlay: {
@@ -56,13 +57,22 @@ module.exports = defineConfig({
         },
         proxy: {
             //配置跨域
+            // '/api': {
+            //     target: 'https://www.techwis.cn',
+            //     // ws:true,
+            //     changOrigin: true,
+            //     secure: false,
+            //     pathRewrite: {
+            //         '^/api': '/'
+            //     }
+            // }
             '/api': {
                 target: 'https://www.techwis.cn',
-                // ws:true,
-                changOrigin: true,
+                changeOrigin: true,
                 secure: false,
+                ws: true,
                 pathRewrite: {
-                    '^/api': '/'
+                    '^/api': ''
                 }
             }
         }

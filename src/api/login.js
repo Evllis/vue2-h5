@@ -11,6 +11,15 @@ export const sendMsg = data => {
     })
 }
 
+// 用户登录注册
+export const userLogin = data => {
+    return request({
+        url: api.Login.userLogin,
+        method: 'post',
+        data
+    })
+}
+
 // // 登录
 // export function login(data) {
 //     return request({

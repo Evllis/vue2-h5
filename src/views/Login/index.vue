@@ -4,9 +4,26 @@
             <div class="flex items-center justify-center login__body-mask">
                 <h1 class="text-[var(--primary-active-color)]">登录注册</h1>
             </div>
-            <Form @submit="onSubmit" class="relative h-full">
-                <Field v-model="phone" type="tel" name="手机号" label="" placeholder="请输入手机号码" class="mb-15px" />
-                <Field v-model="code" type="digit" name="验证码" label="" placeholder="请输入验证码" maxlength="6">
+            <Form @submit="onSubmit" class="relative h-full" ref="formRef">
+                <Field
+                    v-model="phone"
+                    type="tel"
+                    name="phone"
+                    label=""
+                    placeholder="请输入手机号码"
+                    class="mb-15px flex-row error-pos"
+                    :rules="rules.phone"
+                />
+                <Field
+                    v-model="code"
+                    type="digit"
+                    name="code"
+                    label=""
+                    placeholder="请输入验证码"
+                    maxlength="6"
+                    class="flex-row error-pos"
+                    :rules="rules.code"
+                >
                     <template #button>
                         <VanButton
                             :disabled="codeButton.data.disabled"
@@ -17,39 +34,62 @@
                         >
                     </template>
                 </Field>
-                <Field name="agreement" class="w-full agreement-input">
+                <Field name="agreement" class="w-full m-0 agreement-input">
                     <template #input>
-                        <VanCheckbox v-model="agreement" checked-color="var(--primary-active-color)">
+                        <VanCheckbox v-model="agreement" checked-color="var(--primary-active-color)" label-disabled>
                             <template #icon>
                                 <img class="img-icon" :src="agreement ? activeIcon : inactiveIcon" />
                             </template>
                             <template #default>
                                 我已阅读并同意
-                                <a href="">《信息授权协议》</a>
+                                <span @click="show = true">《信息授权协议》</span>
                             </template>
                         </VanCheckbox>
                     </template>
                 </Field>
                 <div>
-                    <VanButton block type="info" native-type="submit" class="submit-button">提交</VanButton>
+                    <VanButton block type="info" native-type="submit" class="submit-button">登录/注册</VanButton>
                 </div>
             </Form>
         </div>
+        <Popup
+            v-model="show"
+            position="right"
+            closeable
+            :style="{ width: '100%', height: '100%' }"
+            get-container="#app"
+        >
+            <Agreement />
+        </Popup>
     </div>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { Form, Field, Toast } from 'vant'
-import { isPhone } from '@/utils/validate'
+import { Form, Field, Toast, Popup } from 'vant'
+import { isPhone, digitInteger } from '@/utils/validate'
 import { useRouter } from 'vue-router/composables'
+import { isEmpty } from 'lodash-es'
 
-import { sendMsg } from '@/api/login'
+import Agreement from '@/components/Agreement'
+
+import { sendMsg, userLogin } from '@/api/login'
 
 import inactiveIcon from '@/assets/icon/checkbox-icon.png'
 import activeIcon from '@/assets/icon/checkbox-checked-icon.png'
 
+const formRef = ref()
 const router = useRouter()
+const rules = reactive({
+    phone: [
+        { required: true, message: '请填写手机号' },
+        { validator: isPhone, message: '请输入正确的手机号' }
+    ],
+    code: [
+        { required: true, message: '请填写验证码' },
+        { validator: digitInteger, message: '请输入正确的验证码' }
+    ]
+})
 const agreement = ref(false)
 const phone = ref('')
 const code = ref('')
@@ -61,19 +101,27 @@ const codeButton = reactive({
 })
 const codeTimer = ref(0)
 const codeTime = ref(60)
+const show = ref(false)
+
+// result
+const resultPhoneCode = ref('')
 
 // 获取手机验证码
-const getCode = async () => {
-    if (!isPhone(phone.value)) {
-        Toast.fail('请输入正确的手机号')
-        return false
-    }
-    if (isPhone(phone.value)) {
-        const res = await sendMsg({ phone }).catch(() => {})
-        console.log(phone.value, res)
-        renderMobileCode()
-        // renderMobileCode
-    }
+const getCode = () => {
+    formRef.value
+        .validate('phone')
+        .then(async () => {
+            const res = await sendMsg({ phone: phone.value }).catch(() => {})
+            if (!isEmpty(res) && +res.returnCode === 1000) {
+                Toast.success('发送成功')
+                codeButton.data.disabled = true
+                resultPhoneCode.value = res.data || ''
+                renderMobileCode()
+                return false
+            }
+            res.returnMsg || Toast.fail(res.returnMsg)
+        })
+        .catch(() => {})
 }
 
 const renderMobileCode = () => {
@@ -93,13 +141,18 @@ const renderMobileCode = () => {
     }, 1000)
 }
 
-const onSubmit = values => {
-    router.push({ name: 'Customer' })
-    return false
+const onSubmit = async values => {
     if (!agreement.value) {
         Toast.fail('请阅读并同意协议')
         return false
     }
+    try {
+        await userLogin({ phone: phone.value, code: '000000' })
+    } catch (err) {
+        return false
+    }
+    Toast.success('登录成功')
+    // router.push({ name: 'Customer' })
     console.log(555555, values)
 }
 </script>
@@ -130,7 +183,7 @@ const onSubmit = values => {
             transform: translateX(-50%);
         }
     }
-    .van-cell {
+    :deep(.van-cell) {
         display: flex;
         align-items: center;
         border-radius: 10px;
@@ -138,6 +191,15 @@ const onSubmit = values => {
         padding: 0 15px;
         background-color: #f4f8fb;
         font-size: 16px;
+        .van-field__body {
+            padding-bottom: 0;
+            &::after {
+                display: none;
+            }
+        }
+        .van-field__control {
+            line-height: inherit;
+        }
     }
     .get-code {
         border: 0;
@@ -151,7 +213,7 @@ const onSubmit = values => {
         font-size: var(--primary-text-size);
         position: absolute;
         right: -5px;
-        top: -5px;
+        top: -9px;
     }
     .submit-button {
         background-color: var(--primary-active-color);
@@ -162,6 +224,7 @@ const onSubmit = values => {
         font-size: 15px;
         border-radius: 10px;
         border: 0;
+        letter-spacing: 1px;
     }
     .agreement-input {
         position: absolute;
@@ -184,8 +247,9 @@ const onSubmit = values => {
         :deep(.van-checkbox__label) {
             color: #b7b7b7;
             margin-left: 7px;
+            font-size: 12px;
         }
-        a {
+        span {
             color: var(--primary-active-color);
         }
     }

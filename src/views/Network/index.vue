@@ -32,6 +32,106 @@
                                 </div>
                                 <div class="package-desc">2023年3月入网</div>
                             </li>
+                            <li class="package-item">
+                                <div class="flex items-center package-body">
+                                    <div class="flex-1 flex flex-col package-wrap">
+                                        <div class="flex package-info">
+                                            <span>冰激凌199套餐</span>
+                                            <span>199元/月</span>
+                                            <span>24期</span>
+                                        </div>
+                                        <div class="text-[var(--primary-active-color)]">
+                                            <span>电子券109元</span>
+                                            <span>办理数量x9999</span>
+                                        </div>
+                                    </div>
+                                    <div class="package-opts">
+                                        <VanButton
+                                            plain
+                                            type="primary"
+                                            native-type="button"
+                                            color="var(--primary-active-color)"
+                                            >编辑</VanButton
+                                        >
+                                    </div>
+                                </div>
+                                <div class="package-desc">2023年3月入网</div>
+                            </li>
+                            <li class="package-item">
+                                <div class="flex items-center package-body">
+                                    <div class="flex-1 flex flex-col package-wrap">
+                                        <div class="flex package-info">
+                                            <span>冰激凌199套餐</span>
+                                            <span>199元/月</span>
+                                            <span>24期</span>
+                                        </div>
+                                        <div class="text-[var(--primary-active-color)]">
+                                            <span>电子券109元</span>
+                                            <span>办理数量x9999</span>
+                                        </div>
+                                    </div>
+                                    <div class="package-opts">
+                                        <VanButton
+                                            plain
+                                            type="primary"
+                                            native-type="button"
+                                            color="var(--primary-active-color)"
+                                            >编辑</VanButton
+                                        >
+                                    </div>
+                                </div>
+                                <div class="package-desc">2023年3月入网</div>
+                            </li>
+                            <li class="package-item">
+                                <div class="flex items-center package-body">
+                                    <div class="flex-1 flex flex-col package-wrap">
+                                        <div class="flex package-info">
+                                            <span>冰激凌199套餐</span>
+                                            <span>199元/月</span>
+                                            <span>24期</span>
+                                        </div>
+                                        <div class="text-[var(--primary-active-color)]">
+                                            <span>电子券109元</span>
+                                            <span>办理数量x9999</span>
+                                        </div>
+                                    </div>
+                                    <div class="package-opts">
+                                        <VanButton
+                                            plain
+                                            type="primary"
+                                            native-type="button"
+                                            color="var(--primary-active-color)"
+                                            >编辑</VanButton
+                                        >
+                                    </div>
+                                </div>
+                                <div class="package-desc">2023年3月入网</div>
+                            </li>
+                            <li class="package-item">
+                                <div class="flex items-center package-body">
+                                    <div class="flex-1 flex flex-col package-wrap">
+                                        <div class="flex package-info">
+                                            <span>冰激凌199套餐</span>
+                                            <span>199元/月</span>
+                                            <span>24期</span>
+                                        </div>
+                                        <div class="text-[var(--primary-active-color)]">
+                                            <span>电子券109元</span>
+                                            <span>办理数量x9999</span>
+                                        </div>
+                                    </div>
+                                    <div class="package-opts">
+                                        <VanButton
+                                            plain
+                                            type="primary"
+                                            native-type="button"
+                                            color="var(--primary-active-color)"
+                                            >编辑</VanButton
+                                        >
+                                    </div>
+                                </div>
+                                <div class="package-desc">2023年3月入网</div>
+                            </li>
                         </ul>
                     </div>
                 </div>
