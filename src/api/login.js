@@ -12,9 +12,9 @@ export const sendMsg = data => {
 }
 
 // 用户登录注册
-export const userLogin = data => {
+export const loginRegister = data => {
     return request({
-        url: api.Login.userLogin,
+        url: api.Login.loginRegister,
         method: 'post',
         data
     })

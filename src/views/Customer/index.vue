@@ -4,22 +4,18 @@
         <div class="flex customer-index__body">
             <div class="flex-1 customer-index__wrap">
                 <h3>您的身份</h3>
-                <Field
-                    :value="customer"
-                    :right-icon="inactiveIcon"
-                    readonly
-                    clickable
-                    name="picker"
-                    placeholder=""
-                    class="select-wrap"
-                    @click="showPicker = true"
-                />
-                <div>
-                    <VanButton block class="submit-button">确定</VanButton>
+                <div id="drop-container" class="drop-container">
+                    <DropdownMenu>
+                        <DropdownItem
+                            v-model="customer"
+                            :options="columns"
+                            get-container="#drop-container"
+                        ></DropdownItem>
+                    </DropdownMenu>
                 </div>
-                <Popup v-model="showPicker" position="bottom" get-container="#app">
-                    <Picker show-toolbar :columns="columns" @confirm="onConfirm" @cancel="showPicker = false" />
-                </Popup>
+                <div>
+                    <VanButton block class="submit-button" native-type="button" @click="submitData">确定</VanButton>
+                </div>
             </div>
         </div>
     </div>
@@ -27,18 +23,28 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Field, Popup, Picker, NavBar } from 'vant'
+import { NavBar, DropdownMenu, DropdownItem } from 'vant'
+import { useRouter } from 'vue-router/composables'
 
-import inactiveIcon from '@/assets/icon/select-icon.png'
+import { setRole } from '@/api/customer'
 
-const customer = ref('该企业的法人代表')
-const showPicker = ref(false)
+const router = useRouter()
+const customer = ref('1')
 // 身份角色 1-法人 2-经办人
-const columns = ref(['该企业的法人代表', '该企业的经办人'])
+const columns = ref([
+    { text: '该企业的法人代表', value: '1' },
+    { text: '该企业的经办人', value: '2' }
+])
 
-const onConfirm = val => {
-    customer.value = val
-    showPicker.value = false
+const submitData = async () => {
+    try {
+        await setRole({
+            role: customer.value
+        })
+        setTimeout(() => router.push({ name: 'Enterprise' }), 1000)
+    } catch (err) {
+        return false
+    }
 }
 </script>
 
@@ -71,6 +77,7 @@ const onConfirm = val => {
         color: var(--primary-text-color);
         h3 {
             font-size: 13px;
+            margin-bottom: 12px;
         }
     }
     .submit-button {

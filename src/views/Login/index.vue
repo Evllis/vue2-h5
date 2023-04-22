@@ -65,18 +65,23 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { Form, Field, Toast, Popup } from 'vant'
+import { ref, reactive, getCurrentInstance } from 'vue'
+import { Form, Field, Popup } from 'vant'
 import { isPhone, digitInteger } from '@/utils/validate'
 import { useRouter } from 'vue-router/composables'
 import { isEmpty } from 'lodash-es'
+// import { useCache } from '@/hooks/useCache'
 
 import Agreement from '@/components/Agreement'
 
-import { sendMsg, userLogin } from '@/api/login'
+import { sendMsg, loginRegister } from '@/api/login'
 
 import inactiveIcon from '@/assets/icon/checkbox-icon.png'
 import activeIcon from '@/assets/icon/checkbox-checked-icon.png'
+
+const instance = getCurrentInstance()
+const { $toast, $store } = instance.proxy
+// const { wsCache } = useCache()
 
 const formRef = ref()
 const router = useRouter()
@@ -113,13 +118,13 @@ const getCode = () => {
         .then(async () => {
             const res = await sendMsg({ phone: phone.value }).catch(() => {})
             if (!isEmpty(res) && +res.returnCode === 1000) {
-                Toast.success('发送成功')
+                $toast.success('发送成功')
                 codeButton.data.disabled = true
                 resultPhoneCode.value = res.data || ''
                 renderMobileCode()
                 return false
             }
-            res.returnMsg || Toast.fail(res.returnMsg)
+            res.returnMsg || $toast.fail(res.returnMsg)
         })
         .catch(() => {})
 }
@@ -143,17 +148,20 @@ const renderMobileCode = () => {
 
 const onSubmit = async values => {
     if (!agreement.value) {
-        Toast.fail('请阅读并同意协议')
+        $toast('请阅读并同意协议')
         return false
     }
     try {
-        await userLogin({ phone: phone.value, code: '000000' })
+        const res = await loginRegister({ phone: phone.value, code: '000000' }).catch(() => {})
+        if (!isEmpty(res)) {
+            // wsCache.set('token', res.data.token)
+            $store.dispatch('setToken', res.data.token)
+            setTimeout(() => router.push({ name: 'Customer' }), 1000)
+        }
     } catch (err) {
         return false
     }
-    Toast.success('登录成功')
-    // router.push({ name: 'Customer' })
-    console.log(555555, values)
+    console.log(values)
 }
 </script>
 

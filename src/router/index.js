@@ -3,9 +3,9 @@ import Router from 'vue-router'
 import { cloneDeep } from 'lodash-es'
 import { constantRouterMap, asyncRouterMap } from './router.config.js'
 import { useTitle } from '@/hooks/useTitle'
-import { useNProgress } from '@/hooks/useNProgress'
+// import { useCache } from '@/hooks/useCache'
 
-const { start, done } = useNProgress()
+// const { wsCache } = useCache()
 
 // hack router push callback
 const originalPush = Router.prototype.push
@@ -31,7 +31,18 @@ const router = createRouter()
 // TODO 待更新路由守卫配置
 
 router.beforeEach(async (to, from, next) => {
-    start()
+    // const token = router.app.$options.store.getters.token
+    // if (to.path !== '/login' && !token) {
+    //     next({
+    //         path: '/login'
+    //     })
+    // } else {
+    //     if (to.path === '/login' && token) {
+    //         next('/dashboard')
+    //     } else {
+    //         next()
+    //     }
+    // }
     next()
 })
 
@@ -39,7 +50,6 @@ router.afterEach(to => {
     if (to && to.meta && to.meta.title) {
         useTitle(to.meta.title)
     }
-    done() // 结束Progress
 })
 
 // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465

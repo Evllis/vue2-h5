@@ -26,3 +26,20 @@ export const isPhone = phone => /^1(3\d|4[5-9]|5[0-35-9]|6[2567]|7[0-8]|8\d|9[0-
  * @returns Boolean
  */
 export const digitInteger = number => /^\d{6}$/g.test(number)
+
+/**
+ * 禁止输入表情符号、特殊符号, 字符限制: 4-50个字符
+ */
+export const nonCharacter = val => /^(?!_)(?!.*?_$)[a-zA-Z0-9\u4e00-\u9fa5]{4,50}$/.test(val)
+
+/**
+ * 法人姓名
+ */
+export const isName = val => /^[\u4E00-\u9FA5]{2,50}$/gi.test(val)
+
+/**
+ * 法人身份证
+ * @param { String } val 15-18位身份证号
+ * @returns Boolean
+ */
+export const isIdCard = val => /(^\d{15}$)|(^\d{17}([0-9]|X)$)/.test(val)

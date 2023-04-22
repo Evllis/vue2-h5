@@ -3,15 +3,19 @@
         <NavBar title="企业经办人信息" left-arrow />
         <div class="body-container person-page__body">
             <Form @submit="onSubmit">
-                <div class="form-wrap">
-                    <Field
-                        name="corporateEmpower"
-                        label="您是该企业的经办人，需要额外提供以下资料："
-                        class="custom-wrap"
-                    >
+                <div class="form-wrap pt-25px">
+                    <Field label="您是该企业的经办人，需要额外提供以下资料：" class="custom-wrap">
                         <template #input>
-                            <Uploader v-model="formData.data.corporateEmpower" :after-read="afterRead">
-                                <div class="flex items-center justify-center h-full">
+                            <Uploader
+                                v-model="corporateEmpower"
+                                name="corporateEmpower"
+                                :after-read="afterRead"
+                                @delete="deleteRead"
+                            >
+                                <div
+                                    v-show="!formData.data.corporateEmpower.length"
+                                    class="flex items-center justify-center h-full"
+                                >
                                     <div class="flex flex-col items-center">
                                         <Icon :name="cameraIcon" />
                                         <span class="normal-text">点击上传法人授权书</span>
@@ -72,12 +76,14 @@
 
 <script setup>
 import { NavBar, Form, Field, Uploader, Icon } from 'vant'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 
 import cameraIcon from '@/assets/icon/camera-icon.png'
 import cardFront from '@/assets/img/card-front.png'
 import cardBack from '@/assets/img/card-back.png'
 
+const operatorIdFront = ref([])
+const corporateEmpower = ref([])
 const formData = reactive({
     data: {
         corporateEmpower: [],
@@ -105,94 +111,3 @@ const onSubmit = values => {
     console.log(555555, values)
 }
 </script>
-
-<style lang="scss" scoped>
-@import '../../assets/css/mixin.scss';
-.person-page {
-    &__body {
-        :deep(.van-cell) {
-            flex-direction: column;
-            padding: 0;
-            margin-bottom: 25px;
-            &:last-child {
-                margin-bottom: 0;
-            }
-            .van-field__label {
-                font-size: 13px;
-                margin-right: 0;
-                line-height: 13px;
-                margin-bottom: 12px;
-                width: 100%;
-            }
-            .van-field__body {
-                font-size: 16px;
-                padding-bottom: 15px;
-                @include border-1px(bottom, #e5e5e5);
-            }
-            .van-field__control {
-                height: 16px;
-                line-height: 16px;
-            }
-        }
-        .form-wrap {
-            padding: 0 15px;
-            padding-bottom: 30px;
-        }
-        .submit-footer {
-            padding: 18px 32px 39px 32px;
-            box-shadow: 0px -2px 6px 0px rgba(227, 227, 227, 0.5);
-            .submit-button {
-                width: 100%;
-                height: 43px;
-                border-radius: 8px;
-                color: white;
-                font-size: 15px;
-                border: 0;
-                background-color: var(--primary-active-color);
-                &:disabled {
-                    background-color: #ffccae;
-                }
-            }
-        }
-    }
-    :deep(.van-cell.custom-wrap) {
-        &.card {
-            .van-field__control {
-                height: 108px;
-                .van-icon__image {
-                    width: 95px;
-                    height: 62px;
-                }
-                .normal-text {
-                    margin-top: 9px;
-                    font-size: 12px;
-                }
-            }
-        }
-        .van-field__control {
-            height: 173px;
-            border-radius: 5px;
-            justify-content: center;
-            .van-icon__image {
-                width: 20px;
-                height: 20px;
-            }
-            .normal-text {
-                color: #9ea3ac;
-                font-size: 13px;
-                margin-top: 13px;
-                line-height: 13px;
-            }
-            .van-uploader {
-                background-color: #f3f7ff;
-            }
-            .van-uploader,
-            .van-uploader__wrapper,
-            .van-uploader__input-wrapper {
-                width: 100%;
-                height: 100%;
-            }
-        }
-    }
-}
-</style>
