@@ -2,52 +2,30 @@
     <div class="operator-page">
         <NavBar title="与联通合作相关信息" left-arrow />
         <div class="body-container operator-page__body">
-            <Form @submit="onSubmit">
-                <div class="form-wrap">
-                    <Field name="unicomContractUrls" label="集团客户服务合同" class="custom-wrap item">
-                        <template #input>
-                            <div class="upload-container">
-                                <h3>贵司与联通关键合同页面（3-6张）</h3>
-                                <div class="flex justify-between flex-wrap upload-list">
-                                    <div class="upload-item">
-                                        <Uploader v-model="formData.data.unicomContractUrls" :after-read="afterRead">
-                                            <div class="flex items-center justify-center h-full">
-                                                <div class="flex flex-col items-center">
-                                                    <Icon :name="addIcon" />
-                                                </div>
-                                            </div>
-                                        </Uploader>
-                                    </div>
-                                    <div class="upload-item">
-                                        <Uploader v-model="formData.data.unicomContractUrls" :after-read="afterRead">
-                                            <div class="flex items-center justify-center h-full">
-                                                <div class="flex flex-col items-center">
-                                                    <Icon :name="addIcon" />
-                                                </div>
-                                            </div>
-                                        </Uploader>
-                                    </div>
-                                    <div class="upload-item">
-                                        <Uploader v-model="formData.data.unicomContractUrls" :after-read="afterRead">
-                                            <div class="flex items-center justify-center h-full">
-                                                <div class="flex flex-col items-center">
-                                                    <Icon :name="addIcon" />
-                                                </div>
-                                            </div>
-                                        </Uploader>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                    </Field>
+            <Form @submit="onSubmit" ref="formRef">
+                <div class="form-wrap pt-25px">
+                    <div class="custom-label-container mb-25px">
+                        <h3 class="custom-label">集团客户服务合同</h3>
+                        <div class="upload-container">
+                            <h3>贵司与联通关键合同页面（3-6张）</h3>
+                            <Uploader
+                                v-model="unicomContractUrls"
+                                :after-read="afterRead"
+                                :max-count="6"
+                                :upload-icon="addIcon"
+                                @delete="deleteRead"
+                                name="unicomContractUrls"
+                            />
+                        </div>
+                    </div>
                     <Field
-                        :value="formData.data.unicomProvince"
+                        v-model="formData.data.unicomProvince"
                         :right-icon="inactiveIcon"
+                        label="归属联通省公司"
                         readonly
                         clickable
-                        label="归属联通省公司"
-                        name="unicomProvince"
-                        placeholder="请输入归属联通省公司"
+                        name="picker"
+                        placeholder="请选择归属联通省公司"
                         class="select-wrap"
                         @click="showPicker = true"
                     />
@@ -56,43 +34,84 @@
                         name="unicomManagerNumber"
                         label="客户经理工号"
                         placeholder="请输入客户经理工号"
+                        :rules="rules.unicomManagerNumber"
+                        @change="changeValidate('unicomManagerNumber')"
                     />
                     <Field
                         v-model="formData.data.unicomManagerName"
                         name="unicomManagerName"
                         label="客户经理姓名"
                         placeholder="请输入客户经理姓名"
+                        :rules="rules.unicomManagerName"
+                        @change="changeValidate('unicomManagerName')"
                     />
                     <Field
                         v-model="formData.data.unicomManagerPhone"
                         name="unicomManagerPhone"
                         label="客户经理联系方式"
                         placeholder="请输入客户经理联系方式"
+                        :rules="rules.unicomManagerPhone"
+                        @change="changeValidate('unicomManagerPhone')"
                     />
                 </div>
                 <div class="flex submit-footer">
-                    <VanButton block disabled type="info" native-type="button" class="submit-button mr-10px"
-                        >上一步</VanButton
+                    <VanButton block type="info" native-type="button" class="submit-button mr-10px">上一步</VanButton>
+                    <VanButton block :disabled="submitDisabled" type="info" native-type="submit" class="submit-button"
+                        >下一步</VanButton
                     >
-                    <VanButton block disabled type="info" native-type="submit" class="submit-button">下一步</VanButton>
                 </div>
-                <Popup v-model="showPicker" position="bottom" get-container="#app">
-                    <Picker show-toolbar :columns="columns" @confirm="onConfirm" @cancel="showPicker = false" />
-                </Popup>
             </Form>
         </div>
+        <Popup v-model="showPicker" position="bottom" get-container="#app">
+            <Area :area-list="areaList.data" :columns-num="2" @confirm="onConfirm" @cancel="showPicker = false" />
+            <!-- <Picker show-toolbar :columns="columns" @confirm="onConfirm" @cancel="showPicker = false" /> -->
+        </Popup>
     </div>
 </template>
 
 <script setup>
-import { NavBar, Form, Field, Popup, Picker, Uploader, Icon } from 'vant'
-import { reactive, ref } from 'vue'
+import { NavBar, Form, Field, Popup, Area, Uploader } from 'vant'
+import { reactive, ref, onMounted, getCurrentInstance } from 'vue'
+import router from '@/router'
+
+import { regionInfo, uploadFile } from '@/api/common'
+import { submitEnterpriseUnicomInfo } from '@/api/cooperate'
+
+import { isLetterNumber, isName, isPhone } from '@/utils/validate'
 
 import inactiveIcon from '@/assets/icon/select-icon.png'
 import addIcon from '@/assets/icon/add-icon.png'
+import { isEmpty } from 'lodash-es'
 
-// 社保缴纳方式：1-公司自缴 2-三方机构代办
-const columns = ref(['该企业的法人代表', '该企业的经办人'])
+const instance = getCurrentInstance()
+const { $toast, $store } = instance.proxy
+
+const formRef = ref()
+const selectAreaData = ref([])
+const showPicker = ref(false)
+const unicomContractUrls = ref([])
+
+const areaList = reactive({
+    data: {
+        province_list: {},
+        city_list: {}
+    }
+})
+const rules = reactive({
+    unicomManagerNumber: [
+        { required: true, message: '请填写客户经理工号' },
+        { pattern: /^.{6,50}$/, message: '长度必须是6-50位' },
+        { validator: isLetterNumber, message: '请输入正确的客户经理工号' }
+    ],
+    unicomManagerName: [
+        { required: true, message: '请填写客户经理姓名' },
+        { validator: isName, message: '请输入正确的客户经理姓名' }
+    ],
+    unicomManagerPhone: [
+        { required: true, message: '请填写客户经理联系方式' },
+        { validator: isPhone, message: '请输入正确的客户经理联系方式' }
+    ]
+})
 const formData = reactive({
     data: {
         unicomContractUrls: [],
@@ -102,110 +121,129 @@ const formData = reactive({
         unicomManagerPhone: ''
     }
 })
-const showPicker = ref(false)
+const submitDisabled = ref(true)
 
-const afterRead = file => {
-    // 此时可以自行将文件上传至服务器
-    console.log(file)
+const changeValidate = type => {
+    formRef.value
+        .validate(type)
+        .then(async () => {
+            updateSubmitButton()
+        })
+        .catch(() => {
+            console.log(55555)
+            updateSubmitButton()
+        })
+}
+
+const afterRead = async (file, details) => {
     file.status = 'uploading'
     file.message = '上传中...'
-
-    setTimeout(() => {
+    try {
+        const res = await uploadFile({
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            },
+            data: {
+                file: file.file
+            },
+            hideloading: true
+        })
+        if (!isEmpty(res.data)) {
+            file.status = 'done'
+            file.message = '上传完成'
+            unicomContractUrls.value[unicomContractUrls.value.length - 1].imgUrl = res.data[0]
+            formData.data[details.name] = unicomContractUrls.value.map(item => item.imgUrl)
+            updateSubmitButton()
+        }
+    } catch (err) {
         file.status = 'failed'
         file.message = '上传失败'
-    }, 1000)
+        updateSubmitButton()
+    }
+}
+
+const updateSubmitButton = () => {
+    let status = true
+    for (const key in formData.data) {
+        const val = formData.data[key]
+        if (!val.length) {
+            status = false
+            break
+        }
+        if (key === 'unicomContractUrls' && val.length < 3) {
+            status = false
+            break
+        }
+        if (
+            (key === 'unicomManagerNumber' && (!/^.{6,50}$/.test(val) || !isLetterNumber(val))) ||
+            (key === 'unicomManagerName' && !isName(val)) ||
+            (key === 'unicomManagerPhone' && !isPhone(val))
+        ) {
+            status = false
+            break
+        }
+    }
+    submitDisabled.value = !status
+}
+
+const deleteRead = (file, details) => {
+    formData.data[details.name] = unicomContractUrls.value.map(item => item.imgUrl)
+    updateSubmitButton()
 }
 
 const onConfirm = val => {
-    formData.data.industryType = val
+    selectAreaData.value = val
+    formData.data.unicomProvince = `${val[0].name} / ${val[1].name}`
     showPicker.value = false
+    updateSubmitButton()
+}
+const onSubmit = async () => {
+    // const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = '1650026719275147264'
+    if (enterpriseId) {
+        const data = Object.assign(formData.data, {
+            enterpriseId,
+            unicomProvinceCode: selectAreaData.value[0].code,
+            unicomCity: selectAreaData.value[1].name,
+            unicomCityCode: selectAreaData.value[1].code
+        })
+        data['unicomProvince'] = selectAreaData.value[0].name
+        try {
+            await submitEnterpriseUnicomInfo({
+                data
+            })
+            setTimeout(() => router.push({ name: 'Network' }), 1500)
+        } catch (err) {
+            return false
+        }
+    } else {
+        $toast.fail({
+            message: '请重新登录',
+            onClose: () => {
+                router.push({ name: 'Login' })
+            }
+        })
+    }
 }
 
-const onSubmit = values => {
-    console.log(555555, values)
-}
+onMounted(async () => {
+    try {
+        const res = await regionInfo({
+            hideloading: true
+        })
+        if (res && !isEmpty(res.data)) {
+            res.data.forEach(item => {
+                areaList.data.province_list[item.code] = item.name
+                const childrenCity = {}
+                item.child.forEach(elem => {
+                    childrenCity[elem.code] = elem.name
+                })
+                areaList.data.city_list = Object.assign(areaList.data.city_list, childrenCity)
+            })
+            console.log(222222, areaList.data)
+        }
+    } catch (err) {
+        return false
+    }
+})
 </script>
-
-<style lang="scss" scoped>
-@import '../../assets/css/mixin.scss';
-.operator-page {
-    &__body {
-        padding-top: 25px;
-        :deep(.van-cell) {
-            flex-direction: column;
-            padding: 0;
-            margin-bottom: 25px;
-            &:last-child {
-                margin-bottom: 0;
-            }
-            &.custom-wrap.item {
-                .van-field__label {
-                    margin-bottom: 0;
-                }
-            }
-            .van-field__label {
-                font-size: 13px;
-                margin-right: 0;
-                line-height: 13px;
-                margin-bottom: 12px;
-                width: 100%;
-            }
-            .van-field__body {
-                font-size: 16px;
-                padding-bottom: 15px;
-                @include border-1px(bottom, #e5e5e5);
-            }
-            .van-field__control {
-                height: 16px;
-                line-height: 16px;
-            }
-        }
-        .form-wrap {
-            padding: 0 15px;
-            padding-bottom: 30px;
-        }
-        .submit-footer {
-            padding: 18px 32px 39px 32px;
-            box-shadow: 0px -2px 6px 0px rgba(227, 227, 227, 0.5);
-            .submit-button {
-                width: 100%;
-                height: 43px;
-                border-radius: 8px;
-                color: white;
-                font-size: 15px;
-                border: 0;
-                background-color: var(--primary-active-color);
-                &:disabled {
-                    background-color: #ffccae;
-                }
-            }
-        }
-    }
-    :deep(.van-cell.custom-wrap) {
-        &.item {
-            .van-field__control,
-            .upload-list {
-                height: auto;
-            }
-        }
-        // .van-field__control {
-        //     height: 173px;
-        //     border-radius: 5px;
-        //     justify-content: center;
-        //     .van-icon__image {
-        //         width: 20px;
-        //         height: 20px;
-        //     }
-        //     .normal-text {
-        //         color: #9ea3ac;
-        //         font-size: 13px;
-        //         margin-top: 13px;
-        //         line-height: 13px;
-        //     }
-        //     .van-uploader {
-        //         background-color: #f3f7ff;
-        //     }
-        // }
-    }
-}
-</style>

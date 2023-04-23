@@ -32,7 +32,7 @@ service.interceptors.request.use(
         //     config.headers['Authorization'] = store.getters.token
         // }
         config.headers['Authorization'] =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiMSIsInBob25lIjoiMTg3MzQyMjIyNjUiLCJpZCI6IjE2NDk2NTMwNzg0MTkwNzA5NzYiLCJleHAiOjE2ODIxNzcwNzAsImlhdCI6MTY4MjE3NTI3MH0.-7ZJ9K9GqTgNqti97DumZWBDi_pbveSVPLT9S5rVYRA'
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiMiIsInBob25lIjoiMTg3MzQyMjIyNjUiLCJpZCI6IjE2NDk2NTMwNzg0MTkwNzA5NzYiLCJleHAiOjE2ODIyNDk2NzEsImlhdCI6MTY4MjI0Nzg3MX0.-mIsG3rjvkmIcBGZcdqSqliFjfk5xc0ij-XKCBEC0Ps'
         return config
     },
     error => {
@@ -64,14 +64,22 @@ service.interceptors.response.use(
             // 登录失效, 清除token, 跳转到登录页面
             if (res.returnCode === '9997') {
                 store.dispatch('setToken', '').then(() => {
-                    router.push({ name: 'Login' })
+                    Toast.fail({
+                        message: res.returnMsg,
+                        onClose: () => {
+                            router.push({ name: 'Login' })
+                        }
+                    })
                 })
             } else {
                 Toast.fail(res.returnMsg)
                 throw new Error()
             }
         } else {
-            Toast.success(res.returnMsg)
+            // 不传递默认开启loading
+            if (!response.config.hideloading) {
+                Toast.success(res.returnMsg)
+            }
         }
         return Promise.resolve(res)
     },

@@ -22,13 +22,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, getCurrentInstance } from 'vue'
 import { NavBar, DropdownMenu, DropdownItem } from 'vant'
-import { useRouter } from 'vue-router/composables'
+import router from '@/router'
 
 import { setRole } from '@/api/customer'
 
-const router = useRouter()
+const instance = getCurrentInstance()
+const { $store } = instance.proxy
+
 const customer = ref('1')
 // 身份角色 1-法人 2-经办人
 const columns = ref([
@@ -39,8 +41,11 @@ const columns = ref([
 const submitData = async () => {
     try {
         await setRole({
-            role: customer.value
+            data: {
+                role: customer.value
+            }
         })
+        $store.dispatch('setRole', customer.value)
         setTimeout(() => router.push({ name: 'Enterprise' }), 1000)
     } catch (err) {
         return false

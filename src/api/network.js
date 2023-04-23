@@ -2,19 +2,19 @@ import api from './index'
 // axios
 import request from '@/utils/request'
 
-// 设置用户身份
-export const uploadFile = d => {
+// 联通合作信息提交
+export const editSetmeal = d => {
     return request({
-        url: api.Common.uploadFile,
+        url: api.Network.editSetmeal,
         method: 'post',
         ...d
     })
 }
 
-// 获取省市数据
-export const regionInfo = (d = {}) => {
+// 入网清单列表
+export const findSetmealList = d => {
     return request({
-        url: api.Common.regionInfo,
+        url: api.Network.findSetmealList,
         method: 'post',
         ...d
     })

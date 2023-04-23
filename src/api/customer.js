@@ -19,3 +19,21 @@ export const submitEnterpriseInfo = d => {
         ...d
     })
 }
+
+// 经办人信息提交
+export const submitEnterpriseOperator = d => {
+    return request({
+        url: api.Customer.submitEnterpriseOperator,
+        method: 'post',
+        ...d
+    })
+}
+
+// 门头社保信息提交
+export const submitEnterpriseSocialSecurity = d => {
+    return request({
+        url: api.Customer.submitEnterpriseSocialSecurity,
+        method: 'post',
+        ...d
+    })
+}

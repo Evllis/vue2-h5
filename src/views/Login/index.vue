@@ -221,7 +221,7 @@ const onSubmit = async values => {
         font-size: var(--primary-text-size);
         position: absolute;
         right: -5px;
-        top: -9px;
+        top: -5px;
     }
     .submit-button {
         background-color: var(--primary-active-color);

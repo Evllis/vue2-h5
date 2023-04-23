@@ -37,59 +37,65 @@
                     </div>
                     <Field label="营业执照" class="custom-wrap businessLicense">
                         <template #input>
-                            <Uploader
-                                v-model="businessLicense"
-                                name="businessLicense"
-                                :after-read="afterRead"
-                                @delete="deleteRead"
-                            >
-                                <div
-                                    v-show="!formData.data.businessLicense.length"
-                                    class="flex items-center justify-center h-full"
+                            <div class="flex-1 h-full custom-upload">
+                                <Uploader
+                                    v-model="businessLicense"
+                                    name="businessLicense"
+                                    :after-read="afterRead"
+                                    @delete="deleteRead"
                                 >
-                                    <div class="flex flex-col items-center">
-                                        <Icon :name="cameraIcon" />
-                                        <span class="normal-text">点击上传照片</span>
+                                    <div
+                                        v-show="!formData.data.businessLicense.length"
+                                        class="flex items-center justify-center h-full"
+                                    >
+                                        <div class="flex flex-col items-center">
+                                            <Icon :name="cameraIcon" />
+                                            <span class="normal-text">点击上传照片</span>
+                                        </div>
                                     </div>
-                                </div>
-                            </Uploader>
+                                </Uploader>
+                            </div>
                         </template>
                     </Field>
                     <Field label="法人证件" class="custom-wrap card">
                         <template #input>
-                            <Uploader
-                                v-model="corporateIdFront"
-                                name="corporateIdFront"
-                                :after-read="afterRead"
-                                @delete="deleteRead"
-                                class="mr-15px"
-                            >
-                                <div
-                                    v-show="!formData.data.corporateIdFront.length"
-                                    class="flex items-center justify-center h-full"
+                            <div class="flex-1 h-full custom-upload mr-15px">
+                                <Uploader
+                                    v-model="corporateIdFront"
+                                    name="corporateIdFront"
+                                    :after-read="afterRead"
+                                    @delete="deleteRead"
+                                    class="mr-15px"
                                 >
-                                    <div class="flex flex-col items-center">
-                                        <Icon :name="cardFront" />
-                                        <span class="normal-text">点击上传身份证人像面</span>
+                                    <div
+                                        v-show="!formData.data.corporateIdFront.length"
+                                        class="flex items-center justify-center h-full"
+                                    >
+                                        <div class="flex flex-col items-center">
+                                            <Icon :name="cardFront" />
+                                            <span class="normal-text">点击上传身份证人像面</span>
+                                        </div>
                                     </div>
-                                </div>
-                            </Uploader>
-                            <Uploader
-                                v-model="corporateIdBack"
-                                name="corporateIdBack"
-                                :after-read="afterRead"
-                                @delete="deleteRead"
-                            >
-                                <div
-                                    v-show="!formData.data.corporateIdBack.length"
-                                    class="flex items-center justify-center h-full"
+                                </Uploader>
+                            </div>
+                            <div class="flex-1 h-full custom-upload">
+                                <Uploader
+                                    v-model="corporateIdBack"
+                                    name="corporateIdBack"
+                                    :after-read="afterRead"
+                                    @delete="deleteRead"
                                 >
-                                    <div class="flex flex-col items-center">
-                                        <Icon :name="cardBack" />
-                                        <span class="normal-text">点击上传身份证国徽面</span>
+                                    <div
+                                        v-show="!formData.data.corporateIdBack.length"
+                                        class="flex items-center justify-center h-full"
+                                    >
+                                        <div class="flex flex-col items-center">
+                                            <Icon :name="cardBack" />
+                                            <span class="normal-text">点击上传身份证国徽面</span>
+                                        </div>
                                     </div>
-                                </div>
-                            </Uploader>
+                                </Uploader>
+                            </div>
                         </template>
                     </Field>
                     <Field
@@ -129,7 +135,7 @@
 
 <script setup>
 import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem } from 'vant'
-import { reactive, ref } from 'vue'
+import { reactive, ref, getCurrentInstance } from 'vue'
 import { nonCharacter, isName, isIdCard, isPhone } from '@/utils/validate'
 import { useRouter } from 'vue-router/composables'
 import { isEmpty } from 'lodash-es'
@@ -141,6 +147,8 @@ import cameraIcon from '@/assets/icon/camera-icon.png'
 import cardFront from '@/assets/img/card-front.png'
 import cardBack from '@/assets/img/card-back.png'
 
+const instance = getCurrentInstance()
+const { $store } = instance.proxy
 const router = useRouter()
 // 行业类型：1  建筑业 2  制造业 3  交通运输、仓储业和邮政业 4  信息传输、计算机服务和软件业 5  批发和零售业 6  住宿、餐饮业 7  金融、保险业 8  房地产业 9  租赁和商务服务业 10  教育、培训 11  文化、体育、娱乐业 12  其它
 const columns = ref([
@@ -242,12 +250,13 @@ const afterRead = async (file, details) => {
             },
             data: {
                 file: file.file
-            }
+            },
+            hideloading: true
         })
         if (!isEmpty(res.data)) {
             file.status = 'done'
             file.message = '上传完成'
-            formData.data[details.name] = res.data
+            formData.data[details.name] = res.data[0]
             updateSubmitButton()
         }
     } catch (err) {
@@ -263,18 +272,17 @@ const deleteRead = (file, details) => {
 }
 
 const onSubmit = async () => {
-    // const data = {}
-    // for (const key in formData.data) {
-    //     const item = formData.data[key]
-    //     data[key] = typeof item === 'string' ? item : item[0]
-    // }
     try {
-        await submitEnterpriseInfo({
+        const res = await submitEnterpriseInfo({
             data: formData.data
         })
-        // 这里需要判断身份, 跳转不同的页面
-        // 经办人: Person, 企业门头: Operator
-        setTimeout(() => router.push({ name: 'Person' }), 1000)
+        if (!isEmpty(res)) {
+            const type = $store.getters.role === '1' ? 'Operator' : 'Person'
+            // 这里需要判断身份, 跳转不同的页面
+            // 经办人: Person, 企业门头: Operator
+            $store.dispatch('setEnterpriseId', res.data.id)
+            setTimeout(() => router.push({ name: type }), 1000)
+        }
     } catch (err) {
         return false
     }
