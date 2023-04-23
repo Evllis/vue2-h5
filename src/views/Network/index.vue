@@ -10,9 +10,16 @@
             <div class="van-form">
                 <div class="form-wrap">
                     <h3 class="fs-13">入网清单</h3>
-                    <div class="scroll-wrap">
-                        <ul class="package-list">
-                            <!-- <li class="package-item">
+                    <ul class="package-list">
+                        <List
+                            v-model="list.data.loading"
+                            :finished="list.data.finished"
+                            finished-text="没有更多了"
+                            @load="findSetmealListAccess"
+                        >
+                            <li v-for="item in list.data" :key="item.id" class="package-item"></li>
+                        </List>
+                        <!-- <li class="package-item">
                                 <div class="flex items-center package-body">
                                     <div class="flex-1 flex flex-col package-wrap">
                                         <div class="flex package-info">
@@ -37,8 +44,7 @@
                                 </div>
                                 <div class="package-desc">2023年3月入网</div>
                             </li> -->
-                        </ul>
-                    </div>
+                    </ul>
                 </div>
                 <div class="flex submit-footer">
                     <VanButton block type="info" native-type="button" class="submit-button mr-10px">上一步</VanButton>
@@ -144,8 +150,8 @@
 </template>
 
 <script setup>
-import { NavBar, Form, Field, Popup, DatetimePicker, DropdownMenu, DropdownItem } from 'vant'
-import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
+import { NavBar, Form, Field, Popup, DatetimePicker, DropdownMenu, DropdownItem, List } from 'vant'
+import { reactive, ref, getCurrentInstance } from 'vue'
 import router from '@/router'
 
 import { editSetmeal, findSetmealList } from '@/api/network'
@@ -158,6 +164,13 @@ import { isEmpty } from 'lodash-es'
 const instance = getCurrentInstance()
 const { $toast } = instance.proxy
 
+const list = reactive({
+    data: {
+        loading: false,
+        finished: false,
+        arr: []
+    }
+})
 const rules = reactive({
     name: [
         { required: true, message: '请填写套餐名称' },
@@ -291,6 +304,9 @@ const findSetmealListAccess = async () => {
             hideloading: true
         })
         if (!isEmpty(res.data)) {
+            list.data.arr = res.data.commercialSetmealInfos
+            list.data.finished = false
+            // list.data.loading = false
             console.log(res)
         }
     } catch (err) {
@@ -318,10 +334,6 @@ const formatterNumber = val => {
     if (val <= 0) return ''
     return val
 }
-
-onMounted(async () => {
-    await findSetmealListAccess()
-})
 </script>
 
 <style lang="scss" scoped>

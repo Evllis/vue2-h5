@@ -32,7 +32,7 @@ service.interceptors.request.use(
         //     config.headers['Authorization'] = store.getters.token
         // }
         config.headers['Authorization'] =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiMiIsInBob25lIjoiMTg3MzQyMjIyNjUiLCJpZCI6IjE2NDk2NTMwNzg0MTkwNzA5NzYiLCJleHAiOjE2ODIyNDk2NzEsImlhdCI6MTY4MjI0Nzg3MX0.-mIsG3rjvkmIcBGZcdqSqliFjfk5xc0ij-XKCBEC0Ps'
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiMiIsInBob25lIjoiMTg3MzQyMjIyNjUiLCJpZCI6IjE2NDk2NTMwNzg0MTkwNzA5NzYiLCJleHAiOjE2ODIyNjQ5NzIsImlhdCI6MTY4MjI2MzE3Mn0.GWA3dAQ6mzUVn52pM_4RPMrSD734tNnFMRtwsg4J3Go'
         return config
     },
     error => {
