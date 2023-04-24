@@ -100,3 +100,26 @@ export function param2Obj(url) {
             '"}'
     )
 }
+
+/**
+ * 格式化数字，最多保留2位小数
+ * @param { String } val 要格式化的数字
+ * @returns String
+ */
+export const formatterNumber = val => {
+    if (val !== '' && val.substr(0, 1) === '.') {
+        val = ''
+    }
+    val = val.replace(/^0*(0\.|[1-9])/, '$1')
+    val = val.replace(/[^\d.]/g, '')
+    val = val.replace(/\.{2,}/g, '.')
+    val = val.replace('.', '$#$').replace(/\./g, '').replace('$#$', '.')
+    val = val.replace(/^(-)*(\d+)\.(\d\d).*$/, '$1$2.$3')
+    if (val.indexOf('.') < 0 && val !== '') {
+        if (val.substr(0, 1) === '0' && val.length === 2) {
+            val = val.substr(1, val.length)
+        }
+    }
+    if (val <= 0) return ''
+    return val
+}

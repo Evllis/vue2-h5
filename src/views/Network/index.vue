@@ -3,53 +3,64 @@
         <NavBar
             title="合同预填写"
             left-arrow
-            :right-text="setmealList.length ? '新增' : ''"
+            :right-text="list.data.arr.length ? '新增' : ''"
             @click-right="onClickRight"
         />
         <div class="body-container network-page__body pt-25px">
             <div class="van-form">
                 <div class="form-wrap">
-                    <h3 class="fs-13">入网清单</h3>
+                    <h3 class="fs-13 mb-20px">入网清单</h3>
                     <ul class="package-list">
-                        <List
-                            v-model="list.data.loading"
-                            :finished="list.data.finished"
-                            finished-text="没有更多了"
-                            @load="findSetmealListAccess"
-                        >
-                            <li v-for="item in list.data" :key="item.id" class="package-item"></li>
-                        </List>
-                        <!-- <li class="package-item">
-                                <div class="flex items-center package-body">
-                                    <div class="flex-1 flex flex-col package-wrap">
-                                        <div class="flex package-info">
-                                            <span>冰激凌199套餐</span>
-                                            <span>199元/月</span>
-                                            <span>24期</span>
+                        <div v-if="!list.data.arr.length">
+                            <Skeleton v-for="index of 4" :row="3" :key="index" class="mb-30px" />
+                        </div>
+                        <div v-else>
+                            <List
+                                v-model="list.data.loading"
+                                :finished="list.data.finished"
+                                :immediate-check="false"
+                                finished-text="没有更多了"
+                                @load="findSetmealListAccess"
+                            >
+                                <li v-for="item in list.data.arr" :key="item.id" class="package-item">
+                                    <div class="flex items-center package-body">
+                                        <div class="flex-1 flex flex-col package-wrap">
+                                            <div class="flex package-info">
+                                                <span class="truncate max-w-100px">{{ item.name }}</span>
+                                                <span class="truncate max-w-100px">{{ item.monthlyPayment }}元/月</span>
+                                                <span class="truncate !mr-0">{{ item.period }}期</span>
+                                            </div>
+                                            <div class="flex text-[var(--primary-active-color)]">
+                                                <span class="truncate max-w-100px"
+                                                    >电子券{{ item.voucherAmount }}元</span
+                                                >
+                                                <span class="truncate max-w-100px">办理数量x{{ item.number }}</span>
+                                            </div>
                                         </div>
-                                        <div class="text-[var(--primary-active-color)]">
-                                            <span>电子券109元</span>
-                                            <span>办理数量x9999</span>
+                                        <div class="package-opts w-60px">
+                                            <VanButton
+                                                plain
+                                                type="primary"
+                                                native-type="button"
+                                                color="var(--primary-active-color)"
+                                                >编辑</VanButton
+                                            >
                                         </div>
                                     </div>
-                                    <div class="package-opts">
-                                        <VanButton
-                                            plain
-                                            type="primary"
-                                            native-type="button"
-                                            color="var(--primary-active-color)"
-                                            >编辑</VanButton
-                                        >
+                                    <div v-if="item.tradeTime" class="package-desc">
+                                        {{ filterDateFormatter(item.tradeTime) }}入网
                                     </div>
-                                </div>
-                                <div class="package-desc">2023年3月入网</div>
-                            </li> -->
+                                </li>
+                            </List>
+                        </div>
                     </ul>
                 </div>
                 <div class="flex submit-footer">
                     <VanButton block type="info" native-type="button" class="submit-button mr-10px">上一步</VanButton>
-                    <template v-if="setmealList.length">
-                        <VanButton block type="info" native-type="submit" class="submit-button">下一步</VanButton>
+                    <template v-if="list.data.arr.length">
+                        <VanButton block type="info" native-type="button" class="submit-button" @click="submitFormData"
+                            >下一步</VanButton
+                        >
                     </template>
                     <template v-else>
                         <VanButton
@@ -150,13 +161,15 @@
 </template>
 
 <script setup>
-import { NavBar, Form, Field, Popup, DatetimePicker, DropdownMenu, DropdownItem, List } from 'vant'
-import { reactive, ref, getCurrentInstance } from 'vue'
+import { NavBar, Form, Field, Popup, DatetimePicker, DropdownMenu, DropdownItem, List, Skeleton } from 'vant'
+import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
 import router from '@/router'
 
 import { editSetmeal, findSetmealList } from '@/api/network'
+import { updateStep } from '@/api/common'
 
 import { isCnNumerals } from '@/utils/validate'
+import { formatterNumber } from '@/utils'
 
 import inactiveIcon from '@/assets/icon/select-icon.png'
 import { isEmpty } from 'lodash-es'
@@ -182,7 +195,7 @@ const rules = reactive({
     tradeTime: [{ required: true, message: '请填写入网日期' }]
 })
 
-const currentPage = ref(1)
+const currentPage = ref(0)
 const date = reactive({
     data: {
         currentDate: new Date(new Date().getFullYear(), new Date().getMonth()),
@@ -192,7 +205,6 @@ const date = reactive({
 const placeholderShow = ref(true)
 const submitDisabled = ref(true)
 const formRef = ref()
-const setmealList = ref([])
 const packageData = reactive({
     data: {
         name: '', // 套餐名称
@@ -209,11 +221,6 @@ const columns = ref([
     { text: '30', value: '30' },
     { text: '36', value: '36' }
 ])
-const formData = reactive({
-    data: {
-        list: []
-    }
-})
 const showPicker = ref(false)
 const showDate = ref(false)
 
@@ -253,6 +260,22 @@ const popupClosed = () => {
     }
 }
 
+const submitFormData = async () => {
+    // const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = '1650026719275147264'
+    try {
+        await updateStep({
+            data: {
+                enterpriseId: enterpriseId || '',
+                step: '5'
+            }
+        })
+        setTimeout(() => router.push({ name: 'Procurement' }), 1500)
+    } catch (err) {
+        return false
+    }
+}
+
 const onSubmit = async () => {
     console.log(555555, packageData.data)
     // const enterpriseId = $store.getters.enterpriseId
@@ -266,6 +289,8 @@ const onSubmit = async () => {
             })
             showPicker.value = false
             popupClosed()
+            list.data.arr.length = 0
+            currentPage.value = 1
             await findSetmealListAccess()
         } catch (err) {
             return false
@@ -291,10 +316,17 @@ const changeValidate = type => {
         })
 }
 
-const onClickRight = () => {}
+const onClickRight = () => {
+    showPicker.value = true
+}
+
+onMounted(async () => {
+    await findSetmealListAccess()
+})
 
 const findSetmealListAccess = async () => {
     // const enterpriseId = $store.getters.enterpriseId
+    currentPage.value++
     try {
         const res = await findSetmealList({
             data: {
@@ -304,40 +336,32 @@ const findSetmealListAccess = async () => {
             hideloading: true
         })
         if (!isEmpty(res.data)) {
-            list.data.arr = res.data.commercialSetmealInfos
-            list.data.finished = false
-            // list.data.loading = false
-            console.log(res)
+            list.data.arr = [...list.data.arr, ...res.data.commercialSetmealInfos]
+            console.log(222222, list.data.arr.length, res.data.total)
+            // console.log(65666, [...list.data.arr, ...res.data.commercialSetmealInfos])
+            list.data.loading = false
+            if (list.data.arr.length < 5 || list.data.arr.length === res.data.total) {
+                console.log(88888888)
+                list.data.finished = true
+            }
+            console.log(list.data.arr)
         }
     } catch (err) {
         return false
     }
 }
 
-/**
- * formatter
- */
-const formatterNumber = val => {
-    if (val !== '' && val.substr(0, 1) === '.') {
-        val = ''
-    }
-    val = val.replace(/^0*(0\.|[1-9])/, '$1')
-    val = val.replace(/[^\d.]/g, '')
-    val = val.replace(/\.{2,}/g, '.')
-    val = val.replace('.', '$#$').replace(/\./g, '').replace('$#$', '.')
-    val = val.replace(/^(-)*(\d+)\.(\d\d).*$/, '$1$2.$3')
-    if (val.indexOf('.') < 0 && val !== '') {
-        if (val.substr(0, 1) === '0' && val.length === 2) {
-            val = val.substr(1, val.length)
-        }
-    }
-    if (val <= 0) return ''
-    return val
+const filterDateFormatter = val => {
+    const date = val.split('-')
+    return `${date[0]}年${date[1]}月`
 }
 </script>
 
 <style lang="scss" scoped>
 .network-page {
     background-color: #f8f8f8;
+    .form-wrap {
+        background-color: #f8f8f8;
+    }
 }
 </style>

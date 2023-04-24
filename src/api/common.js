@@ -19,3 +19,12 @@ export const regionInfo = (d = {}) => {
         ...d
     })
 }
+
+// 更新用户填写步骤
+export const updateStep = (d = {}) => {
+    return request({
+        url: api.Common.updateStep,
+        method: 'post',
+        ...d
+    })
+}

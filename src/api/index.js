@@ -23,9 +23,21 @@ const api = {
         editSetmeal: `${apiPrefix}/commercialEnterprise/editSetmeal`,
         findSetmealList: `${apiPrefix}/commercialEnterprise/findSetmealList`
     },
+    Procurement: {
+        findBuyList: `${apiPrefix}/commercialEnterprise/findBuyList`,
+        editBuy: `${apiPrefix}/commercialEnterprise/editBuy`
+    },
+    Receipt: {
+        submitEnterpriseContract: `${apiPrefix}/commercialEnterprise/submitEnterpriseContract`,
+        findEnterpriseContract: `${apiPrefix}/commercialEnterprise/findEnterpriseContract`
+    },
+    Preview: {
+        enterpriseContractPreview: `${apiPrefix}/commercialEnterprise/enterpriseContractPreview`
+    },
     Common: {
         uploadFile: `${apiPrefix}/file/uploadFile`,
-        regionInfo: `${apiPrefix}/region/regionInfo`
+        regionInfo: `${apiPrefix}/region/regionInfo`,
+        updateStep: `${apiPrefix}/commercialEnterprise/updateStep`
     }
 }
 

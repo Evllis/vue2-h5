@@ -1,15 +1,15 @@
 <template>
     <div class="audit-page">
-        <!-- <NavBar title="审核中" left-arrow /> -->
-        <NavBar title="审核失败" left-arrow />
+        <NavBar title="审核中" left-arrow />
+        <!-- <NavBar title="审核失败" left-arrow /> -->
         <div class="body-container audit-page__body">
             <div class="flex flex-col items-center justify-center audit-wrap">
                 <!-- <VanImage :src="auditIng" /> -->
                 <VanImage :src="auditFail" />
-                <!-- <p>您的授信审核已提交，预计T+1审核完成</p> -->
-                <p>您司不符合准入标准，2023年9月29日 可再次提交审核</p>
+                <p>您的授信审核已提交，预计T+1审核完成</p>
+                <!-- <p>您司不符合准入标准，2023年9月29日 可再次提交审核</p> -->
                 <!-- <VanButton block type="info" native-type="button" class="submit-button">确定</VanButton> -->
-                <VanButton block type="info" native-type="button" class="submit-button">完成</VanButton>
+                <!-- <VanButton block type="info" native-type="button" class="submit-button">完成</VanButton> -->
             </div>
         </div>
     </div>

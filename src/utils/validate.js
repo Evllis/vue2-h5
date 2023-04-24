@@ -56,3 +56,10 @@ export const isLetterNumber = val => /^[A-Za-z0-9]+$/.test(val)
  * @returns Boolean
  */
 export const isCnNumerals = val => /^[\u4E00-\u9FA50-9]{4,50}$/.test(val)
+
+/**
+ * 判断是否合法的地址
+ * @param { String } val 当前地址
+ * @returns Boolean
+ */
+export const isAddress = val => /^(?!_)(?!.*?_$)[a-zA-Z0-9\u4e00-\u9fa5]+$/.test(val)
