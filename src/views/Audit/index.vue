@@ -16,45 +16,10 @@
 </template>
 
 <script setup>
-import { NavBar, Form, Field, Popup, Picker, Uploader, Icon, Image as VanImage } from 'vant'
-import { reactive, ref } from 'vue'
+import { NavBar, Image as VanImage } from 'vant'
 
-import auditIng from '@/assets/img/audit-ing.png'
+// import auditIng from '@/assets/img/audit-ing.png'
 import auditFail from '@/assets/img/audit-fail.png'
-
-// 社保缴纳方式：1-公司自缴 2-三方机构代办
-const columns = ref(['该企业的法人代表', '该企业的经办人'])
-const formData = reactive({
-    data: {
-        firstPaymentSum: '', // 首付款合计(元)
-        monthlyPaymentSum: '', // 月支付款合计(元)
-        consigneeName: '', // 收货人姓名
-        consigneePhone: '', // 收货人联系方式
-        consigneeAddress: '' // 收货人地址
-    }
-})
-const showPicker = ref(false)
-
-const afterRead = file => {
-    // 此时可以自行将文件上传至服务器
-    console.log(file)
-    file.status = 'uploading'
-    file.message = '上传中...'
-
-    setTimeout(() => {
-        file.status = 'failed'
-        file.message = '上传失败'
-    }, 1000)
-}
-
-const onConfirm = val => {
-    formData.data.industryType = val
-    showPicker.value = false
-}
-
-const onSubmit = values => {
-    console.log(555555, values)
-}
 </script>
 
 <style lang="scss" scoped>

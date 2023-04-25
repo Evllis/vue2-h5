@@ -24,7 +24,12 @@
                         :rules="rules.monthlyPaymentSum"
                         :formatter="formatterNumber"
                     />
-                    <Field v-model="enterpriseName" label="收货单位" placeholder="请输入企业名称" readonly />
+                    <Field
+                        v-model="formData.data.enterpriseName"
+                        label="收货单位"
+                        placeholder="请输入企业名称"
+                        readonly
+                    />
                     <Field
                         v-model="formData.data.consigneeName"
                         name="consigneeName"
@@ -96,17 +101,18 @@ import { formatterNumber } from '@/utils'
 import { isName, isPhone, isAddress } from '@/utils/validate'
 
 import { submitEnterpriseContract, findEnterpriseContract } from '@/api/receipt'
+import { isEmpty } from 'lodash-es'
 
 const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+const { $toast, $store } = instance.proxy
 
-const enterpriseName = ref('')
 const submitDisabled = ref(true)
 const formRef = ref()
 const formData = reactive({
     data: {
         firstPaymentSum: '', // 首付款合计(元)
         monthlyPaymentSum: '', // 月支付款合计(元)
+        enterpriseName: '', // 收货单位
         consigneeName: '', // 收货人姓名
         consigneePhone: '', // 收货人联系方式
         consigneeAddress: '' // 收货人地址
@@ -153,40 +159,19 @@ const onSubmit = async () => {
     }
 }
 
-const updateSubmitButton = () => {
-    let status = true
-    for (const key in formData.data) {
-        const val = formData.data[key]
-        if (!val.length) {
-            status = false
-            break
-        }
-        if (
-            (key === 'consigneeName' && !isName(val)) ||
-            (key === 'consigneePhone' && !isPhone(val)) ||
-            (key === 'consigneeAddress' && !isAddress(val))
-        ) {
-            status = false
-            break
-        }
-    }
-    submitDisabled.value = !status
-}
-
-const changeValidate = type => {
+const changeValidate = () => {
     formRef.value
-        .validate(type)
+        .validate()
         .then(async () => {
-            updateSubmitButton()
+            submitDisabled.value = false
         })
         .catch(() => {
-            updateSubmitButton()
+            submitDisabled.value = true
         })
 }
 
 onMounted(async () => {
-    // const enterpriseId = $store.getters.enterpriseId
-    const enterpriseId = '1650026719275147264'
+    const enterpriseId = $store.getters.enterpriseId
     if (enterpriseId) {
         try {
             const res = await findEnterpriseContract({
@@ -195,7 +180,9 @@ onMounted(async () => {
                 },
                 hideloading: true
             })
-            console.log(666666, res)
+            if (!isEmpty(res.data)) {
+                formData.data = res.data
+            }
         } catch (err) {
             return false
         }

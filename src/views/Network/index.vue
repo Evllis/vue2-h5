@@ -11,7 +11,7 @@
                 <div class="form-wrap">
                     <h3 class="fs-13 mb-20px">入网清单</h3>
                     <ul class="package-list">
-                        <div v-if="!list.data.arr.length">
+                        <div v-if="skeletonShow">
                             <Skeleton v-for="index of 4" :row="3" :key="index" class="mb-30px" />
                         </div>
                         <div v-else>
@@ -103,20 +103,29 @@
                             :rules="rules.monthlyPayment"
                             :formatter="formatterNumber"
                         />
-                        <div class="mb-25px">
-                            <h3 class="custom-label">合约期</h3>
-                            <div id="drop-container" class="drop-container">
-                                <div class="drop-placeholder" v-if="placeholderShow">请输入合约期</div>
-                                <DropdownMenu>
-                                    <DropdownItem
-                                        v-model="packageData.data.period"
-                                        :options="columns"
-                                        @change="dropItemChange"
-                                        get-container="#drop-container"
-                                    ></DropdownItem>
-                                </DropdownMenu>
-                            </div>
-                        </div>
+                        <Field
+                            v-model="packageData.data.period"
+                            :right-icon="inactiveIcon"
+                            :rules="rules.period"
+                            name="period"
+                            label="合约期"
+                            placeholder="请输入合约期"
+                            class="select-cell"
+                        >
+                            <template #input>
+                                <div id="drop-container" class="drop-container">
+                                    <DropdownMenu>
+                                        <DropdownItem
+                                            v-model="packageData.data.period"
+                                            :options="columns"
+                                            @change="changeValidate"
+                                            @close="changeValidate"
+                                            get-container="#drop-container"
+                                        ></DropdownItem>
+                                    </DropdownMenu>
+                                </div>
+                            </template>
+                        </Field>
                         <Field
                             v-model.number="packageData.data.voucherAmount"
                             name="voucherAmount"
@@ -140,7 +149,14 @@
                             @click="showDate = true"
                         />
                         <div class="shadow-none p-0 submit-footer">
-                            <VanButton block type="info" native-type="submit" class="submit-button">确定</VanButton>
+                            <VanButton
+                                block
+                                :disabled="submitDisabled"
+                                type="info"
+                                native-type="submit"
+                                class="submit-button"
+                                >确定</VanButton
+                            >
                         </div>
                     </Form>
                 </Popup>
@@ -175,7 +191,7 @@ import inactiveIcon from '@/assets/icon/select-icon.png'
 import { isEmpty } from 'lodash-es'
 
 const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+const { $toast, $store } = instance.proxy
 
 const list = reactive({
     data: {
@@ -191,6 +207,7 @@ const rules = reactive({
     ],
     number: [{ required: true, message: '请填写办理数量' }],
     monthlyPayment: [{ required: true, message: '请填写月套餐费用' }],
+    period: [{ required: true, message: '请选择合约期' }],
     voucherAmount: [{ required: true, message: '请填写定向电子券金额' }],
     tradeTime: [{ required: true, message: '请填写入网日期' }]
 })
@@ -202,7 +219,7 @@ const date = reactive({
         minDate: new Date(new Date().getFullYear(), new Date().getMonth())
     }
 })
-const placeholderShow = ref(true)
+const skeletonShow = ref(false)
 const submitDisabled = ref(true)
 const formRef = ref()
 const packageData = reactive({
@@ -224,34 +241,13 @@ const columns = ref([
 const showPicker = ref(false)
 const showDate = ref(false)
 
-const dropItemChange = () => {
-    placeholderShow.value = false
-    updateSubmitButton()
-}
-
-const updateSubmitButton = () => {
-    let status = true
-    for (const key in packageData.data) {
-        const val = packageData.data[key]
-        if (!val.length) {
-            status = false
-            break
-        }
-        if (key === 'name' && !isCnNumerals(val)) {
-            status = false
-            break
-        }
-    }
-    submitDisabled.value = !status
-}
-
 const onConfirm = val => {
     const date = new Date(val)
     let month = date.getMonth() + 1
     month = month < 10 ? `0${month}` : month
     packageData.data.tradeTime = `${date.getFullYear()}-${month}`
-    console.log(111111, packageData.data.tradeTime)
     showDate.value = false
+    changeValidate()
 }
 
 const popupClosed = () => {
@@ -261,8 +257,7 @@ const popupClosed = () => {
 }
 
 const submitFormData = async () => {
-    // const enterpriseId = $store.getters.enterpriseId
-    const enterpriseId = '1650026719275147264'
+    const enterpriseId = $store.getters.enterpriseId
     try {
         await updateStep({
             data: {
@@ -277,11 +272,8 @@ const submitFormData = async () => {
 }
 
 const onSubmit = async () => {
-    console.log(555555, packageData.data)
-    // const enterpriseId = $store.getters.enterpriseId
-    const enterpriseId = '1650026719275147264'
+    const enterpriseId = $store.getters.enterpriseId
     if (enterpriseId) {
-        // formData.data['enterpriseId'] = $store.getters.enterpriseId
         packageData.data['enterpriseId'] = enterpriseId
         try {
             await editSetmeal({
@@ -305,14 +297,16 @@ const onSubmit = async () => {
     }
 }
 
-const changeValidate = type => {
+const changeValidate = () => {
     formRef.value
-        .validate(type)
+        .validate()
         .then(async () => {
-            updateSubmitButton()
+            console.log(11111111)
+            submitDisabled.value = false
         })
         .catch(() => {
-            updateSubmitButton()
+            console.log(2222222)
+            submitDisabled.value = true
         })
 }
 
@@ -325,28 +319,28 @@ onMounted(async () => {
 })
 
 const findSetmealListAccess = async () => {
-    // const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = $store.getters.enterpriseId
+    skeletonShow.value = true
     currentPage.value++
     try {
         const res = await findSetmealList({
             data: {
-                enterpriseId: '1650026719275147264',
+                enterpriseId: enterpriseId,
                 currentPage: currentPage.value
             },
             hideloading: true
         })
         if (!isEmpty(res.data)) {
+            skeletonShow.value = false
             list.data.arr = [...list.data.arr, ...res.data.commercialSetmealInfos]
-            console.log(222222, list.data.arr.length, res.data.total)
-            // console.log(65666, [...list.data.arr, ...res.data.commercialSetmealInfos])
             list.data.loading = false
             if (list.data.arr.length < 5 || list.data.arr.length === res.data.total) {
-                console.log(88888888)
                 list.data.finished = true
             }
             console.log(list.data.arr)
         }
     } catch (err) {
+        skeletonShow.value = false
         return false
     }
 }

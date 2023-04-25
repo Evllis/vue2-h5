@@ -70,6 +70,7 @@ import { Form, Field, Popup } from 'vant'
 import { isPhone, digitInteger } from '@/utils/validate'
 import { useRouter } from 'vue-router/composables'
 import { isEmpty } from 'lodash-es'
+import { stepMap } from '@/store/config'
 // import { useCache } from '@/hooks/useCache'
 
 import Agreement from '@/components/Agreement'
@@ -156,7 +157,18 @@ const onSubmit = async values => {
         if (!isEmpty(res)) {
             // wsCache.set('token', res.data.token)
             $store.dispatch('setToken', res.data.token)
-            setTimeout(() => router.push({ name: 'Customer' }), 1000)
+            let routerName = 'Customer'
+            if (res.data.step) {
+                routerName = stepMap.value[res.data.step]
+                $store.dispatch('setStep', res.data.step)
+            }
+            if (res.data.role) {
+                $store.dispatch('setRole', res.data.role)
+            }
+            if (res.data.enterpriseId) {
+                $store.dispatch('setEnterpriseId', res.data.enterpriseId)
+            }
+            setTimeout(() => router.push({ name: routerName }), 1000)
         }
     } catch (err) {
         return false

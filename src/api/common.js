@@ -28,3 +28,12 @@ export const updateStep = (d = {}) => {
         ...d
     })
 }
+
+// 校验营业执照号
+export const queryLicenseNum = (d = {}) => {
+    return request({
+        url: api.Common.queryLicenseNum,
+        method: 'post',
+        ...d
+    })
+}

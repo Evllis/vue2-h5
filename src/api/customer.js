@@ -37,3 +37,21 @@ export const submitEnterpriseSocialSecurity = d => {
         ...d
     })
 }
+
+// 企业基本信息回显
+export const findEnterpriseInfo = d => {
+    return request({
+        url: api.Customer.findEnterpriseInfo,
+        method: 'post',
+        ...d
+    })
+}
+
+// 经办人信息回显
+export const findEnterpriseOperator = d => {
+    return request({
+        url: api.Customer.findEnterpriseOperator,
+        method: 'post',
+        ...d
+    })
+}

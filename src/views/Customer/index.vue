@@ -3,16 +3,26 @@
         <NavBar title="企业基本信息" left-arrow />
         <div class="flex customer-index__body">
             <div class="flex-1 customer-index__wrap">
-                <h3>您的身份</h3>
-                <div id="drop-container" class="drop-container">
-                    <DropdownMenu>
-                        <DropdownItem
-                            v-model="customer"
-                            :options="columns"
-                            get-container="#drop-container"
-                        ></DropdownItem>
-                    </DropdownMenu>
-                </div>
+                <Field
+                    v-model="customer"
+                    :right-icon="inactiveIcon"
+                    name="industryType"
+                    label="您的身份"
+                    placeholder="请选择行业类型"
+                    class="select-cell"
+                >
+                    <template #input>
+                        <div id="drop-container" class="drop-container">
+                            <DropdownMenu>
+                                <DropdownItem
+                                    v-model="customer"
+                                    :options="columns"
+                                    get-container="#drop-container"
+                                ></DropdownItem>
+                            </DropdownMenu>
+                        </div>
+                    </template>
+                </Field>
                 <div>
                     <VanButton block class="submit-button" native-type="button" @click="submitData">确定</VanButton>
                 </div>
@@ -23,10 +33,12 @@
 
 <script setup>
 import { ref, getCurrentInstance } from 'vue'
-import { NavBar, DropdownMenu, DropdownItem } from 'vant'
+import { NavBar, DropdownMenu, DropdownItem, Field } from 'vant'
 import router from '@/router'
 
+import inactiveIcon from '@/assets/icon/select-icon.png'
 import { setRole } from '@/api/customer'
+import { isEmpty } from 'lodash-es'
 
 const instance = getCurrentInstance()
 const { $store } = instance.proxy
@@ -40,13 +52,18 @@ const columns = ref([
 
 const submitData = async () => {
     try {
-        await setRole({
+        const res = await setRole({
             data: {
                 role: customer.value
             }
         })
-        $store.dispatch('setRole', customer.value)
-        setTimeout(() => router.push({ name: 'Enterprise' }), 1000)
+        if (!isEmpty(res.data)) {
+            $store.dispatch('setToken', res.data.token)
+            if (!$store.getters.role) {
+                $store.dispatch('setRole', customer.value)
+            }
+            setTimeout(() => router.push({ name: 'Enterprise' }), 1000)
+        }
     } catch (err) {
         return false
     }
@@ -94,6 +111,13 @@ const submitData = async () => {
         font-size: 15px;
         border-radius: 10px;
         border: 0;
+    }
+    :deep(.van-dropdown-item) {
+        height: 88px;
+        width: 275px;
+        position: absolute;
+        top: 20px !important;
+        left: 0;
     }
 }
 </style>

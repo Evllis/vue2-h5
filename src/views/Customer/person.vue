@@ -4,7 +4,12 @@
         <div class="body-container person-page__body">
             <Form @submit="onSubmit" @failed="onFailed" ref="formRef">
                 <div class="form-wrap pt-25px">
-                    <Field label="您是该企业的经办人，需要额外提供以下资料：" class="custom-wrap">
+                    <Field
+                        label="您是该企业的经办人，需要额外提供以下资料："
+                        class="custom-wrap"
+                        :rules="rules.corporateEmpower"
+                        name="corporateEmpower"
+                    >
                         <template #input>
                             <div class="flex-1 h-full custom-upload">
                                 <Uploader
@@ -28,43 +33,56 @@
                     </Field>
                     <Field label="经办人证件" class="custom-wrap card">
                         <template #input>
-                            <div class="flex-1 h-full custom-upload mr-15px">
-                                <Uploader
-                                    v-model="operatorIdFront"
-                                    :after-read="afterRead"
-                                    @delete="deleteRead"
-                                    name="operatorIdFront"
-                                    class="mr-15px"
-                                >
-                                    <div
-                                        v-show="!formData.data.operatorIdFront.length"
-                                        class="flex items-center justify-center h-full"
+                            <Field
+                                class="flex-1 h-full custom-upload m-0"
+                                name="operatorIdFront"
+                                :rules="rules.operatorIdFront"
+                            >
+                                <template #input>
+                                    <Uploader
+                                        v-model="operatorIdFront"
+                                        name="operatorIdFront"
+                                        :after-read="afterRead"
+                                        @delete="deleteRead"
+                                        class="mr-15px"
                                     >
-                                        <div class="flex flex-col items-center">
-                                            <Icon :name="cardFront" />
-                                            <span class="normal-text">点击上传身份证人像面</span>
+                                        <div
+                                            v-show="!formData.data.operatorIdFront.length"
+                                            class="flex items-center justify-center h-full"
+                                        >
+                                            <div class="flex flex-col items-center">
+                                                <Icon :name="cardFront" />
+                                                <span class="normal-text">点击上传身份证人像面</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                </Uploader>
-                            </div>
-                            <div class="flex-1 h-full custom-upload">
-                                <Uploader
-                                    v-model="operatorIdBack"
-                                    :after-read="afterRead"
-                                    @delete="deleteRead"
-                                    name="operatorIdBack"
-                                >
-                                    <div
-                                        v-show="!formData.data.operatorIdBack.length"
-                                        class="flex items-center justify-center h-full"
+                                    </Uploader>
+                                </template>
+                            </Field>
+                            <Field
+                                class="flex-1 h-full custom-upload m-0"
+                                name="operatorIdBack"
+                                :rules="rules.operatorIdBack"
+                            >
+                                <template #input>
+                                    <Uploader
+                                        v-model="operatorIdBack"
+                                        name="operatorIdBack"
+                                        :after-read="afterRead"
+                                        @delete="deleteRead"
+                                        class="mr-15px"
                                     >
-                                        <div class="flex flex-col items-center">
-                                            <Icon :name="cardBack" />
-                                            <span class="normal-text">点击上传身份证国徽面</span>
+                                        <div
+                                            v-show="!formData.data.operatorIdBack.length"
+                                            class="flex items-center justify-center h-full"
+                                        >
+                                            <div class="flex flex-col items-center">
+                                                <Icon :name="cardBack" />
+                                                <span class="normal-text">点击上传身份证国徽面</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                </Uploader>
-                            </div>
+                                    </Uploader>
+                                </template>
+                            </Field>
                         </template>
                     </Field>
                     <Field
@@ -93,7 +111,14 @@
                     />
                 </div>
                 <div class="flex submit-footer">
-                    <VanButton block type="info" native-type="button" class="submit-button mr-10px">上一步</VanButton>
+                    <VanButton
+                        block
+                        type="info"
+                        native-type="button"
+                        class="submit-button mr-10px"
+                        to="/customer/enterprise"
+                        >上一步</VanButton
+                    >
                     <VanButton block :disabled="submitDisabled" type="info" native-type="submit" class="submit-button"
                         >下一步</VanButton
                     >
@@ -105,13 +130,13 @@
 
 <script setup>
 import { NavBar, Form, Field, Uploader, Icon } from 'vant'
-import { reactive, ref, getCurrentInstance } from 'vue'
+import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
 import { isIdCard, isName, isPhone } from '@/utils/validate'
 import { isEmpty } from 'lodash-es'
 import router from '@/router'
 
 import { uploadFile } from '@/api/common'
-import { submitEnterpriseOperator } from '@/api/customer'
+import { submitEnterpriseOperator, findEnterpriseOperator } from '@/api/customer'
 
 import cameraIcon from '@/assets/icon/camera-icon.png'
 import cardFront from '@/assets/img/card-front.png'
@@ -127,9 +152,9 @@ const corporateEmpower = ref([])
 const operatorIdBack = ref([])
 const formData = reactive({
     data: {
-        corporateEmpower: [],
-        operatorIdFront: [],
-        operatorIdBack: [],
+        corporateEmpower: '',
+        operatorIdFront: '',
+        operatorIdBack: '',
         operatorName: '',
         operatorId: '',
         operatorPhone: ''
@@ -137,6 +162,39 @@ const formData = reactive({
 })
 
 const rules = reactive({
+    corporateEmpower: [
+        {
+            validator: () => {
+                if (!formData.data.corporateEmpower || !formData.data.corporateEmpower.length) {
+                    return false
+                }
+                return true
+            },
+            message: '请上传法人授权书'
+        }
+    ],
+    operatorIdFront: [
+        {
+            validator: () => {
+                if (!formData.data.operatorIdFront || !formData.data.operatorIdFront.length) {
+                    return false
+                }
+                return true
+            },
+            message: '请上传身份证人像面'
+        }
+    ],
+    operatorIdBack: [
+        {
+            validator: () => {
+                if (!formData.data.operatorIdBack || !formData.data.operatorIdBack.length) {
+                    return false
+                }
+                return true
+            },
+            message: '请上传身份证国徽面'
+        }
+    ],
     operatorName: [
         { required: true, message: '请填写经办人姓名' },
         { validator: isName, message: '请输入正确的经办人姓名' }
@@ -151,33 +209,14 @@ const rules = reactive({
     ]
 })
 
-const updateSubmitButton = () => {
-    let status = true
-    for (const key in formData.data) {
-        if (!formData.data[key].length) {
-            status = false
-            break
-        }
-        if (
-            (key === 'operatorPhone' && !isPhone(formData.data[key])) ||
-            (key === 'operatorId' && !isIdCard(formData.data[key])) ||
-            (key === 'operatorName' && !isName(formData.data[key]))
-        ) {
-            status = false
-            break
-        }
-    }
-    submitDisabled.value = !status
-}
-
-const changeValidate = type => {
+const changeValidate = () => {
     formRef.value
-        .validate(type)
+        .validate()
         .then(async () => {
-            updateSubmitButton()
+            submitDisabled.value = false
         })
         .catch(() => {
-            updateSubmitButton()
+            submitDisabled.value = true
         })
 }
 
@@ -198,18 +237,18 @@ const afterRead = async (file, details) => {
             file.status = 'done'
             file.message = '上传完成'
             formData.data[details.name] = res.data[0]
-            updateSubmitButton()
+            changeValidate()
         }
     } catch (err) {
         file.status = 'failed'
         file.message = '上传失败'
-        updateSubmitButton()
+        changeValidate()
     }
 }
 
 const deleteRead = (file, details) => {
     formData.data[details.name] = ''
-    updateSubmitButton()
+    changeValidate()
 }
 
 const onFailed = errorInfo => {
@@ -223,7 +262,7 @@ const onSubmit = async () => {
             await submitEnterpriseOperator({
                 data: formData.data
             })
-            setTimeout(() => router.push({ name: 'Cooperate' }), 1500)
+            setTimeout(() => router.push({ name: 'Operator' }), 1500)
         } catch (err) {
             return false
         }
@@ -236,4 +275,29 @@ const onSubmit = async () => {
         })
     }
 }
+
+onMounted(async () => {
+    const enterpriseId = $store.getters.enterpriseId
+    if (enterpriseId) {
+        try {
+            const res = await findEnterpriseOperator({
+                data: {
+                    enterpriseId
+                },
+                hideloading: true
+            })
+            if (!isEmpty(res.data)) {
+                formData.data = res.data
+                corporateEmpower.value = res.data.corporateEmpower
+                    ? [{ url: `https://${res.data.corporateEmpower}` }]
+                    : []
+                operatorIdFront.value = res.data.operatorIdFront ? [{ url: `https://${res.data.operatorIdFront}` }] : []
+                operatorIdBack.value = res.data.operatorIdBack ? [{ url: `https://${res.data.operatorIdBack}` }] : []
+                changeValidate()
+            }
+        } catch (err) {
+            return false
+        }
+    }
+})
 </script>

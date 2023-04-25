@@ -1,32 +1,39 @@
 <template>
-    <div class="operator-page">
+    <div class="cooperate-page">
         <NavBar title="与联通合作相关信息" left-arrow />
-        <div class="body-container operator-page__body">
+        <div class="body-container cooperate-page__body">
             <Form @submit="onSubmit" ref="formRef">
                 <div class="form-wrap pt-25px">
-                    <div class="custom-label-container mb-25px">
-                        <h3 class="custom-label">集团客户服务合同</h3>
-                        <div class="upload-container">
-                            <h3>贵司与联通关键合同页面（3-6张）</h3>
-                            <Uploader
-                                v-model="unicomContractUrls"
-                                :after-read="afterRead"
-                                :max-count="6"
-                                :upload-icon="addIcon"
-                                @delete="deleteRead"
-                                name="unicomContractUrls"
-                            />
-                        </div>
-                    </div>
+                    <Field
+                        class="custom-wrap social-wrap"
+                        label="集团客户服务合同"
+                        :rules="rules.unicomContractUrls"
+                        name="unicomContractUrls"
+                    >
+                        <template #input>
+                            <div class="upload-container w-full h-full">
+                                <h3>贵司与联通关键合同页面（3-6张）</h3>
+                                <Uploader
+                                    v-model="unicomContractUrls"
+                                    :after-read="afterRead"
+                                    :max-count="6"
+                                    :upload-icon="addIcon"
+                                    @delete="deleteRead"
+                                    name="unicomContractUrls"
+                                />
+                            </div>
+                        </template>
+                    </Field>
                     <Field
                         v-model="formData.data.unicomProvince"
                         :right-icon="inactiveIcon"
                         label="归属联通省公司"
                         readonly
                         clickable
-                        name="picker"
+                        name="unicomProvince"
                         placeholder="请选择归属联通省公司"
                         class="select-wrap"
+                        :rules="rules.unicomProvince"
                         @click="showPicker = true"
                     />
                     <Field
@@ -98,6 +105,18 @@ const areaList = reactive({
     }
 })
 const rules = reactive({
+    unicomContractUrls: [
+        {
+            validator: () => {
+                if (!formData.data.unicomContractUrls || formData.data.unicomContractUrls.length < 3) {
+                    return false
+                }
+                return true
+            },
+            message: '关键合同页面至少上传3张'
+        }
+    ],
+    unicomProvince: [{ required: true, message: '请填写归属联通省公司' }],
     unicomManagerNumber: [
         { required: true, message: '请填写客户经理工号' },
         { pattern: /^.{6,50}$/, message: '长度必须是6-50位' },
@@ -123,15 +142,14 @@ const formData = reactive({
 })
 const submitDisabled = ref(true)
 
-const changeValidate = type => {
+const changeValidate = () => {
     formRef.value
-        .validate(type)
+        .validate()
         .then(async () => {
-            updateSubmitButton()
+            submitDisabled.value = false
         })
         .catch(() => {
-            console.log(55555)
-            updateSubmitButton()
+            submitDisabled.value = true
         })
 }
 
@@ -153,53 +171,28 @@ const afterRead = async (file, details) => {
             file.message = '上传完成'
             unicomContractUrls.value[unicomContractUrls.value.length - 1].imgUrl = res.data[0]
             formData.data[details.name] = unicomContractUrls.value.map(item => item.imgUrl)
-            updateSubmitButton()
+            changeValidate()
         }
     } catch (err) {
         file.status = 'failed'
         file.message = '上传失败'
-        updateSubmitButton()
+        changeValidate()
     }
-}
-
-const updateSubmitButton = () => {
-    let status = true
-    for (const key in formData.data) {
-        const val = formData.data[key]
-        if (!val.length) {
-            status = false
-            break
-        }
-        if (key === 'unicomContractUrls' && val.length < 3) {
-            status = false
-            break
-        }
-        if (
-            (key === 'unicomManagerNumber' && (!/^.{6,50}$/.test(val) || !isLetterNumber(val))) ||
-            (key === 'unicomManagerName' && !isName(val)) ||
-            (key === 'unicomManagerPhone' && !isPhone(val))
-        ) {
-            status = false
-            break
-        }
-    }
-    submitDisabled.value = !status
 }
 
 const deleteRead = (file, details) => {
     formData.data[details.name] = unicomContractUrls.value.map(item => item.imgUrl)
-    updateSubmitButton()
+    changeValidate()
 }
 
 const onConfirm = val => {
     selectAreaData.value = val
     formData.data.unicomProvince = `${val[0].name} / ${val[1].name}`
     showPicker.value = false
-    updateSubmitButton()
+    changeValidate()
 }
 const onSubmit = async () => {
-    // const enterpriseId = $store.getters.enterpriseId
-    const enterpriseId = '1650026719275147264'
+    const enterpriseId = $store.getters.enterpriseId
     if (enterpriseId) {
         const data = Object.assign(formData.data, {
             enterpriseId,
@@ -240,10 +233,24 @@ onMounted(async () => {
                 })
                 areaList.data.city_list = Object.assign(areaList.data.city_list, childrenCity)
             })
-            console.log(222222, areaList.data)
         }
     } catch (err) {
         return false
     }
 })
 </script>
+
+<style lang="scss" scoped>
+.cooperate-page {
+    :deep(.upload-container) {
+        & > .van-uploader {
+            width: auto;
+            height: auto;
+            background-color: transparent;
+        }
+    }
+    :deep(.social-wrap .van-field__label) {
+        margin-bottom: 0;
+    }
+}
+</style>

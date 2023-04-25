@@ -10,32 +10,44 @@
                         name="name"
                         label="企业名称"
                         placeholder="请输入您的企业名称"
-                        @change="changeValidate('name')"
+                        @change="changeValidate"
                     />
                     <Field
                         v-model="formData.data.licenseNum"
                         :rules="rules.licenseNum"
-                        @input="licenseNumInput"
-                        @change="changeValidate('licenseNum')"
+                        @change="changeValidate"
                         name="licenseNum"
                         label="营业执照/社会信用代码"
                         placeholder="请输入您营业执照/社会信用代码"
                     />
-                    <div class="mb-25px">
-                        <h3 class="custom-label">行业类型</h3>
-                        <div id="drop-container" class="drop-container">
-                            <div class="drop-placeholder" v-if="placeholderShow">请选择行业类型</div>
-                            <DropdownMenu>
-                                <DropdownItem
-                                    v-model="formData.data.industryType"
-                                    :options="columns"
-                                    @change="dropItemChange"
-                                    get-container="#drop-container"
-                                ></DropdownItem>
-                            </DropdownMenu>
-                        </div>
-                    </div>
-                    <Field label="营业执照" class="custom-wrap businessLicense">
+                    <Field
+                        v-model="formData.data.industryType"
+                        :right-icon="inactiveIcon"
+                        :rules="rules.industryType"
+                        name="industryType"
+                        label="行业类型"
+                        placeholder="请选择行业类型"
+                        class="select-cell"
+                    >
+                        <template #input>
+                            <div id="drop-container" class="drop-container">
+                                <DropdownMenu>
+                                    <DropdownItem
+                                        v-model="formData.data.industryType"
+                                        :options="columns"
+                                        @change="dropItemChange"
+                                        get-container="#drop-container"
+                                    ></DropdownItem>
+                                </DropdownMenu>
+                            </div>
+                        </template>
+                    </Field>
+                    <Field
+                        label="营业执照"
+                        class="custom-wrap businessLicense"
+                        :rules="rules.businessLicense"
+                        name="businessLicense"
+                    >
                         <template #input>
                             <div class="flex-1 h-full custom-upload">
                                 <Uploader
@@ -59,49 +71,62 @@
                     </Field>
                     <Field label="法人证件" class="custom-wrap card">
                         <template #input>
-                            <div class="flex-1 h-full custom-upload mr-15px">
-                                <Uploader
-                                    v-model="corporateIdFront"
-                                    name="corporateIdFront"
-                                    :after-read="afterRead"
-                                    @delete="deleteRead"
-                                    class="mr-15px"
-                                >
-                                    <div
-                                        v-show="!formData.data.corporateIdFront.length"
-                                        class="flex items-center justify-center h-full"
+                            <Field
+                                class="flex-1 h-full custom-upload m-0"
+                                name="corporateIdFront"
+                                :rules="rules.corporateIdFront"
+                            >
+                                <template #input>
+                                    <Uploader
+                                        v-model="corporateIdFront"
+                                        name="corporateIdFront"
+                                        :after-read="afterRead"
+                                        @delete="deleteRead"
+                                        class="mr-15px"
                                     >
-                                        <div class="flex flex-col items-center">
-                                            <Icon :name="cardFront" />
-                                            <span class="normal-text">点击上传身份证人像面</span>
+                                        <div
+                                            v-show="!formData.data.corporateIdFront.length"
+                                            class="flex items-center justify-center h-full"
+                                        >
+                                            <div class="flex flex-col items-center">
+                                                <Icon :name="cardFront" />
+                                                <span class="normal-text">点击上传身份证人像面</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                </Uploader>
-                            </div>
-                            <div class="flex-1 h-full custom-upload">
-                                <Uploader
-                                    v-model="corporateIdBack"
-                                    name="corporateIdBack"
-                                    :after-read="afterRead"
-                                    @delete="deleteRead"
-                                >
-                                    <div
-                                        v-show="!formData.data.corporateIdBack.length"
-                                        class="flex items-center justify-center h-full"
+                                    </Uploader>
+                                </template>
+                            </Field>
+                            <Field
+                                class="flex-1 h-full custom-upload m-0"
+                                name="corporateIdBack"
+                                :rules="rules.corporateIdBack"
+                            >
+                                <template #input>
+                                    <Uploader
+                                        v-model="corporateIdBack"
+                                        name="corporateIdBack"
+                                        :after-read="afterRead"
+                                        @delete="deleteRead"
+                                        class="mr-15px"
                                     >
-                                        <div class="flex flex-col items-center">
-                                            <Icon :name="cardBack" />
-                                            <span class="normal-text">点击上传身份证国徽面</span>
+                                        <div
+                                            v-show="!formData.data.corporateIdBack.length"
+                                            class="flex items-center justify-center h-full"
+                                        >
+                                            <div class="flex flex-col items-center">
+                                                <Icon :name="cardBack" />
+                                                <span class="normal-text">点击上传身份证国徽面</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                </Uploader>
-                            </div>
+                                    </Uploader>
+                                </template>
+                            </Field>
                         </template>
                     </Field>
                     <Field
                         v-model="formData.data.corporateName"
                         :rules="rules.corporateName"
-                        @change="changeValidate('corporateName')"
+                        @change="changeValidate"
                         name="corporateName"
                         label="法人姓名"
                         placeholder="请输入法人姓名"
@@ -109,7 +134,7 @@
                     <Field
                         v-model="formData.data.corporateId"
                         :rules="rules.corporateId"
-                        @change="changeValidate('corporateId')"
+                        @change="changeValidate"
                         name="corporateId"
                         label="法人身份证号"
                         placeholder="请输入法人身份证号"
@@ -117,7 +142,7 @@
                     <Field
                         v-model="formData.data.corporatePhone"
                         :rules="rules.corporatePhone"
-                        @change="changeValidate('corporatePhone')"
+                        @change="changeValidate"
                         name="corporatePhone"
                         label="法人联系方式"
                         placeholder="请输入法人联系方式"
@@ -135,21 +160,21 @@
 
 <script setup>
 import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem } from 'vant'
-import { reactive, ref, getCurrentInstance } from 'vue'
+import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
 import { nonCharacter, isName, isIdCard, isPhone } from '@/utils/validate'
-import { useRouter } from 'vue-router/composables'
 import { isEmpty } from 'lodash-es'
+import router from '@/router'
 
-import { submitEnterpriseInfo } from '@/api/customer'
-import { uploadFile } from '@/api/common'
+import { submitEnterpriseInfo, findEnterpriseInfo } from '@/api/customer'
+import { uploadFile, queryLicenseNum } from '@/api/common'
 
+import inactiveIcon from '@/assets/icon/select-icon.png'
 import cameraIcon from '@/assets/icon/camera-icon.png'
 import cardFront from '@/assets/img/card-front.png'
 import cardBack from '@/assets/img/card-back.png'
 
 const instance = getCurrentInstance()
 const { $store } = instance.proxy
-const router = useRouter()
 // 行业类型：1  建筑业 2  制造业 3  交通运输、仓储业和邮政业 4  信息传输、计算机服务和软件业 5  批发和零售业 6  住宿、餐饮业 7  金融、保险业 8  房地产业 9  租赁和商务服务业 10  教育、培训 11  文化、体育、娱乐业 12  其它
 const columns = ref([
     { text: '建筑业', value: '1' },
@@ -177,12 +202,41 @@ const formData = reactive({
         corporateIdFront: '',
         corporateIdBack: '',
         corporateName: '',
+        corporateId: '',
         corporatePhone: ''
     }
 })
 const submitDisabled = ref(true)
 const placeholderShow = ref(true)
 const formRef = ref()
+
+const queryLicenseNumAccess = val => {
+    return new Promise(resolve => {
+        console.log(333333, val.length, val)
+        if (val.length < 12) {
+            resolve(true)
+            return false
+        }
+        console.log(6666666)
+        const res = queryLicenseNum({
+            data: {
+                licenseNum: val
+            },
+            hideloading: true
+        })
+        if (res.data) {
+            if (String(res.data.status) === '2') {
+                rules.licenseNum[2].message = `该企业正在申请中，请使用末尾为${res.data.phone.substr(-4)}的账户继续进行`
+                resolve(false)
+            } else {
+                resolve(true)
+            }
+        } else {
+            resolve(true)
+        }
+    })
+}
+
 const rules = reactive({
     name: [
         { required: true, message: '请填写企业名称' },
@@ -190,7 +244,32 @@ const rules = reactive({
     ],
     licenseNum: [
         { required: true, message: '请填写营业执照号/社会信用代码' },
-        { validator: nonCharacter, message: '请输入正确的营业执照号/社会信用代码', trigger: 'onChange' }
+        { validator: nonCharacter, message: '请输入正确的营业执照号/社会信用代码' },
+        { validator: queryLicenseNumAccess, message: '', trigger: 'onBlur' }
+    ],
+    industryType: [{ required: true, message: '请选择行业类型' }],
+    businessLicense: [{ required: true, message: '请上传营业执照' }],
+    corporateIdFront: [
+        {
+            validator: () => {
+                if (!formData.data.corporateIdFront || !formData.data.corporateIdFront.length) {
+                    return false
+                }
+                return true
+            },
+            message: '请上传身份证人像面'
+        }
+    ],
+    corporateIdBack: [
+        {
+            validator: () => {
+                if (!formData.data.corporateIdBack || !formData.data.corporateIdBack.length) {
+                    return false
+                }
+                return true
+            },
+            message: '请上传身份证国徽面'
+        }
     ],
     corporateName: [
         { required: true, message: '请填写法人姓名' },
@@ -206,38 +285,20 @@ const rules = reactive({
     ]
 })
 
-const updateSubmitButton = () => {
-    let status = true
-    for (const key in formData.data) {
-        if (!formData.data[key].length) {
-            status = false
-            break
-        }
-    }
-    submitDisabled.value = !status
-}
-
 const dropItemChange = () => {
     placeholderShow.value = false
-    updateSubmitButton()
+    changeValidate()
 }
 
-const changeValidate = type => {
+const changeValidate = () => {
     formRef.value
-        .validate(type)
+        .validate()
         .then(async () => {
-            updateSubmitButton()
+            submitDisabled.value = false
         })
-        .catch(() => {})
-}
-
-const licenseNumInput = val => {
-    formRef.value
-        .validate('licenseNum')
-        .then(async () => {
-            console.log(5555, val)
+        .catch(() => {
+            submitDisabled.value = true
         })
-        .catch(() => {})
 }
 
 const afterRead = async (file, details) => {
@@ -257,18 +318,23 @@ const afterRead = async (file, details) => {
             file.status = 'done'
             file.message = '上传完成'
             formData.data[details.name] = res.data[0]
-            updateSubmitButton()
+            changeValidate()
         }
     } catch (err) {
         file.status = 'failed'
         file.message = '上传失败'
-        updateSubmitButton()
+        changeValidate()
     }
 }
 
 const deleteRead = (file, details) => {
-    formData.data[details.name] = ''
-    updateSubmitButton()
+    if (['businessLicense', 'corporateIdFront', 'corporateIdBack'].indexOf(details.name) !== -1) {
+        formData.data[details.name] = []
+    } else {
+        formData.data[details.name] = ''
+    }
+
+    changeValidate()
 }
 
 const onSubmit = async () => {
@@ -277,14 +343,46 @@ const onSubmit = async () => {
             data: formData.data
         })
         if (!isEmpty(res)) {
+            // Person: 经办人, Operator: 门头
             const type = $store.getters.role === '1' ? 'Operator' : 'Person'
             // 这里需要判断身份, 跳转不同的页面
             // 经办人: Person, 企业门头: Operator
-            $store.dispatch('setEnterpriseId', res.data.id)
+            if (!$store.getters.enterpriseId) {
+                $store.dispatch('setEnterpriseId', res.data.id)
+            }
             setTimeout(() => router.push({ name: type }), 1000)
         }
     } catch (err) {
         return false
     }
 }
+
+onMounted(async () => {
+    const enterpriseId = $store.getters.enterpriseId
+    if (enterpriseId) {
+        try {
+            const res = await findEnterpriseInfo({
+                data: {
+                    id: enterpriseId
+                },
+                hideloading: true
+            })
+            if (!isEmpty(res.data)) {
+                formData.data = res.data
+                if (formData.data.industryType) {
+                    formData.data.industryType = `${formData.data.industryType}`
+                    placeholderShow.value = false
+                }
+                businessLicense.value = res.data.businessLicense ? [{ url: `https://${res.data.businessLicense}` }] : []
+                corporateIdFront.value = res.data.corporateIdFront
+                    ? [{ url: `https://${res.data.corporateIdFront}` }]
+                    : []
+                corporateIdBack.value = res.data.corporateIdBack ? [{ url: `https://${res.data.corporateIdBack}` }] : []
+                changeValidate()
+            }
+        } catch (err) {
+            return false
+        }
+    }
+})
 </script>

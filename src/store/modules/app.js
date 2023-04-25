@@ -2,7 +2,8 @@ const state = {
     userName: '',
     token: '',
     enterpriseId: '',
-    role: ''
+    role: '',
+    step: ''
 }
 const mutations = {
     SET_USER_NAME(state, name) {
@@ -16,6 +17,9 @@ const mutations = {
     },
     SET_ROLE(state, type) {
         state.role = type
+    },
+    SET_STEP(state, step) {
+        state.step = step
     }
 }
 const actions = {
@@ -31,6 +35,9 @@ const actions = {
     },
     setRole({ commit }, type) {
         commit('SET_ROLE', type)
+    },
+    setStep({ commit }, step) {
+        commit('SET_STEP', step)
     }
 }
 export default {

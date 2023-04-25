@@ -28,11 +28,12 @@ service.interceptors.request.use(
                 forbidClick: false
             })
         }
-        // if (store.getters.token) {
-        //     config.headers['Authorization'] = store.getters.token
-        // }
-        config.headers['Authorization'] =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiMiIsInBob25lIjoiMTg3MzQyMjIyNjUiLCJpZCI6IjE2NDk2NTMwNzg0MTkwNzA5NzYiLCJleHAiOjE2ODIzMzQzNjAsImlhdCI6MTY4MjMzMjU2MH0.lePKoSRpf9TTGekyBSIsPmOSN-u0a3LbF9U5i6v9bJ4'
+        console.log(66666666, store.getters.token)
+        if (store.getters.token) {
+            config.headers['Authorization'] = store.getters.token
+        }
+        // config.headers['Authorization'] =
+        //     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiMiIsInBob25lIjoiMTg3MzQyMjIyNjUiLCJpZCI6IjE2NTA3NDI5ODQ2NzEyNTY1NzYiLCJleHAiOjE2ODI0MTc3ODQsImlhdCI6MTY4MjQxNTk4NH0.23FzWrUg3JjTgBjZZdqOJDtu_r5QK7juMjr4gZwGxtU'
         return config
     },
     error => {

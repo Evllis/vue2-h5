@@ -12,7 +12,7 @@
                     <h3 class="fs-13">采购清单</h3>
                     <div class="scroll-wrap">
                         <ul class="package-list">
-                            <div v-if="!list.data.arr.length">
+                            <div v-if="skeletonShow">
                                 <Skeleton v-for="index of 4" :row="3" :key="index" class="mb-30px" />
                             </div>
                             <div v-else>
@@ -79,32 +79,52 @@
                 <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom" @closed="popupClosed">
                     <VanIcon name="cross" class="close-icon" @click="showPicker = false" />
                     <Form @submit="onSubmit" ref="formRef">
-                        <div class="mb-25px">
-                            <h3 class="custom-label">合约期</h3>
-                            <div id="period" class="drop-container">
-                                <div class="drop-placeholder" v-if="!packageData.data.period">请输入合约期</div>
-                                <DropdownMenu>
-                                    <DropdownItem
-                                        v-model="packageData.data.period"
-                                        :options="columns"
-                                        get-container="#period"
-                                    ></DropdownItem>
-                                </DropdownMenu>
-                            </div>
-                        </div>
-                        <div class="mb-25px">
-                            <h3 class="custom-label">品类</h3>
-                            <div id="category" class="drop-container">
-                                <div class="drop-placeholder" v-if="!packageData.data.category">请选择品类</div>
-                                <DropdownMenu>
-                                    <DropdownItem
-                                        v-model="packageData.data.category"
-                                        :options="categoryColumns"
-                                        get-container="#category"
-                                    ></DropdownItem>
-                                </DropdownMenu>
-                            </div>
-                        </div>
+                        <Field
+                            v-model="packageData.data.period"
+                            :right-icon="inactiveIcon"
+                            :rules="rules.period"
+                            name="period"
+                            label="合约期"
+                            placeholder="请输入合约期"
+                            class="select-cell"
+                        >
+                            <template #input>
+                                <div id="period" class="drop-container">
+                                    <DropdownMenu>
+                                        <DropdownItem
+                                            v-model="packageData.data.period"
+                                            :options="columns"
+                                            @change="changeValidate"
+                                            @close="changeValidate"
+                                            get-container="#period"
+                                        ></DropdownItem>
+                                    </DropdownMenu>
+                                </div>
+                            </template>
+                        </Field>
+                        <Field
+                            v-model="packageData.data.category"
+                            :right-icon="inactiveIcon"
+                            :rules="rules.category"
+                            name="category"
+                            label="品类"
+                            placeholder="请选择品类"
+                            class="select-cell"
+                        >
+                            <template #input>
+                                <div id="category" class="drop-container">
+                                    <DropdownMenu>
+                                        <DropdownItem
+                                            v-model="packageData.data.category"
+                                            :options="categoryColumns"
+                                            @change="changeValidate"
+                                            @close="changeValidate"
+                                            get-container="#category"
+                                        ></DropdownItem>
+                                    </DropdownMenu>
+                                </div>
+                            </template>
+                        </Field>
                         <Field
                             v-model="packageData.data.brand"
                             name="brand"
@@ -167,9 +187,12 @@ import router from '@/router'
 import { updateStep } from '@/api/common'
 import { findBuyList, editBuy } from '@/api/procurement'
 
-const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+import inactiveIcon from '@/assets/icon/select-icon.png'
 
+const instance = getCurrentInstance()
+const { $toast, $store } = instance.proxy
+
+const skeletonShow = ref(false)
 const columns = ref([
     { text: '12', value: '12' },
     { text: '24', value: '24' },
@@ -200,6 +223,8 @@ const packageData = reactive({
     }
 })
 const rules = reactive({
+    period: [{ required: true, message: '请选择合约期' }],
+    category: [{ required: true, message: '请选择品类' }],
     brand: [{ required: true, message: '请填写品牌/型号' }],
     dispose: [{ required: true, message: '请填写配置' }],
     count: [{ required: true, message: '请填写数量' }],
@@ -220,34 +245,20 @@ const popupClosed = () => {
     }
 }
 
-const updateSubmitButton = () => {
-    let status = true
-    for (const key in packageData.data) {
-        const val = packageData.data[key]
-        if (!val.length) {
-            status = false
-            break
-        }
-    }
-    submitDisabled.value = !status
-}
-
-const changeValidate = type => {
+const changeValidate = () => {
     formRef.value
-        .validate(type)
+        .validate()
         .then(async () => {
-            updateSubmitButton()
+            submitDisabled.value = false
         })
         .catch(() => {
-            updateSubmitButton()
+            submitDisabled.value = true
         })
 }
 
 const onSubmit = async () => {
-    // const enterpriseId = $store.getters.enterpriseId
-    const enterpriseId = '1650026719275147264'
+    const enterpriseId = $store.getters.enterpriseId
     if (enterpriseId) {
-        // formData.data['enterpriseId'] = $store.getters.enterpriseId
         packageData.data['enterpriseId'] = enterpriseId
         try {
             await editBuy({
@@ -272,8 +283,7 @@ const onSubmit = async () => {
 }
 
 const submitFormData = async () => {
-    // const enterpriseId = $store.getters.enterpriseId
-    const enterpriseId = '1650026719275147264'
+    const enterpriseId = $store.getters.enterpriseId
     try {
         await updateStep({
             data: {
@@ -292,12 +302,13 @@ const onClickRight = () => {
 }
 
 const findBuyListAccess = async () => {
-    // const enterpriseId = $store.getters.enterpriseId
+    skeletonShow.value = true
+    const enterpriseId = $store.getters.enterpriseId
     currentPage.value++
     try {
         const res = await findBuyList({
             data: {
-                enterpriseId: '1650026719275147264',
+                enterpriseId: enterpriseId,
                 currentPage: currentPage.value
             },
             hideloading: true
@@ -308,9 +319,10 @@ const findBuyListAccess = async () => {
             if (list.data.arr.length < 5 || list.data.arr.length === res.data.total) {
                 list.data.finished = true
             }
-            console.log(list.data.arr)
+            skeletonShow.value = false
         }
     } catch (err) {
+        skeletonShow.value = false
         return false
     }
 }

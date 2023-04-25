@@ -4,14 +4,14 @@
         <div class="body-container operator-page__body">
             <Form @submit="onSubmit" ref="formRef" class="pt-25px">
                 <div class="form-wrap">
-                    <Field label="门头照片" class="custom-wrap">
+                    <Field label="门头照片" class="custom-wrap" :rules="rules.doorHeadPhoto" name="doorHeadPhoto">
                         <template #input>
                             <div class="flex-1 h-full custom-upload">
                                 <Uploader
                                     v-model="doorHeadPhoto"
+                                    name="doorHeadPhoto"
                                     :after-read="afterRead"
                                     @delete="deleteRead"
-                                    name="doorHeadPhoto"
                                 >
                                     <div
                                         v-show="!formData.data.doorHeadPhoto.length"
@@ -48,34 +48,37 @@
                         :rules="[{ required: true, message: '请填写社保缴纳人数' }]"
                         @change="changeValidate('socialSecurityNumber')"
                     />
-                    <div class="upload-container">
-                        <h3>最近连续6个月内社保缴纳截图（3-6张）</h3>
-                        <Uploader
-                            v-model="socialSecurityUrls"
-                            :after-read="afterRead"
-                            :max-count="6"
-                            :upload-icon="addIcon"
-                            @delete="deleteRead"
-                            name="socialSecurityUrls"
-                        />
-                    </div>
+                    <Field class="custom-wrap social-wrap" :rules="rules.socialSecurityUrls" name="socialSecurityUrls">
+                        <template #input>
+                            <div class="upload-container w-full h-full">
+                                <h3>最近连续6个月内社保缴纳截图（3-6张）</h3>
+                                <Uploader
+                                    v-model="socialSecurityUrls"
+                                    :after-read="afterRead"
+                                    :max-count="6"
+                                    :upload-icon="addIcon"
+                                    @delete="deleteRead"
+                                    name="socialSecurityUrls"
+                                />
+                            </div>
+                        </template>
+                    </Field>
                 </div>
                 <div class="flex submit-footer">
-                    <VanButton block type="info" native-type="button" class="submit-button mr-10px">上一步</VanButton>
+                    <VanButton block type="info" native-type="button" class="submit-button mr-10px" @click="backRouter"
+                        >上一步</VanButton
+                    >
                     <VanButton block :disabled="submitDisabled" type="info" native-type="submit" class="submit-button"
                         >下一步</VanButton
                     >
                 </div>
-                <Popup v-model="showPicker" position="bottom" get-container="#app">
-                    <Picker show-toolbar :columns="columns" @confirm="onConfirm" @cancel="showPicker = false" />
-                </Popup>
             </Form>
         </div>
     </div>
 </template>
 
 <script setup>
-import { NavBar, Form, Field, Popup, Picker, Uploader, Icon, DropdownMenu, DropdownItem } from 'vant'
+import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem } from 'vant'
 import { reactive, ref, getCurrentInstance } from 'vue'
 import { isEmpty } from 'lodash-es'
 import router from '@/router'
@@ -93,7 +96,6 @@ const submitDisabled = ref(true)
 const formRef = ref()
 const doorHeadPhoto = ref([])
 const socialSecurityUrls = ref([])
-// 社保缴纳方式：1-公司自缴 2-三方机构代办
 const formData = reactive({
     data: {
         doorHeadPhoto: [],
@@ -102,11 +104,39 @@ const formData = reactive({
         socialSecurityUrls: []
     }
 })
-const showPicker = ref(false)
 const columns = ref([
     { text: '公司自缴', value: '1' },
     { text: '三方机构代办', value: '2' }
 ])
+const rules = reactive({
+    doorHeadPhoto: [
+        {
+            validator: () => {
+                if (!formData.data.doorHeadPhoto || !formData.data.doorHeadPhoto.length) {
+                    return false
+                }
+                return true
+            },
+            message: '请上传法人授权书'
+        }
+    ],
+    socialSecurityUrls: [
+        {
+            validator: () => {
+                if (!formData.data.socialSecurityUrls || formData.data.socialSecurityUrls.length < 3) {
+                    return false
+                }
+                return true
+            },
+            message: '社保缴纳截图至少上传3张'
+        }
+    ]
+})
+
+const backRouter = () => {
+    const name = $store.getters.role === '1' ? 'Enterprise' : 'Person'
+    router.push({ name })
+}
 
 const afterRead = async (file, details) => {
     file.status = 'uploading'
@@ -130,57 +160,35 @@ const afterRead = async (file, details) => {
                 socialSecurityUrls.value[socialSecurityUrls.value.length - 1].imgUrl = res.data[0]
                 formData.data[details.name] = socialSecurityUrls.value.map(item => item.imgUrl)
             }
-            updateSubmitButton()
+            changeValidate()
         }
     } catch (err) {
         file.status = 'failed'
         file.message = '上传失败'
-        updateSubmitButton()
+        changeValidate()
     }
 }
 
-const updateSubmitButton = () => {
-    let status = true
-    for (const key in formData.data) {
-        if (!formData.data[key].length) {
-            status = false
-            break
-        }
-        if (key === 'socialSecurityUrls' && formData.data[key].length < 3) {
-            status = false
-            break
-        }
-    }
-    submitDisabled.value = !status
-}
-
-const changeValidate = type => {
+const changeValidate = () => {
     formRef.value
-        .validate(type)
+        .validate()
         .then(async () => {
-            updateSubmitButton()
+            submitDisabled.value = false
         })
         .catch(() => {
-            updateSubmitButton()
+            submitDisabled.value = true
         })
 }
 
 const deleteRead = (file, details) => {
     formData.data[details.name] =
         details.name !== 'socialSecurityUrls' ? '' : socialSecurityUrls.value.map(item => item.imgUrl)
-    updateSubmitButton()
-}
-
-const onConfirm = val => {
-    formData.data.industryType = val
-    showPicker.value = false
+    changeValidate()
 }
 
 const onSubmit = async () => {
-    // const enterpriseId = $store.getters.enterpriseId
-    const enterpriseId = '1650026719275147264'
+    const enterpriseId = $store.getters.enterpriseId
     if (enterpriseId) {
-        // formData.data['enterpriseId'] = $store.getters.enterpriseId
         formData.data['enterpriseId'] = enterpriseId
         try {
             await submitEnterpriseSocialSecurity({
@@ -205,3 +213,21 @@ const onSubmit = async () => {
  */
 const formatterNumber = value => value.replace(/[^\d]/g, '')
 </script>
+
+<style lang="scss" scoped>
+.operator-page {
+    :deep(.upload-container) {
+        & > .van-uploader {
+            width: auto;
+            height: auto;
+            background-color: transparent;
+        }
+    }
+    :deep(.social-wrap .van-field__body) {
+        padding-bottom: 0;
+        &::after {
+            display: none;
+        }
+    }
+}
+</style>

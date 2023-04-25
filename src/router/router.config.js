@@ -44,7 +44,7 @@ export const asyncRouterMap = [
         component: () => import('@/views/Layouts/index'),
         redirect: '/customer/home',
         meta: {
-            title: '客户',
+            title: '身份选择',
             keepAlive: false
         },
         children: [
@@ -52,7 +52,7 @@ export const asyncRouterMap = [
                 path: 'home',
                 name: 'Customer',
                 component: () => import('@/views/Customer/index'),
-                meta: { title: '客户', keepAlive: false }
+                meta: { title: '身份选择', keepAlive: false }
             },
             {
                 path: 'enterprise',
@@ -130,7 +130,7 @@ export const asyncRouterMap = [
         component: () => import('@/views/Layouts/index'),
         redirect: '/receipt/home',
         meta: {
-            title: '合计与收货',
+            title: '合同预填写',
             keepAlive: false
         },
         children: [
@@ -138,7 +138,7 @@ export const asyncRouterMap = [
                 path: 'home',
                 name: 'Receipt',
                 component: () => import('@/views/Receipt/index'),
-                meta: { title: '合计与收货', keepAlive: false }
+                meta: { title: '合同预填写', keepAlive: false }
             }
         ]
     },
