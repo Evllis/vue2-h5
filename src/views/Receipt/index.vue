@@ -83,7 +83,14 @@
                     </div>
                 </div> -->
                 <div class="flex submit-footer">
-                    <VanButton block type="info" native-type="button" class="submit-button mr-10px">上一步</VanButton>
+                    <VanButton
+                        block
+                        type="info"
+                        native-type="button"
+                        class="submit-button mr-10px"
+                        to="/procurement/home"
+                        >上一步</VanButton
+                    >
                     <VanButton block :disabled="submitDisabled" type="info" native-type="submit" class="submit-button"
                         >下一步</VanButton
                     >
@@ -136,10 +143,8 @@ const rules = reactive({
 })
 
 const onSubmit = async () => {
-    // const enterpriseId = $store.getters.enterpriseId
-    const enterpriseId = '1650026719275147264'
+    const enterpriseId = $store.getters.enterpriseId
     if (enterpriseId) {
-        // formData.data['enterpriseId'] = $store.getters.enterpriseId
         formData.data['enterpriseId'] = enterpriseId
         try {
             await submitEnterpriseContract({
@@ -159,9 +164,9 @@ const onSubmit = async () => {
     }
 }
 
-const changeValidate = () => {
+const changeValidate = name => {
     formRef.value
-        .validate()
+        .validate(name)
         .then(async () => {
             submitDisabled.value = false
         })

@@ -16,10 +16,12 @@ const api = {
         submitEnterpriseOperator: `${apiPrefix}/commercialEnterprise/submitEnterpriseOperator`,
         submitEnterpriseSocialSecurity: `${apiPrefix}/commercialEnterprise/submitEnterpriseSocialSecurity`,
         findEnterpriseInfo: `${apiPrefix}/commercialEnterprise/findEnterpriseInfo`,
-        findEnterpriseOperator: `${apiPrefix}/commercialEnterprise/findEnterpriseOperator`
+        findEnterpriseOperator: `${apiPrefix}/commercialEnterprise/findEnterpriseOperator`,
+        findEnterpriseSocialSecurity: `${apiPrefix}/commercialEnterprise/findEnterpriseSocialSecurity`
     },
     Cooperate: {
-        submitEnterpriseUnicomInfo: `${apiPrefix}/commercialEnterprise/submitEnterpriseUnicomInfo`
+        submitEnterpriseUnicomInfo: `${apiPrefix}/commercialEnterprise/submitEnterpriseUnicomInfo`,
+        findEnterpriseUnicomInfo: `${apiPrefix}/commercialEnterprise/findEnterpriseUnicomInfo`
     },
     Network: {
         editSetmeal: `${apiPrefix}/commercialEnterprise/editSetmeal`,

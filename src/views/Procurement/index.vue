@@ -1,60 +1,55 @@
 <template>
     <div class="network-page">
-        <NavBar
-            title="合同预填写"
-            left-arrow
-            :right-text="list.data.arr.length ? '新增' : ''"
-            @click-right="onClickRight"
-        />
+        <NavBar title="合同预填写" left-arrow :right-text="list.data.arr.length ? '新增' : ''" @click-right="addItem" />
         <div class="body-container network-page__body pt-25px">
             <div class="van-form">
                 <div class="form-wrap">
-                    <h3 class="fs-13">采购清单</h3>
-                    <div class="scroll-wrap">
-                        <ul class="package-list">
-                            <div v-if="skeletonShow">
-                                <Skeleton v-for="index of 4" :row="3" :key="index" class="mb-30px" />
-                            </div>
-                            <div v-else>
-                                <List
-                                    v-model="list.data.loading"
-                                    :finished="list.data.finished"
-                                    :immediate-check="false"
-                                    finished-text="没有更多了"
-                                    @load="findBuyListAccess"
-                                >
-                                    <li v-for="item in list.data.arr" :key="item.id" class="package-item">
-                                        <div class="flex items-center package-body">
-                                            <div class="flex-1 flex flex-col package-wrap">
-                                                <div class="flex package-info">
-                                                    <span class="truncate max-w-100px">{{ item.brand }}</span>
-                                                    <span class="truncate max-w-100px">{{ item.dispose }}</span>
-                                                </div>
-                                                <div class="flex text-[var(--primary-active-color)]">
-                                                    <span class="truncate max-w-80px">共{{ item.count }}台</span>
-                                                    <span class="truncate max-w-150px"
-                                                        >月支付金额{{ item.monthlyPayment }}元/台</span
-                                                    >
-                                                </div>
+                    <h3 class="fs-13 mb-20px">采购清单</h3>
+                    <ul class="package-list">
+                        <div v-if="skeletonShow">
+                            <Skeleton v-for="index of 4" :row="3" :key="index" class="mb-30px" />
+                        </div>
+                        <div v-else>
+                            <List
+                                v-model="list.data.loading"
+                                :finished="list.data.finished"
+                                finished-text="没有更多了"
+                                @load="findBuyListAccess"
+                            >
+                                <li v-for="item in list.data.arr" :key="item.id" class="package-item">
+                                    <div class="flex items-center package-body">
+                                        <div class="flex-1 flex flex-col package-wrap">
+                                            <div class="flex package-info">
+                                                <span class="truncate max-w-100px">{{ item.brand }}</span>
+                                                <span class="truncate max-w-100px">{{ item.dispose }}</span>
                                             </div>
-                                            <div class="package-opts">
-                                                <VanButton
-                                                    plain
-                                                    type="primary"
-                                                    native-type="button"
-                                                    color="var(--primary-active-color)"
-                                                    >编辑</VanButton
+                                            <div class="flex text-[var(--primary-active-color)]">
+                                                <span class="truncate max-w-80px">共{{ item.count }}台</span>
+                                                <span class="truncate max-w-150px"
+                                                    >月支付金额{{ item.monthlyPayment }}元/台</span
                                                 >
                                             </div>
                                         </div>
-                                    </li>
-                                </List>
-                            </div>
-                        </ul>
-                    </div>
+                                        <div class="package-opts">
+                                            <VanButton
+                                                plain
+                                                type="primary"
+                                                native-type="button"
+                                                color="var(--primary-active-color)"
+                                                @click="editItem(item)"
+                                                >编辑</VanButton
+                                            >
+                                        </div>
+                                    </div>
+                                </li>
+                            </List>
+                        </div>
+                    </ul>
                 </div>
                 <div class="flex submit-footer">
-                    <VanButton block type="info" native-type="button" class="submit-button mr-10px">上一步</VanButton>
+                    <VanButton block type="info" native-type="button" class="submit-button mr-10px" to="/network/home"
+                        >上一步</VanButton
+                    >
                     <template v-if="list.data.arr.length">
                         <VanButton
                             block
@@ -66,17 +61,12 @@
                         >
                     </template>
                     <template v-else>
-                        <VanButton
-                            block
-                            type="info"
-                            native-type="button"
-                            class="submit-button"
-                            @click="showPicker = true"
+                        <VanButton block type="info" native-type="button" class="submit-button" @click="addItem"
                             >新增采购信息</VanButton
                         >
                     </template>
                 </div>
-                <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom" @closed="popupClosed">
+                <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom" @opened="popupOpened">
                     <VanIcon name="cross" class="close-icon" @click="showPicker = false" />
                     <Form @submit="onSubmit" ref="formRef">
                         <Field
@@ -167,7 +157,7 @@
                                 type="info"
                                 native-type="submit"
                                 class="submit-button"
-                                >确定</VanButton
+                                >{{ addType === 'add' ? '确定' : '修改' }}</VanButton
                             >
                         </div>
                     </Form>
@@ -238,6 +228,8 @@ const list = reactive({
     }
 })
 const showPicker = ref(false)
+const addType = ref('add')
+const buyId = ref('')
 
 const popupClosed = () => {
     for (const i in packageData.data) {
@@ -256,10 +248,36 @@ const changeValidate = () => {
         })
 }
 
+const addItem = () => {
+    addType.value = 'add'
+    submitDisabled.value = true
+    buyId.value = ''
+    popupClosed()
+    showPicker.value = true
+}
+
+// 编辑单项
+const editItem = item => {
+    addType.value = 'edit'
+    showPicker.value = true
+    packageData.data = {
+        period: item.period,
+        category: item.category,
+        brand: item.brand,
+        dispose: item.dispose,
+        count: item.count,
+        monthlyPayment: item.monthlyPayment
+    }
+    buyId.value = item.id
+}
+
 const onSubmit = async () => {
     const enterpriseId = $store.getters.enterpriseId
     if (enterpriseId) {
         packageData.data['enterpriseId'] = enterpriseId
+        if (buyId.value) {
+            packageData.data['buyId'] = buyId.value
+        }
         try {
             await editBuy({
                 data: packageData.data
@@ -267,7 +285,9 @@ const onSubmit = async () => {
             showPicker.value = false
             popupClosed()
             list.data.arr.length = 0
-            currentPage.value = 1
+            currentPage.value = 0
+            submitDisabled.value = true
+            list.data.finished = false
             await findBuyListAccess()
         } catch (err) {
             return false
@@ -297,8 +317,10 @@ const submitFormData = async () => {
     }
 }
 
-const onClickRight = () => {
-    showPicker.value = true
+const popupOpened = () => {
+    if (addType.value === 'edit') {
+        changeValidate()
+    }
 }
 
 const findBuyListAccess = async () => {
@@ -323,6 +345,9 @@ const findBuyListAccess = async () => {
         }
     } catch (err) {
         skeletonShow.value = false
+        if (currentPage.value) {
+            currentPage.value--
+        }
         return false
     }
 }

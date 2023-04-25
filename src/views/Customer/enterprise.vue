@@ -212,12 +212,10 @@ const formRef = ref()
 
 const queryLicenseNumAccess = val => {
     return new Promise(resolve => {
-        console.log(333333, val.length, val)
         if (val.length < 12) {
             resolve(true)
             return false
         }
-        console.log(6666666)
         const res = queryLicenseNum({
             data: {
                 licenseNum: val

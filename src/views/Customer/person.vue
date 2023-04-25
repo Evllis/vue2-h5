@@ -2,7 +2,7 @@
     <div class="person-page">
         <NavBar title="企业经办人信息" left-arrow />
         <div class="body-container person-page__body">
-            <Form @submit="onSubmit" @failed="onFailed" ref="formRef">
+            <Form @submit="onSubmit" ref="formRef">
                 <div class="form-wrap pt-25px">
                     <Field
                         label="您是该企业的经办人，需要额外提供以下资料："
@@ -249,10 +249,6 @@ const afterRead = async (file, details) => {
 const deleteRead = (file, details) => {
     formData.data[details.name] = ''
     changeValidate()
-}
-
-const onFailed = errorInfo => {
-    console.log('failed', errorInfo)
 }
 
 const onSubmit = async () => {

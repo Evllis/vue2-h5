@@ -1,11 +1,6 @@
 <template>
     <div class="network-page">
-        <NavBar
-            title="合同预填写"
-            left-arrow
-            :right-text="list.data.arr.length ? '新增' : ''"
-            @click-right="onClickRight"
-        />
+        <NavBar title="合同预填写" left-arrow :right-text="list.data.arr.length ? '新增' : ''" @click-right="addItem" />
         <div class="body-container network-page__body pt-25px">
             <div class="van-form">
                 <div class="form-wrap">
@@ -43,6 +38,7 @@
                                                 type="primary"
                                                 native-type="button"
                                                 color="var(--primary-active-color)"
+                                                @click="editItem(item)"
                                                 >编辑</VanButton
                                             >
                                         </div>
@@ -56,24 +52,21 @@
                     </ul>
                 </div>
                 <div class="flex submit-footer">
-                    <VanButton block type="info" native-type="button" class="submit-button mr-10px">上一步</VanButton>
+                    <VanButton block type="info" native-type="button" class="submit-button mr-10px" to="/cooperate/home"
+                        >上一步</VanButton
+                    >
                     <template v-if="list.data.arr.length">
                         <VanButton block type="info" native-type="button" class="submit-button" @click="submitFormData"
                             >下一步</VanButton
                         >
                     </template>
                     <template v-else>
-                        <VanButton
-                            block
-                            type="info"
-                            native-type="button"
-                            class="submit-button"
-                            @click="showPicker = true"
+                        <VanButton block type="info" native-type="button" class="submit-button" @click="addItem"
                             >新增套餐信息</VanButton
                         >
                     </template>
                 </div>
-                <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom" @closed="popupClosed">
+                <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom" @opened="popupOpened">
                     <VanIcon name="cross" class="close-icon" @click="showPicker = false" />
                     <Form @submit="onSubmit" ref="formRef">
                         <Field
@@ -155,7 +148,7 @@
                                 type="info"
                                 native-type="submit"
                                 class="submit-button"
-                                >确定</VanButton
+                                >{{ addType === 'add' ? '确定' : '修改' }}</VanButton
                             >
                         </div>
                     </Form>
@@ -212,6 +205,7 @@ const rules = reactive({
     tradeTime: [{ required: true, message: '请填写入网日期' }]
 })
 
+const setmealId = ref('')
 const currentPage = ref(0)
 const date = reactive({
     data: {
@@ -219,6 +213,7 @@ const date = reactive({
         minDate: new Date(new Date().getFullYear(), new Date().getMonth())
     }
 })
+const addType = ref('add')
 const skeletonShow = ref(false)
 const submitDisabled = ref(true)
 const formRef = ref()
@@ -256,6 +251,27 @@ const popupClosed = () => {
     }
 }
 
+const popupOpened = () => {
+    if (addType.value === 'edit') {
+        changeValidate()
+    }
+}
+
+// 编辑单项
+const editItem = item => {
+    addType.value = 'edit'
+    showPicker.value = true
+    packageData.data = {
+        name: item.name,
+        number: item.number,
+        monthlyPayment: item.monthlyPayment,
+        period: item.period,
+        voucherAmount: item.voucherAmount,
+        tradeTime: item.tradeTime
+    }
+    setmealId.value = item.id
+}
+
 const submitFormData = async () => {
     const enterpriseId = $store.getters.enterpriseId
     try {
@@ -275,6 +291,9 @@ const onSubmit = async () => {
     const enterpriseId = $store.getters.enterpriseId
     if (enterpriseId) {
         packageData.data['enterpriseId'] = enterpriseId
+        if (setmealId.value) {
+            packageData.data['setmealId'] = setmealId.value
+        }
         try {
             await editSetmeal({
                 data: packageData.data
@@ -282,7 +301,10 @@ const onSubmit = async () => {
             showPicker.value = false
             popupClosed()
             list.data.arr.length = 0
-            currentPage.value = 1
+            currentPage.value = 0
+            submitDisabled.value = true
+            date.data.currentDate = new Date(new Date().getFullYear(), new Date().getMonth())
+            list.data.finished = false
             await findSetmealListAccess()
         } catch (err) {
             return false
@@ -301,16 +323,18 @@ const changeValidate = () => {
     formRef.value
         .validate()
         .then(async () => {
-            console.log(11111111)
             submitDisabled.value = false
         })
         .catch(() => {
-            console.log(2222222)
             submitDisabled.value = true
         })
 }
 
-const onClickRight = () => {
+const addItem = () => {
+    addType.value = 'add'
+    submitDisabled.value = true
+    setmealId.value = ''
+    popupClosed()
     showPicker.value = true
 }
 
@@ -337,7 +361,6 @@ const findSetmealListAccess = async () => {
             if (list.data.arr.length < 5 || list.data.arr.length === res.data.total) {
                 list.data.finished = true
             }
-            console.log(list.data.arr)
         }
     } catch (err) {
         skeletonShow.value = false

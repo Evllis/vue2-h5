@@ -62,7 +62,14 @@
                     />
                 </div>
                 <div class="flex submit-footer">
-                    <VanButton block type="info" native-type="button" class="submit-button mr-10px">上一步</VanButton>
+                    <VanButton
+                        block
+                        type="info"
+                        native-type="button"
+                        class="submit-button mr-10px"
+                        to="/customer/operator"
+                        >上一步</VanButton
+                    >
                     <VanButton block :disabled="submitDisabled" type="info" native-type="submit" class="submit-button"
                         >下一步</VanButton
                     >
@@ -82,7 +89,7 @@ import { reactive, ref, onMounted, getCurrentInstance } from 'vue'
 import router from '@/router'
 
 import { regionInfo, uploadFile } from '@/api/common'
-import { submitEnterpriseUnicomInfo } from '@/api/cooperate'
+import { submitEnterpriseUnicomInfo, findEnterpriseUnicomInfo } from '@/api/cooperate'
 
 import { isLetterNumber, isName, isPhone } from '@/utils/validate'
 
@@ -219,7 +226,35 @@ const onSubmit = async () => {
     }
 }
 
+const backFillData = async () => {
+    const enterpriseId = $store.getters.enterpriseId
+    if (enterpriseId) {
+        try {
+            const res = await findEnterpriseUnicomInfo({
+                data: {
+                    enterpriseId
+                },
+                hideloading: true
+            })
+            if (!isEmpty(res.data)) {
+                formData.data = res.data
+                unicomContractUrls.value = res.data.unicomContractUrls
+                    ? res.data.unicomContractUrls.map(item => {
+                          return {
+                              url: `https://${item}`
+                          }
+                      })
+                    : []
+                changeValidate()
+            }
+        } catch (err) {
+            return false
+        }
+    }
+}
+
 onMounted(async () => {
+    backFillData()
     try {
         const res = await regionInfo({
             hideloading: true

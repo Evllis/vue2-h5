@@ -79,12 +79,12 @@
 
 <script setup>
 import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem } from 'vant'
-import { reactive, ref, getCurrentInstance } from 'vue'
+import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
 import { isEmpty } from 'lodash-es'
 import router from '@/router'
 
 import { uploadFile } from '@/api/common'
-import { submitEnterpriseSocialSecurity } from '@/api/customer'
+import { submitEnterpriseSocialSecurity, findEnterpriseSocialSecurity } from '@/api/customer'
 
 import cameraIcon from '@/assets/icon/camera-icon.png'
 import addIcon from '@/assets/icon/add-icon.png'
@@ -207,6 +207,35 @@ const onSubmit = async () => {
         })
     }
 }
+
+onMounted(async () => {
+    const enterpriseId = $store.getters.enterpriseId
+    if (enterpriseId) {
+        try {
+            const res = await findEnterpriseSocialSecurity({
+                data: {
+                    enterpriseId
+                },
+                hideloading: true
+            })
+            if (!isEmpty(res.data)) {
+                formData.data = res.data
+                formData.data.socialSecurityType = `${formData.data.socialSecurityType}`
+                doorHeadPhoto.value = res.data.doorHeadPhoto ? [{ url: `https://${res.data.doorHeadPhoto}` }] : []
+                socialSecurityUrls.value = res.data.socialSecurityUrls
+                    ? res.data.socialSecurityUrls.map(item => {
+                          return {
+                              url: `https://${item}`
+                          }
+                      })
+                    : []
+                changeValidate()
+            }
+        } catch (err) {
+            return false
+        }
+    }
+})
 
 /**
  * formatter

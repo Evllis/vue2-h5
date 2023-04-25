@@ -55,3 +55,12 @@ export const findEnterpriseOperator = d => {
         ...d
     })
 }
+
+// 门头社保信息回显
+export const findEnterpriseSocialSecurity = d => {
+    return request({
+        url: api.Customer.findEnterpriseSocialSecurity,
+        method: 'post',
+        ...d
+    })
+}
