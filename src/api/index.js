@@ -38,6 +38,9 @@ const api = {
     Preview: {
         enterpriseContractPreview: `${apiPrefix}/commercialEnterprise/enterpriseContractPreview`
     },
+    Audit: {
+        queryAudit: `${apiPrefix}/commercialEnterprise/queryAudit`
+    },
     Common: {
         uploadFile: `${apiPrefix}/file/uploadFile`,
         regionInfo: `${apiPrefix}/region/regionInfo`,

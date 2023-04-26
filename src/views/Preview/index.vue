@@ -402,7 +402,7 @@ import { enterpriseContractPreview } from '@/api/preview'
 import { updateStep } from '@/api/common'
 
 const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+const { $toast, $store } = instance.proxy
 
 const buyListIndex = ref([])
 const buyList = reactive({})
@@ -412,8 +412,7 @@ const formData = reactive({
 })
 
 const submitData = async () => {
-    // const enterpriseId = $store.getters.enterpriseId
-    const enterpriseId = '1650026719275147264'
+    const enterpriseId = $store.getters.enterpriseId
     try {
         await updateStep({
             data: {
@@ -428,8 +427,7 @@ const submitData = async () => {
 }
 
 onMounted(async () => {
-    // const enterpriseId = $store.getters.enterpriseId
-    const enterpriseId = '1650026719275147264'
+    const enterpriseId = $store.getters.enterpriseId
     if (enterpriseId) {
         try {
             const res = await enterpriseContractPreview({
