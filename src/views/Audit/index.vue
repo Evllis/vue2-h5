@@ -5,7 +5,7 @@
         <div class="body-container audit-page__body">
             <div class="flex flex-col items-center justify-center audit-wrap">
                 <!-- <VanImage :src="auditIng" /> -->
-                <VanImage :src="auditFail" />
+                <VanImage :src="auditStatus === 2 ? auditIng : auditFail" />
                 <p>{{ auditMsg }}</p>
                 <!-- <p>您的授信审核已提交，预计T+1审核完成</p> -->
                 <!-- <p>您司不符合准入标准，2023年9月29日 可再次提交审核</p> -->
@@ -19,21 +19,25 @@
 <script setup>
 import { onMounted, getCurrentInstance, ref } from 'vue'
 import { NavBar, Image as VanImage } from 'vant'
+import { useCache } from '@/hooks/useCache'
+import { stepMap } from '@/store/config'
 import router from '@/router'
 
 import { queryAudit } from '@/api/audit'
 
-// import auditIng from '@/assets/img/audit-ing.png'
+import auditIng from '@/assets/img/audit-ing.png'
 import auditFail from '@/assets/img/audit-fail.png'
 import { isEmpty } from 'lodash-es'
 
+const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast, $store } = instance.proxy
+const { $toast } = instance.proxy
 
-const auditMsg = ref('您的授信审核已提交，预计T+1审核完成')
+const auditStatus = ref(4)
+const auditMsg = ref('')
 
 onMounted(async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         try {
             const res = await queryAudit({
@@ -43,14 +47,16 @@ onMounted(async () => {
                 hideloading: true
             })
             if (!isEmpty(res)) {
-                // res.data.status: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
-                if (res.data.status === '3' || res.data.status === '5') {
+                // res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
+                if (+res.data.auditStatus === 2) {
+                    auditMsg.value = '您的授信审核已提交，预计T+1审核完成'
+                    auditStatus.value = 2
+                } else if (+res.data.auditStatus === 3 || +res.data.auditStatus === 5) {
                     auditMsg.value = res.data.auditMsg
-                }
-                if (res.data.status === '4') {
+                } else if (+res.data.auditStatus === 4) {
                     auditMsg.value = res.data.auditList.msg
+                    setTimeout(() => router.push({ name: stepMap[res.data.auditList.step] }), 1500)
                 }
-                console.log(res)
             }
         } catch (err) {
             return false

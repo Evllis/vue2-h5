@@ -90,6 +90,7 @@ import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem, ImageP
 import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
 import { isEmpty } from 'lodash-es'
 import router from '@/router'
+import { useCache } from '@/hooks/useCache'
 
 import { uploadFile } from '@/api/common'
 import { submitEnterpriseSocialSecurity, findEnterpriseSocialSecurity } from '@/api/customer'
@@ -98,8 +99,9 @@ import cameraIcon from '@/assets/icon/camera-icon.png'
 import addIcon from '@/assets/icon/add-icon.png'
 import example from '@/assets/img/example.png'
 
+const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast, $store } = instance.proxy
+const { $toast } = instance.proxy
 
 const submitDisabled = ref(true)
 const formRef = ref()
@@ -143,7 +145,7 @@ const rules = reactive({
 })
 
 const backRouter = () => {
-    const name = $store.getters.role === '1' ? 'Enterprise' : 'Person'
+    const name = wsCache.get('role') === '1' ? 'Enterprise' : 'Person'
     router.push({ name })
 }
 
@@ -200,7 +202,7 @@ const deleteRead = (file, details) => {
 }
 
 const onSubmit = async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         formData.data['enterpriseId'] = enterpriseId
         try {
@@ -222,7 +224,7 @@ const onSubmit = async () => {
 }
 
 onMounted(async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         try {
             const res = await findEnterpriseSocialSecurity({

@@ -160,10 +160,11 @@
 
 <script setup>
 import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem } from 'vant'
-import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { nonCharacter, isName, isIdCard, isPhone } from '@/utils/validate'
 import { isEmpty } from 'lodash-es'
 import router from '@/router'
+import { useCache } from '@/hooks/useCache'
 
 import { submitEnterpriseInfo, findEnterpriseInfo } from '@/api/customer'
 import { uploadFile, queryLicenseNum } from '@/api/common'
@@ -173,8 +174,7 @@ import cameraIcon from '@/assets/icon/camera-icon.png'
 import cardFront from '@/assets/img/card-front.png'
 import cardBack from '@/assets/img/card-back.png'
 
-const instance = getCurrentInstance()
-const { $store } = instance.proxy
+const { wsCache } = useCache()
 // 行业类型：1  建筑业 2  制造业 3  交通运输、仓储业和邮政业 4  信息传输、计算机服务和软件业 5  批发和零售业 6  住宿、餐饮业 7  金融、保险业 8  房地产业 9  租赁和商务服务业 10  教育、培训 11  文化、体育、娱乐业 12  其它
 const columns = ref([
     { text: '建筑业', value: '1' },
@@ -342,11 +342,12 @@ const onSubmit = async () => {
         })
         if (!isEmpty(res)) {
             // Person: 经办人, Operator: 门头
-            const type = $store.getters.role === '1' ? 'Operator' : 'Person'
+            const type = wsCache.get('role') === '1' ? 'Operator' : 'Person'
             // 这里需要判断身份, 跳转不同的页面
             // 经办人: Person, 企业门头: Operator
-            if (!$store.getters.enterpriseId) {
-                $store.dispatch('setEnterpriseId', res.data.id)
+            const enterpriseId = wsCache.get('enterpriseId')
+            if (!enterpriseId) {
+                wsCache.set('enterpriseId', res.data.id)
             }
             setTimeout(() => router.push({ name: type }), 1000)
         }
@@ -356,7 +357,7 @@ const onSubmit = async () => {
 }
 
 onMounted(async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         try {
             const res = await findEnterpriseInfo({

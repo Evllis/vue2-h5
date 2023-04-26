@@ -148,7 +148,7 @@
                                 type="info"
                                 native-type="submit"
                                 class="submit-button"
-                                >{{ addType === 'add' ? '确定' : '修改' }}</VanButton
+                                >{{ addType === 'add' ? '确定' : '提交' }}</VanButton
                             >
                         </div>
                     </Form>
@@ -173,6 +173,7 @@
 import { NavBar, Form, Field, Popup, DatetimePicker, DropdownMenu, DropdownItem, List, Skeleton } from 'vant'
 import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
 import router from '@/router'
+import { useCache } from '@/hooks/useCache'
 
 import { editSetmeal, findSetmealList } from '@/api/network'
 import { updateStep } from '@/api/common'
@@ -183,8 +184,9 @@ import { formatterNumber } from '@/utils'
 import inactiveIcon from '@/assets/icon/select-icon.png'
 import { isEmpty } from 'lodash-es'
 
+const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast, $store } = instance.proxy
+const { $toast } = instance.proxy
 
 const list = reactive({
     data: {
@@ -273,7 +275,7 @@ const editItem = item => {
 }
 
 const submitFormData = async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     try {
         await updateStep({
             data: {
@@ -288,7 +290,7 @@ const submitFormData = async () => {
 }
 
 const onSubmit = async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         packageData.data['enterpriseId'] = enterpriseId
         if (setmealId.value) {
@@ -343,7 +345,7 @@ onMounted(async () => {
 })
 
 const findSetmealListAccess = async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     skeletonShow.value = true
     currentPage.value++
     try {

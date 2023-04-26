@@ -157,7 +157,7 @@
                                 type="info"
                                 native-type="submit"
                                 class="submit-button"
-                                >{{ addType === 'add' ? '确定' : '修改' }}</VanButton
+                                >{{ addType === 'add' ? '确定' : '提交' }}</VanButton
                             >
                         </div>
                     </Form>
@@ -172,6 +172,7 @@ import { NavBar, Form, Field, Popup, Skeleton, List, DropdownMenu, DropdownItem 
 import { reactive, ref, onMounted, getCurrentInstance } from 'vue'
 import { isEmpty } from 'lodash-es'
 import { formatterNumber } from '@/utils'
+import { useCache } from '@/hooks/useCache'
 import router from '@/router'
 
 import { updateStep } from '@/api/common'
@@ -179,8 +180,9 @@ import { findBuyList, editBuy } from '@/api/procurement'
 
 import inactiveIcon from '@/assets/icon/select-icon.png'
 
+const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast, $store } = instance.proxy
+const { $toast } = instance.proxy
 
 const skeletonShow = ref(false)
 const columns = ref([
@@ -272,7 +274,7 @@ const editItem = item => {
 }
 
 const onSubmit = async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         packageData.data['enterpriseId'] = enterpriseId
         if (buyId.value) {
@@ -303,7 +305,7 @@ const onSubmit = async () => {
 }
 
 const submitFormData = async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     try {
         await updateStep({
             data: {
@@ -325,7 +327,7 @@ const popupOpened = () => {
 
 const findBuyListAccess = async () => {
     skeletonShow.value = true
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     currentPage.value++
     try {
         const res = await findBuyList({

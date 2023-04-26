@@ -29,19 +29,19 @@ const router = createRouter()
 // const whiteList = ['/login'] // 不重定向白名单
 
 router.beforeEach(async (to, from, next) => {
-    const token = router.app.$options.store.getters.token
-    if (to.path !== '/login' && !token) {
-        next({
-            path: '/login'
-        })
-    } else {
-        if (to.path === '/login' && token) {
-            next('/login')
-        } else {
-            next()
-        }
-    }
-    // next()
+    // const token = router.app.$options.store.getters.token
+    // if (to.path !== '/login' && !token) {
+    //     next({
+    //         path: '/login'
+    //     })
+    // } else {
+    //     if (to.path === '/login' && token) {
+    //         next('/login')
+    //     } else {
+    //         next()
+    //     }
+    // }
+    next()
 })
 
 router.afterEach(to => {

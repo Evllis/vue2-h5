@@ -87,6 +87,7 @@
 import { NavBar, Form, Field, Popup, Area, Uploader } from 'vant'
 import { reactive, ref, onMounted, getCurrentInstance } from 'vue'
 import router from '@/router'
+import { useCache } from '@/hooks/useCache'
 
 import { regionInfo, uploadFile } from '@/api/common'
 import { submitEnterpriseUnicomInfo, findEnterpriseUnicomInfo } from '@/api/cooperate'
@@ -97,8 +98,9 @@ import inactiveIcon from '@/assets/icon/select-icon.png'
 import addIcon from '@/assets/icon/add-icon.png'
 import { isEmpty } from 'lodash-es'
 
+const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast, $store } = instance.proxy
+const { $toast } = instance.proxy
 
 const formRef = ref()
 const selectAreaData = ref([])
@@ -199,7 +201,7 @@ const onConfirm = val => {
     changeValidate()
 }
 const onSubmit = async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         const data = Object.assign(formData.data, {
             enterpriseId,
@@ -227,7 +229,7 @@ const onSubmit = async () => {
 }
 
 const backFillData = async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         try {
             const res = await findEnterpriseUnicomInfo({

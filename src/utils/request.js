@@ -1,12 +1,13 @@
 import axios from 'axios'
-import store from '@/store'
 import { Toast } from 'vant'
 import router from '@/router'
+import { useCache } from '@/hooks/useCache'
 
 // 根据环境不同引入不同api地址
 import { baseApi } from '@/config'
 import { useNProgress } from '@/hooks/useNProgress'
 
+const { wsCache } = useCache()
 const { start, done } = useNProgress()
 
 // create an axios instance
@@ -28,9 +29,9 @@ service.interceptors.request.use(
                 forbidClick: false
             })
         }
-        console.log(66666666, store.getters.token)
-        if (store.getters.token) {
-            config.headers['Authorization'] = store.getters.token
+        const token = wsCache.get('token')
+        if (token) {
+            config.headers['Authorization'] = token
         }
         // config.headers['Authorization'] =
         //     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiMiIsInBob25lIjoiMTg3MzQyMjIyNjUiLCJpZCI6IjE2NTA3NDI5ODQ2NzEyNTY1NzYiLCJleHAiOjE2ODI0MTc3ODQsImlhdCI6MTY4MjQxNTk4NH0.23FzWrUg3JjTgBjZZdqOJDtu_r5QK7juMjr4gZwGxtU'
@@ -64,13 +65,12 @@ service.interceptors.response.use(
         if (res.returnCode && res.returnCode !== '1000') {
             // 登录失效, 清除token, 跳转到登录页面
             if (res.returnCode === '9997') {
-                store.dispatch('setToken', '').then(() => {
-                    Toast.fail({
-                        message: res.returnMsg,
-                        onClose: () => {
-                            router.push({ name: 'Login' })
-                        }
-                    })
+                wsCache.clear()
+                Toast.fail({
+                    message: res.returnMsg,
+                    onClose: () => {
+                        router.push({ name: 'Login' })
+                    }
                 })
             } else {
                 Toast.fail(res.returnMsg)

@@ -134,6 +134,7 @@ import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
 import { isIdCard, isName, isPhone } from '@/utils/validate'
 import { isEmpty } from 'lodash-es'
 import router from '@/router'
+import { useCache } from '@/hooks/useCache'
 
 import { uploadFile } from '@/api/common'
 import { submitEnterpriseOperator, findEnterpriseOperator } from '@/api/customer'
@@ -142,8 +143,9 @@ import cameraIcon from '@/assets/icon/camera-icon.png'
 import cardFront from '@/assets/img/card-front.png'
 import cardBack from '@/assets/img/card-back.png'
 
+const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast, $store } = instance.proxy
+const { $toast } = instance.proxy
 
 const formRef = ref()
 const submitDisabled = ref(true)
@@ -252,8 +254,9 @@ const deleteRead = (file, details) => {
 }
 
 const onSubmit = async () => {
-    if ($store.getters.enterpriseId) {
-        formData.data['enterpriseId'] = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
+    if (enterpriseId) {
+        formData.data['enterpriseId'] = enterpriseId
         try {
             await submitEnterpriseOperator({
                 data: formData.data
@@ -273,7 +276,7 @@ const onSubmit = async () => {
 }
 
 onMounted(async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         try {
             const res = await findEnterpriseOperator({

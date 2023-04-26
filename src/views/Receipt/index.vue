@@ -106,12 +106,14 @@ import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
 import router from '@/router'
 import { formatterNumber } from '@/utils'
 import { isName, isPhone, isAddress } from '@/utils/validate'
+import { useCache } from '@/hooks/useCache'
 
 import { submitEnterpriseContract, findEnterpriseContract } from '@/api/receipt'
 import { isEmpty } from 'lodash-es'
 
+const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast, $store } = instance.proxy
+const { $toast } = instance.proxy
 
 const submitDisabled = ref(true)
 const formRef = ref()
@@ -143,7 +145,7 @@ const rules = reactive({
 })
 
 const onSubmit = async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         formData.data['enterpriseId'] = enterpriseId
         try {
@@ -176,7 +178,7 @@ const changeValidate = name => {
 }
 
 onMounted(async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         try {
             const res = await findEnterpriseContract({

@@ -71,7 +71,7 @@ import { isPhone, digitInteger } from '@/utils/validate'
 import { useRouter } from 'vue-router/composables'
 import { isEmpty } from 'lodash-es'
 import { stepMap } from '@/store/config'
-// import { useCache } from '@/hooks/useCache'
+import { useCache } from '@/hooks/useCache'
 
 import Agreement from '@/components/Agreement'
 
@@ -80,9 +80,9 @@ import { sendMsg, loginRegister } from '@/api/login'
 import inactiveIcon from '@/assets/icon/checkbox-icon.png'
 import activeIcon from '@/assets/icon/checkbox-checked-icon.png'
 
+const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast, $store } = instance.proxy
-// const { wsCache } = useCache()
+const { $toast } = instance.proxy
 
 const formRef = ref()
 const router = useRouter()
@@ -155,18 +155,17 @@ const onSubmit = async values => {
     try {
         const res = await loginRegister({ phone: phone.value, code: '000000' }).catch(() => {})
         if (!isEmpty(res)) {
-            // wsCache.set('token', res.data.token)
-            $store.dispatch('setToken', res.data.token)
+            wsCache.set('token', res.data.token)
             let routerName = 'Customer'
             if (res.data.step) {
                 routerName = stepMap.value[res.data.step]
-                $store.dispatch('setStep', res.data.step)
+                wsCache.set('step', res.data.step)
             }
             if (res.data.role) {
-                $store.dispatch('setRole', res.data.role)
+                wsCache.set('role', res.data.role)
             }
             if (res.data.enterpriseId) {
-                $store.dispatch('setEnterpriseId', res.data.enterpriseId)
+                wsCache.set('enterpriseId', res.data.enterpriseId)
             }
             setTimeout(() => router.push({ name: routerName }), 1000)
         }

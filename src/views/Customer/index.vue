@@ -32,16 +32,16 @@
 </template>
 
 <script setup>
-import { ref, getCurrentInstance } from 'vue'
+import { ref } from 'vue'
 import { NavBar, DropdownMenu, DropdownItem, Field } from 'vant'
 import router from '@/router'
+import { useCache } from '@/hooks/useCache'
 
 import inactiveIcon from '@/assets/icon/select-icon.png'
 import { setRole } from '@/api/customer'
 import { isEmpty } from 'lodash-es'
 
-const instance = getCurrentInstance()
-const { $store } = instance.proxy
+const { wsCache } = useCache()
 
 const customer = ref('1')
 // 身份角色 1-法人 2-经办人
@@ -58,9 +58,9 @@ const submitData = async () => {
             }
         })
         if (!isEmpty(res.data)) {
-            $store.dispatch('setToken', res.data.token)
-            if (!$store.getters.role) {
-                $store.dispatch('setRole', customer.value)
+            wsCache.set('token', res.data.token)
+            if (!wsCache.get('role')) {
+                wsCache.set('role', customer.value)
             }
             setTimeout(() => router.push({ name: 'Enterprise' }), 1000)
         }

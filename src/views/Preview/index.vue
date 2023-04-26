@@ -397,12 +397,14 @@ import { NavBar } from 'vant'
 import { onMounted, reactive, ref, getCurrentInstance } from 'vue'
 import router from '@/router'
 import { isEmpty } from 'lodash-es'
+import { useCache } from '@/hooks/useCache'
 
 import { enterpriseContractPreview } from '@/api/preview'
 import { updateStep } from '@/api/common'
 
+const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast, $store } = instance.proxy
+const { $toast } = instance.proxy
 
 const buyListIndex = ref([])
 const buyList = reactive({})
@@ -412,7 +414,7 @@ const formData = reactive({
 })
 
 const submitData = async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     try {
         await updateStep({
             data: {
@@ -427,7 +429,7 @@ const submitData = async () => {
 }
 
 onMounted(async () => {
-    const enterpriseId = $store.getters.enterpriseId
+    const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         try {
             const res = await enterpriseContractPreview({
@@ -448,7 +450,6 @@ onMounted(async () => {
                 })
                 buyListIndex.value = buyListIndex.value.sort()
                 setmealList.value = res.data.setmealList
-                console.log(res.data, setmealList.value)
             }
         } catch (err) {
             return false
