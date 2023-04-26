@@ -4,7 +4,15 @@
         <div class="body-container operator-page__body">
             <Form @submit="onSubmit" ref="formRef" class="pt-25px">
                 <div class="form-wrap">
-                    <Field label="门头照片" class="custom-wrap" :rules="rules.doorHeadPhoto" name="doorHeadPhoto">
+                    <Field class="custom-wrap" :rules="rules.doorHeadPhoto" name="doorHeadPhoto">
+                        <template #label>
+                            <div class="flex items-center justify-between">
+                                <span>门头照片</span>
+                                <span class="font-bold text-[var(--primary-active-color)]" @click="previewExample"
+                                    >查看示例</span
+                                >
+                            </div>
+                        </template>
                         <template #input>
                             <div class="flex-1 h-full custom-upload">
                                 <Uploader
@@ -78,7 +86,7 @@
 </template>
 
 <script setup>
-import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem } from 'vant'
+import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem, ImagePreview } from 'vant'
 import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
 import { isEmpty } from 'lodash-es'
 import router from '@/router'
@@ -88,6 +96,7 @@ import { submitEnterpriseSocialSecurity, findEnterpriseSocialSecurity } from '@/
 
 import cameraIcon from '@/assets/icon/camera-icon.png'
 import addIcon from '@/assets/icon/add-icon.png'
+import example from '@/assets/img/example.png'
 
 const instance = getCurrentInstance()
 const { $toast, $store } = instance.proxy
@@ -136,6 +145,10 @@ const rules = reactive({
 const backRouter = () => {
     const name = $store.getters.role === '1' ? 'Enterprise' : 'Person'
     router.push({ name })
+}
+
+const previewExample = () => {
+    ImagePreview([example])
 }
 
 const afterRead = async (file, details) => {
