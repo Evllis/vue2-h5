@@ -1,8 +1,8 @@
 <template>
     <div class="enterprise-page">
-        <NavBar title="企业基本信息" left-arrow />
+        <NavBar title="企业基本信息" left-arrow @click-left="onClickLeft" />
         <div class="body-container enterprise-page__body">
-            <Form @submit="onSubmit" ref="formRef">
+            <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                 <div class="form-wrap pt-25px">
                     <Field
                         v-model="formData.data.name"
@@ -297,6 +297,10 @@ const changeValidate = () => {
         .catch(() => {
             submitDisabled.value = true
         })
+}
+
+const onClickLeft = () => {
+    router.push({ name: 'Customer' })
 }
 
 const afterRead = async (file, details) => {

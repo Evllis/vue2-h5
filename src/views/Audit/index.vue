@@ -1,74 +1,86 @@
 <template>
     <div class="audit-page">
         <NavBar title="审核中" left-arrow />
-        <!-- <NavBar title="审核失败" left-arrow /> -->
         <div class="body-container audit-page__body">
             <div class="flex flex-col items-center justify-center audit-wrap">
-                <!-- <VanImage :src="auditIng" /> -->
-                <VanImage :src="auditStatus === 2 ? auditIng : auditFail" />
-                <p>{{ auditMsg }}</p>
-                <!-- <p>您的授信审核已提交，预计T+1审核完成</p> -->
-                <!-- <p>您司不符合准入标准，2023年9月29日 可再次提交审核</p> -->
-                <!-- <VanButton block type="info" native-type="button" class="submit-button">确定</VanButton> -->
-                <!-- <VanButton block type="info" native-type="button" class="submit-button">完成</VanButton> -->
+                <VanImage :src="filterAuditImg" />
+                <!-- <p>{{ auditMsg }}</p> -->
+                <div v-if="+auditStatus === 2" class="flex flex-col items-center justify-center">
+                    <p>您的授信审核已提交，预计T+1审核完成</p>
+                    <VanButton block type="info" native-type="button" class="submit-button">确定</VanButton>
+                </div>
+                <div v-else class="flex flex-col items-center justify-center">
+                    <p>您司不符合准入标准，2023年9月29日 可再次提交审核</p>
+                    <VanButton block type="info" native-type="button" class="submit-button">完成</VanButton>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { onMounted, getCurrentInstance, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { NavBar, Image as VanImage } from 'vant'
-import { useCache } from '@/hooks/useCache'
-import { stepMap } from '@/store/config'
+// import { useCache } from '@/hooks/useCache'
+// import { stepMap } from '@/store/config'
 import router from '@/router'
 
-import { queryAudit } from '@/api/audit'
+// import { queryAudit } from '@/api/audit'
 
 import auditIng from '@/assets/img/audit-ing.png'
 import auditFail from '@/assets/img/audit-fail.png'
-import { isEmpty } from 'lodash-es'
+// import { isEmpty } from 'lodash-es'
 
-const { wsCache } = useCache()
-const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+// const { wsCache } = useCache()
+// const instance = getCurrentInstance()
+// const { $toast } = instance.proxy
 
-const auditStatus = ref(4)
-const auditMsg = ref('')
+const auditStatus = ref(2)
+// const auditMsg = ref('')
+
+const filterAuditImg = computed(() => {
+    if (+auditStatus.value === 2) {
+        return auditIng
+    }
+    return auditFail
+})
 
 onMounted(async () => {
-    const enterpriseId = wsCache.get('enterpriseId')
-    if (enterpriseId) {
-        try {
-            const res = await queryAudit({
-                data: {
-                    enterpriseId
-                },
-                hideloading: true
-            })
-            if (!isEmpty(res)) {
-                // res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
-                if (+res.data.auditStatus === 2) {
-                    auditMsg.value = '您的授信审核已提交，预计T+1审核完成'
-                    auditStatus.value = 2
-                } else if (+res.data.auditStatus === 3 || +res.data.auditStatus === 5) {
-                    auditMsg.value = res.data.auditMsg
-                } else if (+res.data.auditStatus === 4) {
-                    auditMsg.value = res.data.auditList.msg
-                    setTimeout(() => router.push({ name: stepMap[res.data.auditList.step] }), 1500)
-                }
-            }
-        } catch (err) {
-            return false
-        }
-    } else {
-        $toast.fail({
-            message: '请重新登录',
-            onClose: () => {
-                router.push({ name: 'Login' })
-            }
-        })
-    }
+    auditStatus.value = router?.history?.current?.query?.type
+    // const enterpriseId = wsCache.get('enterpriseId')
+    // if (enterpriseId) {
+    //     try {
+    //         const res = await queryAudit({
+    //             data: {
+    //                 enterpriseId
+    //             },
+    //             hideloading: true
+    //         })
+    //         if (!isEmpty(res)) {
+    //             // res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
+    //             auditStatus.value = res.data.auditStatus
+    //             // if (+res.data.auditStatus === 2) {
+    //             //     auditMsg.value = '您的授信审核已提交，预计T+1审核完成'
+    //             // } else if (+res.data.auditStatus === 3) {
+    //             //     auditMsg.value = '审核通过'
+    //             // } else if (+res.data.auditStatus === 4) {
+    //             //     auditMsg.value = '审核驳回'
+    //             //     // setTimeout(() => router.push({ name: stepMap[res.data.auditList.step] }), 1500)
+    //             // } else if (+res.data.auditStatus === 5) {
+    //             //     auditMsg.value = '您司不符合准入标准，xxxx年xx月xx日可再次提交审核'
+    //             // }
+    //         }
+    //     } catch (err) {
+    //         return false
+    //     }
+    // } else {
+    //     $toast.fail({
+    //         message: '请重新登录',
+    //         onClose: () => {
+    //             router.push({ name: 'Login' })
+    //         }
+    //     })
+    // }
 })
 </script>
 

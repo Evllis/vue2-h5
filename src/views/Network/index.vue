@@ -1,6 +1,12 @@
 <template>
     <div class="network-page">
-        <NavBar title="合同预填写" left-arrow :right-text="list.data.arr.length ? '新增' : ''" @click-right="addItem" />
+        <NavBar
+            title="合同预填写"
+            left-arrow
+            @click-left="onClickLeft"
+            :right-text="list.data.arr.length ? '新增' : ''"
+            @click-right="addItem"
+        />
         <div class="body-container network-page__body pt-25px">
             <div class="van-form">
                 <div class="form-wrap">
@@ -68,7 +74,7 @@
                 </div>
                 <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom" @opened="popupOpened">
                     <VanIcon name="cross" class="close-icon" @click="showPicker = false" />
-                    <Form @submit="onSubmit" ref="formRef">
+                    <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                         <Field
                             v-model="packageData.data.name"
                             name="name"
@@ -251,6 +257,10 @@ const popupClosed = () => {
     for (const i in packageData.data) {
         packageData.data[i] = ''
     }
+}
+
+const onClickLeft = () => {
+    router.push({ name: 'Cooperate' })
 }
 
 const popupOpened = () => {

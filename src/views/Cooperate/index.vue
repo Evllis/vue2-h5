@@ -1,8 +1,8 @@
 <template>
     <div class="cooperate-page">
-        <NavBar title="与联通合作相关信息" left-arrow />
+        <NavBar title="与联通合作相关信息" left-arrow @click-left="onClickLeft" />
         <div class="body-container cooperate-page__body">
-            <Form @submit="onSubmit" ref="formRef">
+            <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                 <div class="form-wrap pt-25px">
                     <Field
                         class="custom-wrap social-wrap"
@@ -150,6 +150,10 @@ const formData = reactive({
     }
 })
 const submitDisabled = ref(true)
+
+const onClickLeft = () => {
+    router.push({ name: 'Operator' })
+}
 
 const changeValidate = () => {
     formRef.value

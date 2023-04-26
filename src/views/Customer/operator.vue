@@ -1,8 +1,14 @@
 <template>
     <div class="operator-page">
-        <NavBar title="企业门头/社保信息" left-arrow />
+        <NavBar title="企业门头/社保信息" left-arrow @click-left="backRouter" />
         <div class="body-container operator-page__body">
-            <Form @submit="onSubmit" ref="formRef" class="pt-25px">
+            <Form
+                @submit="onSubmit"
+                ref="formRef"
+                :validate-first="true"
+                :validate-trigger="'onSubmit'"
+                class="pt-25px"
+            >
                 <div class="form-wrap">
                     <Field class="custom-wrap" :rules="rules.doorHeadPhoto" name="doorHeadPhoto">
                         <template #label>
@@ -27,7 +33,7 @@
                                     >
                                         <div class="flex flex-col items-center">
                                             <Icon :name="cameraIcon" />
-                                            <span class="normal-text">点击上传法人授权书</span>
+                                            <span class="normal-text">点击上传您与门头合照</span>
                                         </div>
                                     </div>
                                 </Uploader>

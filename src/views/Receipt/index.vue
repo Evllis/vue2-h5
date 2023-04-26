@@ -1,9 +1,9 @@
 <template>
     <div class="receipt-page">
-        <NavBar title="合同预填写" left-arrow />
+        <NavBar title="合同预填写" left-arrow @click-left="onClickLeft" />
         <div class="body-container receipt-page__body">
-            <Form @submit="onSubmit" ref="formRef">
-                <div class="form-wrap pt-25px">
+            <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
+                <div v-if="!isAudit" class="form-wrap pt-25px">
                     <Field
                         v-model="formData.data.firstPaymentSum"
                         name="firstPaymentSum"
@@ -55,17 +55,17 @@
                         :rules="rules.consigneeAddress"
                     />
                 </div>
-                <!-- <div class="form-wrap">
+                <div v-else class="form-wrap" :style="{ backgroundColor: '#F8F8F8', paddingTop: '20px' }">
                     <div class="mt-0 scroll-wrap">
                         <ul class="package-list">
-                            <li class="package-item">
+                            <li v-for="item in auditList" :key="item.step" class="package-item">
                                 <div class="flex items-center package-body">
                                     <div class="flex-1 flex flex-col package-wrap">
                                         <div class="flex package-info text-[var(--secondary-color)]">
-                                            <span>企业基本信息</span>
+                                            <span>{{ item.step }}</span>
                                         </div>
                                         <div>
-                                            <span>营业执照不清晰，请重新提交！</span>
+                                            <span>{{ item.msg }}</span>
                                         </div>
                                     </div>
                                     <div class="package-opts">
@@ -74,6 +74,7 @@
                                             type="primary"
                                             native-type="button"
                                             color="var(--primary-active-color)"
+                                            @click="modifyAudit(item)"
                                             >修改</VanButton
                                         >
                                     </div>
@@ -81,8 +82,8 @@
                             </li>
                         </ul>
                     </div>
-                </div> -->
-                <div class="flex submit-footer">
+                </div>
+                <div v-if="!isAudit" class="flex submit-footer">
                     <VanButton
                         block
                         type="info"
@@ -93,6 +94,11 @@
                     >
                     <VanButton block :disabled="submitDisabled" type="info" native-type="submit" class="submit-button"
                         >下一步</VanButton
+                    >
+                </div>
+                <div v-else class="flex submit-footer">
+                    <VanButton block type="info" native-type="button" class="submit-button" to="/preview/home"
+                        >全部提交</VanButton
                     >
                 </div>
             </Form>
@@ -109,12 +115,15 @@ import { isName, isPhone, isAddress } from '@/utils/validate'
 import { useCache } from '@/hooks/useCache'
 
 import { submitEnterpriseContract, findEnterpriseContract } from '@/api/receipt'
+import { queryAudit } from '@/api/audit'
 import { isEmpty } from 'lodash-es'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
 const { $toast } = instance.proxy
 
+const isAudit = ref(false)
+const auditList = ref([])
 const submitDisabled = ref(true)
 const formRef = ref()
 const formData = reactive({
@@ -177,8 +186,38 @@ const changeValidate = name => {
         })
 }
 
+const modifyAudit = item => {
+    console.log(4444, item)
+}
+
+const onClickLeft = () => {
+    router.push({ name: 'Procurement' })
+}
+
+const queryAuditAccess = async enterpriseId => {
+    try {
+        const res = await queryAudit({
+            data: {
+                enterpriseId
+            },
+            hideloading: true
+        })
+        if (!isEmpty(res)) {
+            // res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
+            auditList.value = res.data.auditList.map(item => item)
+        }
+    } catch (err) {
+        return false
+    }
+}
+
 onMounted(async () => {
     const enterpriseId = wsCache.get('enterpriseId')
+    isAudit.value = router?.history?.current?.query?.is ? true : false
+    if (isAudit.value) {
+        queryAuditAccess(enterpriseId)
+        return false
+    }
     if (enterpriseId) {
         try {
             const res = await findEnterpriseContract({

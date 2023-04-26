@@ -1,6 +1,6 @@
 <template>
     <div class="preview-page">
-        <NavBar title="协议预览" left-arrow />
+        <NavBar title="协议预览" left-arrow @click-left="onClickLeft" />
         <div class="body-container preview-page__body">
             <h1 class="text-center mb-20px">客户服务协议</h1>
             <div class="mb-15px">
@@ -384,9 +384,9 @@
                 </table>
             </div>
             <div class="flex submit-footer">
-                <VanButton block type="info" native-type="button" class="submit-button" @click="submitData"
-                    >确定</VanButton
-                >
+                <VanButton block type="info" native-type="button" class="submit-button" @click="submitData">{{
+                    isSubmit ? '提交' : '确定'
+                }}</VanButton>
             </div>
         </div>
     </div>
@@ -406,6 +406,7 @@ const { wsCache } = useCache()
 const instance = getCurrentInstance()
 const { $toast } = instance.proxy
 
+const isSubmit = ref(false)
 const buyListIndex = ref([])
 const buyList = reactive({})
 const setmealList = ref([])
@@ -428,7 +429,12 @@ const submitData = async () => {
     }
 }
 
+const onClickLeft = () => {
+    router.push({ name: 'Receipt' })
+}
+
 onMounted(async () => {
+    isSubmit.value = router?.history?.current?.query?.submit ? true : false
     const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         try {

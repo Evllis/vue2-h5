@@ -4,7 +4,13 @@
             <div class="flex items-center justify-center login__body-mask">
                 <h1 class="text-[var(--primary-active-color)]">登录注册</h1>
             </div>
-            <Form @submit="onSubmit" class="relative h-full" ref="formRef">
+            <Form
+                @submit="onSubmit"
+                :validate-first="true"
+                :validate-trigger="'onSubmit'"
+                class="relative h-full"
+                ref="formRef"
+            >
                 <Field
                     v-model="phone"
                     type="tel"
@@ -75,6 +81,7 @@ import { useCache } from '@/hooks/useCache'
 
 import Agreement from '@/components/Agreement'
 
+import { queryAudit } from '@/api/audit'
 import { sendMsg, loginRegister } from '@/api/login'
 
 import inactiveIcon from '@/assets/icon/checkbox-icon.png'
@@ -155,6 +162,12 @@ const onSubmit = async values => {
     try {
         const res = await loginRegister({ phone: phone.value, code: '000000' }).catch(() => {})
         if (!isEmpty(res)) {
+            const audit = await queryAudit({
+                data: {
+                    enterpriseId: res.data.enterpriseId
+                },
+                hideloading: true
+            })
             wsCache.set('token', res.data.token)
             let routerName = 'Customer'
             if (res.data.step) {
@@ -167,7 +180,15 @@ const onSubmit = async values => {
             if (res.data.enterpriseId) {
                 wsCache.set('enterpriseId', res.data.enterpriseId)
             }
-            setTimeout(() => router.push({ name: routerName }), 1000)
+            if (+audit.data.auditStatus === 2 || +audit.data.auditStatus === 5) {
+                router.push({ name: 'Audit', query: { type: +audit.data.auditStatus } })
+            } else if (+audit.data.auditStatus === 3) {
+                router.push({ name: 'Preview', query: { submit: '1' } })
+            } else if (+audit.data.auditStatus === 4) {
+                router.push({ name: 'Receipt', query: { is: '1' } })
+            } else {
+                router.push({ name: routerName })
+            }
         }
     } catch (err) {
         return false
@@ -210,6 +231,13 @@ const onSubmit = async values => {
         padding: 0 15px;
         background-color: #f4f8fb;
         font-size: 16px;
+        overflow: initial;
+        &.error-pos {
+            .van-field__error-message {
+                position: absolute;
+                top: 32px;
+            }
+        }
         .van-field__body {
             padding-bottom: 0;
             &::after {

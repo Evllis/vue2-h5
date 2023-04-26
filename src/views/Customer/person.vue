@@ -1,8 +1,8 @@
 <template>
     <div class="person-page">
-        <NavBar title="企业经办人信息" left-arrow />
+        <NavBar title="企业经办人信息" left-arrow @click-left="onClickLeft" />
         <div class="body-container person-page__body">
-            <Form @submit="onSubmit" ref="formRef">
+            <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                 <div class="form-wrap pt-25px">
                     <Field
                         label="您是该企业的经办人，需要额外提供以下资料："
@@ -220,6 +220,10 @@ const changeValidate = () => {
         .catch(() => {
             submitDisabled.value = true
         })
+}
+
+const onClickLeft = () => {
+    router.push({ name: 'Enterprise' })
 }
 
 const afterRead = async (file, details) => {
