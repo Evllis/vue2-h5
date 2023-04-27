@@ -293,7 +293,7 @@ const submitFormData = async () => {
                 step: '5'
             }
         })
-        setTimeout(() => router.push({ name: 'Procurement' }), 1500)
+        router.push({ name: 'Procurement' })
     } catch (err) {
         return false
     }

@@ -323,7 +323,7 @@ const submitFormData = async () => {
                 step: '6'
             }
         })
-        setTimeout(() => router.push({ name: 'Receipt' }), 1500)
+        router.push({ name: 'Receipt' })
     } catch (err) {
         return false
     }

@@ -215,7 +215,7 @@ const onSubmit = async () => {
             await submitEnterpriseSocialSecurity({
                 data: formData.data
             })
-            setTimeout(() => router.push({ name: 'Cooperate' }), 1500)
+            router.push({ name: 'Cooperate' })
         } catch (err) {
             return false
         }

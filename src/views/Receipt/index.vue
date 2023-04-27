@@ -55,35 +55,7 @@
                         :rules="rules.consigneeAddress"
                     />
                 </div>
-                <div v-else class="form-wrap" :style="{ backgroundColor: '#F8F8F8', paddingTop: '20px' }">
-                    <div class="mt-0 scroll-wrap">
-                        <ul class="package-list">
-                            <li v-for="item in auditList" :key="item.step" class="package-item">
-                                <div class="flex items-center package-body">
-                                    <div class="flex-1 flex flex-col package-wrap">
-                                        <div class="flex package-info text-[var(--secondary-color)]">
-                                            <span>{{ item.step }}</span>
-                                        </div>
-                                        <div>
-                                            <span>{{ item.msg }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="package-opts">
-                                        <VanButton
-                                            plain
-                                            type="primary"
-                                            native-type="button"
-                                            color="var(--primary-active-color)"
-                                            @click="modifyAudit(item)"
-                                            >修改</VanButton
-                                        >
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div v-if="!isAudit" class="flex submit-footer">
+                <div class="flex submit-footer">
                     <VanButton
                         block
                         type="info"
@@ -94,11 +66,6 @@
                     >
                     <VanButton block :disabled="submitDisabled" type="info" native-type="submit" class="submit-button"
                         >下一步</VanButton
-                    >
-                </div>
-                <div v-else class="flex submit-footer">
-                    <VanButton block type="info" native-type="button" class="submit-button" to="/preview/home"
-                        >全部提交</VanButton
                     >
                 </div>
             </Form>
@@ -115,15 +82,12 @@ import { isName, isPhone, isAddress } from '@/utils/validate'
 import { useCache } from '@/hooks/useCache'
 
 import { submitEnterpriseContract, findEnterpriseContract } from '@/api/receipt'
-import { queryAudit } from '@/api/audit'
 import { isEmpty } from 'lodash-es'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
 const { $toast } = instance.proxy
 
-const isAudit = ref(false)
-const auditList = ref([])
 const submitDisabled = ref(true)
 const formRef = ref()
 const formData = reactive({
@@ -161,7 +125,7 @@ const onSubmit = async () => {
             await submitEnterpriseContract({
                 data: formData.data
             })
-            setTimeout(() => router.push({ name: 'Preview' }), 1500)
+            router.push({ name: 'Preview' })
         } catch (err) {
             return false
         }
@@ -186,38 +150,12 @@ const changeValidate = name => {
         })
 }
 
-const modifyAudit = item => {
-    console.log(4444, item)
-}
-
 const onClickLeft = () => {
     router.push({ name: 'Procurement' })
 }
 
-const queryAuditAccess = async enterpriseId => {
-    try {
-        const res = await queryAudit({
-            data: {
-                enterpriseId
-            },
-            hideloading: true
-        })
-        if (!isEmpty(res)) {
-            // res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
-            auditList.value = res.data.auditList.map(item => item)
-        }
-    } catch (err) {
-        return false
-    }
-}
-
 onMounted(async () => {
     const enterpriseId = wsCache.get('enterpriseId')
-    isAudit.value = router?.history?.current?.query?.is ? true : false
-    if (isAudit.value) {
-        queryAuditAccess(enterpriseId)
-        return false
-    }
     if (enterpriseId) {
         try {
             const res = await findEnterpriseContract({
@@ -228,6 +166,7 @@ onMounted(async () => {
             })
             if (!isEmpty(res.data)) {
                 formData.data = res.data
+                changeValidate()
             }
         } catch (err) {
             return false

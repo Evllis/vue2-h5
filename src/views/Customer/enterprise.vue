@@ -353,7 +353,7 @@ const onSubmit = async () => {
             if (!enterpriseId) {
                 wsCache.set('enterpriseId', res.data.id)
             }
-            setTimeout(() => router.push({ name: type }), 1000)
+            router.push({ name: type })
         }
     } catch (err) {
         return false

@@ -237,7 +237,7 @@ const onSubmit = async () => {
             await submitEnterpriseUnicomInfo({
                 data
             })
-            setTimeout(() => router.push({ name: 'Network' }), 1500)
+            router.push({ name: 'Network' })
         } catch (err) {
             return false
         }
@@ -274,6 +274,15 @@ const backFillData = async () => {
                 // areaIndex
                 areaIndex.data.province = areaList.value.findIndex(item => item.code === res.data.unicomProvinceCode)
                 areaIndex.data.city = current[0].children.findIndex(item => item.code === res.data.unicomCityCode)
+                const item = areaList.value[areaIndex.data.province]
+                const itemChildren = item.children[areaIndex.data.city]
+                selectAreaData.value = [
+                    {
+                        name: item.text,
+                        code: item.code
+                    },
+                    { name: itemChildren.text, code: itemChildren.code }
+                ]
                 unicomContractUrls.value = res.data.unicomContractUrls
                     ? res.data.unicomContractUrls.map(item => {
                           return {

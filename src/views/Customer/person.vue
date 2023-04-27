@@ -265,7 +265,7 @@ const onSubmit = async () => {
             await submitEnterpriseOperator({
                 data: formData.data
             })
-            setTimeout(() => router.push({ name: 'Operator' }), 1500)
+            router.push({ name: 'Operator' })
         } catch (err) {
             return false
         }

@@ -62,7 +62,7 @@ const submitData = async () => {
             if (!wsCache.get('role')) {
                 wsCache.set('role', customer.value)
             }
-            setTimeout(() => router.push({ name: 'Enterprise' }), 1000)
+            router.push({ name: 'Enterprise' })
         }
     } catch (err) {
         return false
