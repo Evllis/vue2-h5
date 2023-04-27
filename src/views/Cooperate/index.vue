@@ -274,6 +274,7 @@ onMounted(async () => {
                 })
                 areaList.data.city_list = Object.assign(areaList.data.city_list, childrenCity)
             })
+            console.log(44444, areaList.data)
         }
     } catch (err) {
         return false

@@ -1,6 +1,6 @@
 <template>
     <div class="audit-page">
-        <NavBar title="审核中" left-arrow />
+        <NavBar title="审核中" />
         <div class="body-container audit-page__body">
             <div class="flex flex-col items-center justify-center audit-wrap">
                 <VanImage :src="filterAuditImg" />

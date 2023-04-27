@@ -317,7 +317,7 @@
                                         }}</span>
                                     </div>
                                     <div>
-                                        月支付款合计：<span class="text-underline">{{
+                                        支付款合计：<span class="text-underline">{{
                                             formData.data.monthlyPaymentSum || ''
                                         }}</span>
                                     </div>
