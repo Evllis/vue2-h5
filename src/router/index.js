@@ -3,9 +3,9 @@ import Router from 'vue-router'
 import { cloneDeep } from 'lodash-es'
 import { constantRouterMap, asyncRouterMap } from './router.config.js'
 import { useTitle } from '@/hooks/useTitle'
-// import { useCache } from '@/hooks/useCache'
+import { useCache } from '@/hooks/useCache'
 
-// const { wsCache } = useCache()
+const { wsCache } = useCache()
 
 // hack router push callback
 const originalPush = Router.prototype.push
@@ -29,13 +29,14 @@ const router = createRouter()
 // const whiteList = ['/login'] // 不重定向白名单
 
 router.beforeEach(async (to, from, next) => {
-    const token = router.app.$options.store.getters.token
+    // const token = router.app.$options.store.getters.token
+    const token = wsCache.get('token')
     if (to.path !== '/login' && !token) {
         next({
             path: '/login'
         })
     } else {
-        if (to.path === '/login' && token) {
+        if (to.path === '/login' && !token) {
             next('/login')
         } else {
             next()

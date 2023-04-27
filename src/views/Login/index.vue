@@ -74,10 +74,10 @@
 import { ref, reactive, getCurrentInstance } from 'vue'
 import { Form, Field, Popup } from 'vant'
 import { isPhone, digitInteger } from '@/utils/validate'
-import { useRouter } from 'vue-router/composables'
 import { isEmpty } from 'lodash-es'
 import { stepMap } from '@/store/config'
 import { useCache } from '@/hooks/useCache'
+import router from '@/router'
 
 import Agreement from '@/components/Agreement'
 
@@ -92,7 +92,6 @@ const instance = getCurrentInstance()
 const { $toast } = instance.proxy
 
 const formRef = ref()
-const router = useRouter()
 const rules = reactive({
     phone: [
         { required: true, message: '请填写手机号' },
@@ -154,7 +153,7 @@ const renderMobileCode = () => {
     }, 1000)
 }
 
-const onSubmit = async values => {
+const onSubmit = async () => {
     if (!agreement.value) {
         $toast('请阅读并同意协议')
         return false
@@ -180,7 +179,9 @@ const onSubmit = async values => {
             if (res.data.enterpriseId) {
                 wsCache.set('enterpriseId', res.data.enterpriseId)
             }
+            console.log(5555555, +audit.data.auditStatus)
             if (+audit.data.auditStatus === 2 || +audit.data.auditStatus === 5) {
+                console.log(8888888888)
                 router.push({ name: 'Audit', query: { type: +audit.data.auditStatus } })
             } else if (+audit.data.auditStatus === 3) {
                 router.push({ name: 'Preview', query: { submit: '1' } })
@@ -193,7 +194,6 @@ const onSubmit = async values => {
     } catch (err) {
         return false
     }
-    console.log(values)
 }
 </script>
 

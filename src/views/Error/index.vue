@@ -4,9 +4,7 @@
 
 <script setup>
 import Error from '@/components/Error'
-import { useRouter } from 'vue-router/composables'
-
-const router = useRouter()
+import router from '@/router'
 
 const errorClick = () => {
     router.push('/login')

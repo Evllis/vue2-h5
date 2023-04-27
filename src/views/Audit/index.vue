@@ -88,6 +88,9 @@ onMounted(async () => {
 @import '../../assets/css/mixin.scss';
 .audit-page {
     background-color: #f8f8f8;
+    :deep(.van-nav-bar__content) {
+        padding-left: 30px;
+    }
     &__body {
         padding-top: 25px;
         background-color: white;
