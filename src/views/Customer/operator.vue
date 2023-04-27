@@ -215,6 +215,7 @@ const onSubmit = async () => {
             await submitEnterpriseSocialSecurity({
                 data: formData.data
             })
+            wsCache.set('socialSecurityNumber', formData.data.socialSecurityNumber)
             router.push({ name: 'Cooperate' })
         } catch (err) {
             return false

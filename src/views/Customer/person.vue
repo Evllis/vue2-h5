@@ -107,6 +107,7 @@
                         label="经办人联系方式"
                         placeholder="请输入经办人联系方式"
                         @change="changeValidate('operatorPhone')"
+                        :readonly="isDisabled"
                         :rules="rules.operatorPhone"
                     />
                 </div>
@@ -148,6 +149,7 @@ const instance = getCurrentInstance()
 const { $toast } = instance.proxy
 
 const formRef = ref()
+const isDisabled = ref(false)
 const submitDisabled = ref(true)
 const operatorIdFront = ref([])
 const corporateEmpower = ref([])
@@ -281,6 +283,7 @@ const onSubmit = async () => {
 
 onMounted(async () => {
     const enterpriseId = wsCache.get('enterpriseId')
+    const role = wsCache.get('role')
     if (enterpriseId) {
         try {
             const res = await findEnterpriseOperator({
@@ -290,6 +293,7 @@ onMounted(async () => {
                 hideloading: true
             })
             if (!isEmpty(res.data)) {
+                isDisabled.value = +role === 2
                 formData.data = res.data
                 corporateEmpower.value = res.data.corporateEmpower
                     ? [{ url: `https://${res.data.corporateEmpower}` }]

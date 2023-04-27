@@ -160,6 +160,7 @@ const onSubmit = async () => {
     try {
         const res = await loginRegister({ phone: phone.value, code: '000000' }).catch(() => {})
         if (!isEmpty(res)) {
+            wsCache.clear()
             wsCache.set('token', res.data.token)
             let routerName = 'Customer'
             if (res.data.step) {

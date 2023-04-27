@@ -145,6 +145,7 @@
                             placeholder="请输入数量"
                             @change="changeValidate('count')"
                             :rules="rules.count"
+                            :formatter="formatterMax"
                         />
                         <Field
                             v-model="packageData.data.monthlyPayment"
@@ -238,11 +239,19 @@ const list = reactive({
 const showPicker = ref(false)
 const addType = ref('add')
 const buyId = ref('')
+const socialSecurityNumber = ref(0)
 
 const popupClosed = () => {
     for (const i in packageData.data) {
         packageData.data[i] = ''
     }
+}
+
+const formatterMax = val => {
+    if (+val > socialSecurityNumber.value) {
+        return socialSecurityNumber.value
+    }
+    return val
 }
 
 const onClickLeft = () => {
@@ -365,6 +374,10 @@ const findBuyListAccess = async () => {
 }
 
 onMounted(async () => {
+    const socialNumber = wsCache.get('socialSecurityNumber')
+    if (socialNumber) {
+        socialSecurityNumber.value = +socialNumber
+    }
     await findBuyListAccess()
 })
 </script>

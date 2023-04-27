@@ -1,20 +1,19 @@
 <template>
     <div class="audit-page">
-        <NavBar title="审核中" />
+        <NavBar :title="auditParams.title" />
         <div class="body-container audit-page__body">
             <div
                 v-if="+auditStatus === 2 || +auditStatus === 5"
-                class="flex flex-col items-center justify-center audit-wrap"
-                :style="{ backgroundColor: '#f8f8f8' }"
+                class="flex flex-1 flex-col items-center justify-center -mt-16 audit-wrap"
             >
-                <VanImage :src="filterAuditImg" />
+                <VanImage :src="auditParams.img" />
                 <!-- <p>{{ auditMsg }}</p> -->
-                <div v-if="+auditStatus === 2" class="flex flex-col items-center justify-center">
+                <div v-if="+auditStatus === 2" class="flex flex-col items-center justify-center w-4/5">
                     <p>您的授信审核已提交，预计T+1审核完成</p>
                     <VanButton block type="info" native-type="button" class="submit-button">确定</VanButton>
                 </div>
-                <div v-if="+auditStatus === 5" class="flex flex-col items-center justify-center">
-                    <p>您司不符合准入标准，2023年9月29日 可再次提交审核</p>
+                <div v-if="+auditStatus === 5" class="flex flex-col items-center justify-center w-4/5">
+                    <p>您司不符合准入标准，{{ auditExpireTime }}可再次提交审核</p>
                     <VanButton block type="info" native-type="button" class="submit-button">完成</VanButton>
                 </div>
             </div>
@@ -66,6 +65,7 @@
 import { onMounted, ref, computed, getCurrentInstance } from 'vue'
 import { NavBar, Image as VanImage } from 'vant'
 import { useCache } from '@/hooks/useCache'
+import { isEmpty } from 'lodash-es'
 // import { stepMap } from '@/store/config'
 import router from '@/router'
 
@@ -75,22 +75,28 @@ import { queryAudit } from '@/api/audit'
 
 import auditIng from '@/assets/img/audit-ing.png'
 import auditFail from '@/assets/img/audit-fail.png'
-import { isEmpty } from 'lodash-es'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
 const { $toast } = instance.proxy
 
+const auditExpireTime = ref('')
 const auditStatus = ref(2)
 const enterpriseId = ref('')
 const auditList = ref([])
 // const auditMsg = ref('')
 
-const filterAuditImg = computed(() => {
+const auditParams = computed(() => {
     if (+auditStatus.value === 2) {
-        return auditIng
+        return {
+            img: auditIng,
+            title: '审核中'
+        }
     }
-    return auditFail
+    return {
+        img: auditFail,
+        title: '审核拒绝'
+    }
 })
 
 const queryAuditAccess = async () => {
@@ -124,6 +130,7 @@ onMounted(async () => {
             if (!isEmpty(res)) {
                 // res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
                 auditStatus.value = res.data.auditStatus
+                auditExpireTime.value = res.data.auditExpireTime
                 // if (+res.data.auditStatus === 2) {
                 //     auditMsg.value = '您的授信审核已提交，预计T+1审核完成'
                 // } else if (+res.data.auditStatus === 3) {
@@ -159,15 +166,11 @@ onMounted(async () => {
         padding-left: 30px;
     }
     &__body {
-        .audit-wrap {
-            padding-top: 95px;
-        }
         :deep(.van-image__img) {
             width: 107px;
             height: auto;
         }
         p {
-            width: 240px;
             text-align: center;
             margin-top: 19px;
             font-size: 14px;

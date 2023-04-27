@@ -91,6 +91,7 @@
                             placeholder="请输入办理数量"
                             @change="changeValidate('number')"
                             :rules="rules.number"
+                            :formatter="formatterMax"
                         />
                         <Field
                             v-model.number="packageData.data.monthlyPayment"
@@ -243,6 +244,7 @@ const columns = ref([
 ])
 const showPicker = ref(false)
 const showDate = ref(false)
+const socialSecurityNumber = ref(0)
 
 const onConfirm = val => {
     const date = new Date(val)
@@ -267,6 +269,13 @@ const popupOpened = () => {
     if (addType.value === 'edit') {
         changeValidate()
     }
+}
+
+const formatterMax = val => {
+    if (+val > socialSecurityNumber.value) {
+        return socialSecurityNumber.value
+    }
+    return val
 }
 
 // 编辑单项
@@ -351,6 +360,10 @@ const addItem = () => {
 }
 
 onMounted(async () => {
+    const socialNumber = wsCache.get('socialSecurityNumber')
+    if (socialNumber) {
+        socialSecurityNumber.value = +socialNumber
+    }
     await findSetmealListAccess()
 })
 

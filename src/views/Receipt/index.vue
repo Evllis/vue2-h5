@@ -3,7 +3,7 @@
         <NavBar title="合同预填写" left-arrow @click-left="onClickLeft" />
         <div class="body-container receipt-page__body">
             <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
-                <div v-if="!isAudit" class="form-wrap pt-25px">
+                <div class="form-wrap pt-25px">
                     <Field
                         v-model="formData.data.firstPaymentSum"
                         name="firstPaymentSum"

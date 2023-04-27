@@ -15,10 +15,10 @@
                     <Field
                         v-model="formData.data.licenseNum"
                         :rules="rules.licenseNum"
-                        @change="changeValidate"
                         name="licenseNum"
                         label="营业执照/社会信用代码"
                         placeholder="请输入您营业执照/社会信用代码"
+                        @change="changeValidate"
                     />
                     <Field
                         v-model="formData.data.industryType"
@@ -142,6 +142,7 @@
                     <Field
                         v-model="formData.data.corporatePhone"
                         :rules="rules.corporatePhone"
+                        :readonly="isDisabled"
                         @change="changeValidate"
                         name="corporatePhone"
                         label="法人联系方式"
@@ -206,8 +207,10 @@ const formData = reactive({
         corporatePhone: ''
     }
 })
+const licensePhone = ref('')
 const submitDisabled = ref(true)
 const placeholderShow = ref(true)
+const isDisabled = ref(false)
 const formRef = ref()
 
 const queryLicenseNumAccess = val => {
@@ -216,21 +219,22 @@ const queryLicenseNumAccess = val => {
             resolve(true)
             return false
         }
-        const res = queryLicenseNum({
-            data: {
-                licenseNum: val
-            },
-            hideloading: true
-        })
-        if (res.data) {
-            if (String(res.data.status) === '2') {
-                rules.licenseNum[2].message = `该企业正在申请中，请使用末尾为${res.data.phone.substr(-4)}的账户继续进行`
-                resolve(false)
-            } else {
-                resolve(true)
-            }
-        } else {
-            resolve(true)
+        try {
+            queryLicenseNum({
+                data: {
+                    licenseNum: val
+                },
+                hideloading: true
+            }).then(res => {
+                if (String(res.data.status) === '2') {
+                    licensePhone.value = res.data.phone
+                    resolve(false)
+                } else {
+                    resolve(true)
+                }
+            })
+        } catch (err) {
+            return false
         }
     })
 }
@@ -243,7 +247,12 @@ const rules = reactive({
     licenseNum: [
         { required: true, message: '请填写营业执照号/社会信用代码' },
         { validator: nonCharacter, message: '请输入正确的营业执照号/社会信用代码' },
-        { validator: queryLicenseNumAccess, message: '', trigger: 'onBlur' }
+        {
+            validator: queryLicenseNumAccess,
+            message: () => {
+                return `该企业正在申请中，请使用末尾为${licensePhone.value.slice(-4)}的账户继续进行`
+            }
+        }
     ],
     industryType: [{ required: true, message: '请选择行业类型' }],
     businessLicense: [{ required: true, message: '请上传营业执照' }],
@@ -335,7 +344,6 @@ const deleteRead = (file, details) => {
     } else {
         formData.data[details.name] = ''
     }
-
     changeValidate()
 }
 
@@ -362,6 +370,7 @@ const onSubmit = async () => {
 
 onMounted(async () => {
     const enterpriseId = wsCache.get('enterpriseId')
+    const role = wsCache.get('role')
     if (enterpriseId) {
         try {
             const res = await findEnterpriseInfo({
@@ -371,6 +380,9 @@ onMounted(async () => {
                 hideloading: true
             })
             if (!isEmpty(res.data)) {
+                if (+role === 1) {
+                    isDisabled.value = true
+                }
                 formData.data = res.data
                 if (formData.data.industryType) {
                     formData.data.industryType = `${formData.data.industryType}`

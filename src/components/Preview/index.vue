@@ -279,7 +279,7 @@
                         </tr>
                         <tr>
                             <th>协议编号</th>
-                            <th colspan="5">********</th>
+                            <th colspan="5">{{ formData.contractCode || '' }}</th>
                         </tr>
                         <tr>
                             <th>合约期</th>
@@ -354,7 +354,7 @@
                         </tr>
                         <tr>
                             <th colspan="2">协议编号</th>
-                            <th colspan="5"></th>
+                            <th colspan="5">{{ formData.contractCode || '' }}</th>
                         </tr>
                         <tr>
                             <th>序号</th>
