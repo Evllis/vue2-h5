@@ -161,33 +161,33 @@ const onSubmit = async () => {
     try {
         const res = await loginRegister({ phone: phone.value, code: '000000' }).catch(() => {})
         if (!isEmpty(res)) {
-            const audit = await queryAudit({
-                data: {
-                    enterpriseId: res.data.enterpriseId
-                },
-                hideloading: true
-            })
-            wsCache.set('token', res.data.token)
-            let routerName = 'Customer'
-            if (res.data.step) {
-                routerName = stepMap.value[res.data.step]
-                wsCache.set('step', res.data.step)
-            }
-            if (res.data.role) {
-                wsCache.set('role', res.data.role)
-            }
-            if (res.data.enterpriseId) {
-                wsCache.set('enterpriseId', res.data.enterpriseId)
-            }
-            console.log(5555555, +audit.data.auditStatus)
-            if (+audit.data.auditStatus === 2 || +audit.data.auditStatus === 5) {
-                console.log(8888888888)
-                router.push({ name: 'Audit', query: { type: +audit.data.auditStatus } })
-            } else if (+audit.data.auditStatus === 3) {
-                router.push({ name: 'Preview', query: { submit: '1' } })
-            } else if (+audit.data.auditStatus === 4) {
-                router.push({ name: 'Receipt', query: { is: '1' } })
+            if (+res.data.step === 9) {
+                const audit = await queryAudit({
+                    data: {
+                        enterpriseId: res.data.enterpriseId
+                    },
+                    hideloading: true
+                })
+                if (+audit.data.auditStatus === 2 || +audit.data.auditStatus === 5) {
+                    router.push({ name: 'Audit', query: { type: +audit.data.auditStatus } })
+                } else if (+audit.data.auditStatus === 3) {
+                    router.push({ name: 'Preview', query: { submit: '1' } })
+                } else if (+audit.data.auditStatus === 4) {
+                    router.push({ name: 'Receipt', query: { is: '1' } })
+                }
             } else {
+                wsCache.set('token', res.data.token)
+                let routerName = 'Customer'
+                if (res.data.step) {
+                    routerName = stepMap.value[res.data.step]
+                    wsCache.set('step', res.data.step)
+                }
+                if (res.data.role) {
+                    wsCache.set('role', res.data.role)
+                }
+                if (res.data.enterpriseId) {
+                    wsCache.set('enterpriseId', res.data.enterpriseId)
+                }
                 router.push({ name: routerName })
             }
         }
