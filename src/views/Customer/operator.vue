@@ -1,6 +1,11 @@
 <template>
     <div class="operator-page">
-        <NavBar title="企业门头/社保信息" left-arrow @click-left="backRouter" />
+        <NavBar
+            title="企业门头/社保信息"
+            :left-arrow="!editAudit"
+            @click-left="backRouter"
+            :style="{ paddingLeft: `${editAudit ? '15px' : ''}` }"
+        />
         <div class="body-container operator-page__body">
             <Form
                 @submit="onSubmit"
@@ -40,18 +45,25 @@
                             </div>
                         </template>
                     </Field>
-                    <div class="mb-25px custom-label-container">
-                        <h3 class="custom-label">社保缴纳方式</h3>
-                        <div id="drop-container" class="drop-container">
-                            <DropdownMenu>
-                                <DropdownItem
-                                    v-model="formData.data.socialSecurityType"
-                                    :options="columns"
-                                    get-container="#drop-container"
-                                ></DropdownItem>
-                            </DropdownMenu>
-                        </div>
-                    </div>
+                    <Field
+                        v-model="formData.data.socialSecurityType"
+                        :right-icon="inactiveIcon"
+                        name="industryType"
+                        label="社保缴纳方式"
+                        class="select-cell"
+                    >
+                        <template #input>
+                            <div id="drop-container" class="drop-container">
+                                <DropdownMenu>
+                                    <DropdownItem
+                                        v-model="formData.data.socialSecurityType"
+                                        :options="columns"
+                                        get-container="#drop-container"
+                                    ></DropdownItem>
+                                </DropdownMenu>
+                            </div>
+                        </template>
+                    </Field>
                     <Field
                         v-model="formData.data.socialSecurityNumber"
                         name="socialSecurityNumber"
@@ -60,7 +72,6 @@
                         class="!mb-0"
                         :formatter="formatterNumber"
                         :rules="[{ required: true, message: '请填写社保缴纳人数' }]"
-                        @change="changeValidate('socialSecurityNumber')"
                     />
                     <Field class="custom-wrap social-wrap" :rules="rules.socialSecurityUrls" name="socialSecurityUrls">
                         <template #input>
@@ -79,12 +90,18 @@
                     </Field>
                 </div>
                 <div class="flex submit-footer">
-                    <VanButton block type="info" native-type="button" class="submit-button mr-10px" @click="backRouter"
+                    <VanButton
+                        v-if="!editAudit"
+                        block
+                        type="info"
+                        native-type="button"
+                        class="submit-button mr-10px"
+                        @click="backRouter"
                         >上一步</VanButton
                     >
-                    <VanButton block :disabled="submitDisabled" type="info" native-type="submit" class="submit-button"
-                        >下一步</VanButton
-                    >
+                    <VanButton block type="info" native-type="submit" class="submit-button">{{
+                        editAudit ? '提交' : '下一步'
+                    }}</VanButton>
                 </div>
             </Form>
         </div>
@@ -104,12 +121,13 @@ import { submitEnterpriseSocialSecurity, findEnterpriseSocialSecurity } from '@/
 import cameraIcon from '@/assets/icon/camera-icon.png'
 import addIcon from '@/assets/icon/add-icon.png'
 import example from '@/assets/img/example.png'
+import inactiveIcon from '@/assets/icon/select-icon.png'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+const { $toast, $store } = instance.proxy
 
-const submitDisabled = ref(true)
+const editAudit = ref(false)
 const formRef = ref()
 const doorHeadPhoto = ref([])
 const socialSecurityUrls = ref([])
@@ -181,45 +199,36 @@ const afterRead = async (file, details) => {
                 socialSecurityUrls.value[socialSecurityUrls.value.length - 1].imgUrl = res.data[0]
                 formData.data[details.name] = socialSecurityUrls.value.map(item => item.imgUrl)
             }
-            changeValidate()
         }
     } catch (err) {
         file.status = 'failed'
         file.message = '上传失败'
-        changeValidate()
     }
-}
-
-const changeValidate = () => {
-    formRef.value
-        .validate()
-        .then(async () => {
-            submitDisabled.value = false
-        })
-        .catch(() => {
-            submitDisabled.value = true
-        })
 }
 
 const deleteRead = (file, details) => {
     formData.data[details.name] =
         details.name !== 'socialSecurityUrls' ? '' : socialSecurityUrls.value.map(item => item.imgUrl)
-    changeValidate()
 }
 
 const onSubmit = async () => {
     const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         formData.data['enterpriseId'] = enterpriseId
-        try {
-            await submitEnterpriseSocialSecurity({
-                data: formData.data
+        formRef.value
+            .validate()
+            .then(async () => {
+                try {
+                    await submitEnterpriseSocialSecurity({
+                        data: formData.data
+                    })
+                    wsCache.set('socialSecurityNumber', formData.data.socialSecurityNumber)
+                    router.push({ name: !editAudit.value ? 'Cooperate' : 'Audit' })
+                } catch (err) {
+                    return false
+                }
             })
-            wsCache.set('socialSecurityNumber', formData.data.socialSecurityNumber)
-            router.push({ name: 'Cooperate' })
-        } catch (err) {
-            return false
-        }
+            .catch(() => {})
     } else {
         $toast.fail({
             message: '请重新登录',
@@ -232,6 +241,7 @@ const onSubmit = async () => {
 
 onMounted(async () => {
     const enterpriseId = wsCache.get('enterpriseId')
+    editAudit.value = $store.getters.editAudit
     if (enterpriseId) {
         try {
             const res = await findEnterpriseSocialSecurity({
@@ -241,17 +251,18 @@ onMounted(async () => {
                 hideloading: true
             })
             if (!isEmpty(res.data)) {
-                formData.data = res.data
-                formData.data.socialSecurityType = `${formData.data.socialSecurityType}`
-                doorHeadPhoto.value = res.data.doorHeadPhoto ? [{ url: `https://${res.data.doorHeadPhoto}` }] : []
-                socialSecurityUrls.value = res.data.socialSecurityUrls
-                    ? res.data.socialSecurityUrls.map(item => {
-                          return {
-                              url: `https://${item}`
-                          }
-                      })
-                    : []
-                changeValidate()
+                if (res.data.doorHeadPhoto) {
+                    formData.data = res.data
+                    formData.data.socialSecurityType = `${formData.data.socialSecurityType}`
+                    doorHeadPhoto.value = res.data.doorHeadPhoto ? [{ url: `https://${res.data.doorHeadPhoto}` }] : []
+                    socialSecurityUrls.value = res.data.socialSecurityUrls
+                        ? res.data.socialSecurityUrls.map(item => {
+                              return {
+                                  url: `https://${item}`
+                              }
+                          })
+                        : []
+                }
             }
         } catch (err) {
             return false

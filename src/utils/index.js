@@ -106,7 +106,7 @@ export function param2Obj(url) {
  * @param { String } val 要格式化的数字
  * @returns String
  */
-export const formatterNumber = val => {
+const formatterNumberBase = val => {
     if (val !== '' && val.substr(0, 1) === '.') {
         val = ''
     }
@@ -120,6 +120,13 @@ export const formatterNumber = val => {
             val = val.substr(1, val.length)
         }
     }
-    if (val <= 0) return ''
     return val
+}
+export const formatterNumberZero = val => {
+    return formatterNumberBase(val)
+}
+export const formatterNumber = val => {
+    const num = formatterNumberBase(val)
+    if (num <= 0) return ''
+    return num
 }

@@ -1,6 +1,11 @@
 <template>
     <div class="person-page">
-        <NavBar title="企业经办人信息" left-arrow @click-left="onClickLeft" />
+        <NavBar
+            title="企业经办人信息"
+            :left-arrow="!editAudit"
+            @click-left="onClickLeft"
+            :style="{ paddingLeft: `${editAudit ? '15px' : ''}` }"
+        />
         <div class="body-container person-page__body">
             <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                 <div class="form-wrap pt-25px">
@@ -90,7 +95,6 @@
                         name="operatorName"
                         label="经办人姓名"
                         placeholder="请输入经办人姓名"
-                        @change="changeValidate('operatorName')"
                         :rules="rules.operatorName"
                     />
                     <Field
@@ -98,7 +102,6 @@
                         name="operatorId"
                         label="经办人身份证号"
                         placeholder="请输入经办人身份证号"
-                        @change="changeValidate('operatorId')"
                         :rules="rules.operatorId"
                     />
                     <Field
@@ -106,13 +109,13 @@
                         name="operatorPhone"
                         label="经办人联系方式"
                         placeholder="请输入经办人联系方式"
-                        @change="changeValidate('operatorPhone')"
                         :readonly="isDisabled"
                         :rules="rules.operatorPhone"
                     />
                 </div>
                 <div class="flex submit-footer">
                     <VanButton
+                        v-if="!editAudit"
                         block
                         type="info"
                         native-type="button"
@@ -120,9 +123,9 @@
                         to="/customer/enterprise"
                         >上一步</VanButton
                     >
-                    <VanButton block :disabled="submitDisabled" type="info" native-type="submit" class="submit-button"
-                        >下一步</VanButton
-                    >
+                    <VanButton block type="info" native-type="submit" class="submit-button">{{
+                        editAudit ? '提交' : '下一步'
+                    }}</VanButton>
                 </div>
             </Form>
         </div>
@@ -146,11 +149,10 @@ import cardBack from '@/assets/img/card-back.png'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+const { $toast, $store } = instance.proxy
 
 const formRef = ref()
 const isDisabled = ref(false)
-const submitDisabled = ref(true)
 const operatorIdFront = ref([])
 const corporateEmpower = ref([])
 const operatorIdBack = ref([])
@@ -164,6 +166,8 @@ const formData = reactive({
         operatorPhone: ''
     }
 })
+const enterpriseId = ref('')
+const editAudit = ref(false)
 
 const rules = reactive({
     corporateEmpower: [
@@ -213,17 +217,6 @@ const rules = reactive({
     ]
 })
 
-const changeValidate = () => {
-    formRef.value
-        .validate()
-        .then(async () => {
-            submitDisabled.value = false
-        })
-        .catch(() => {
-            submitDisabled.value = true
-        })
-}
-
 const onClickLeft = () => {
     router.push({ name: 'Enterprise' })
 }
@@ -245,32 +238,34 @@ const afterRead = async (file, details) => {
             file.status = 'done'
             file.message = '上传完成'
             formData.data[details.name] = res.data[0]
-            changeValidate()
         }
     } catch (err) {
         file.status = 'failed'
         file.message = '上传失败'
-        changeValidate()
     }
 }
 
 const deleteRead = (file, details) => {
     formData.data[details.name] = ''
-    changeValidate()
 }
 
 const onSubmit = async () => {
     const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         formData.data['enterpriseId'] = enterpriseId
-        try {
-            await submitEnterpriseOperator({
-                data: formData.data
+        formRef.value
+            .validate()
+            .then(async () => {
+                try {
+                    await submitEnterpriseOperator({
+                        data: formData.data
+                    })
+                    router.push({ name: !editAudit.value ? 'Operator' : 'Audit' })
+                } catch (err) {
+                    return false
+                }
             })
-            router.push({ name: 'Operator' })
-        } catch (err) {
-            return false
-        }
+            .catch(() => {})
     } else {
         $toast.fail({
             message: '请重新登录',
@@ -282,25 +277,31 @@ const onSubmit = async () => {
 }
 
 onMounted(async () => {
-    const enterpriseId = wsCache.get('enterpriseId')
+    enterpriseId.value = wsCache.get('enterpriseId') || ''
     const role = wsCache.get('role')
-    if (enterpriseId) {
+    editAudit.value = $store.getters.editAudit
+    if (enterpriseId.value) {
         try {
             const res = await findEnterpriseOperator({
                 data: {
-                    enterpriseId
+                    enterpriseId: enterpriseId.value
                 },
                 hideloading: true
             })
             if (!isEmpty(res.data)) {
-                isDisabled.value = +role === 2
-                formData.data = res.data
-                corporateEmpower.value = res.data.corporateEmpower
-                    ? [{ url: `https://${res.data.corporateEmpower}` }]
-                    : []
-                operatorIdFront.value = res.data.operatorIdFront ? [{ url: `https://${res.data.operatorIdFront}` }] : []
-                operatorIdBack.value = res.data.operatorIdBack ? [{ url: `https://${res.data.operatorIdBack}` }] : []
-                changeValidate()
+                if (res.data.corporateEmpower) {
+                    isDisabled.value = +role === 2
+                    formData.data = res.data
+                    corporateEmpower.value = res.data.corporateEmpower
+                        ? [{ url: `https://${res.data.corporateEmpower}` }]
+                        : []
+                    operatorIdFront.value = res.data.operatorIdFront
+                        ? [{ url: `https://${res.data.operatorIdFront}` }]
+                        : []
+                    operatorIdBack.value = res.data.operatorIdBack
+                        ? [{ url: `https://${res.data.operatorIdBack}` }]
+                        : []
+                }
             }
         } catch (err) {
             return false

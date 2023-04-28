@@ -1,6 +1,11 @@
 <template>
     <div class="cooperate-page">
-        <NavBar title="与联通合作相关信息" left-arrow @click-left="onClickLeft" />
+        <NavBar
+            title="与联通合作相关信息"
+            @click-left="onClickLeft"
+            :left-arrow="!editAudit"
+            :style="{ paddingLeft: `${editAudit ? '15px' : ''}` }"
+        />
         <div class="body-container cooperate-page__body">
             <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                 <div class="form-wrap pt-25px">
@@ -42,7 +47,6 @@
                         label="客户经理工号"
                         placeholder="请输入客户经理工号"
                         :rules="rules.unicomManagerNumber"
-                        @change="changeValidate('unicomManagerNumber')"
                     />
                     <Field
                         v-model="formData.data.unicomManagerName"
@@ -50,7 +54,6 @@
                         label="客户经理姓名"
                         placeholder="请输入客户经理姓名"
                         :rules="rules.unicomManagerName"
-                        @change="changeValidate('unicomManagerName')"
                     />
                     <Field
                         v-model="formData.data.unicomManagerPhone"
@@ -58,11 +61,11 @@
                         label="客户经理联系方式"
                         placeholder="请输入客户经理联系方式"
                         :rules="rules.unicomManagerPhone"
-                        @change="changeValidate('unicomManagerPhone')"
                     />
                 </div>
                 <div class="flex submit-footer">
                     <VanButton
+                        v-if="!editAudit"
                         block
                         type="info"
                         native-type="button"
@@ -70,9 +73,9 @@
                         to="/customer/operator"
                         >上一步</VanButton
                     >
-                    <VanButton block :disabled="submitDisabled" type="info" native-type="submit" class="submit-button"
-                        >下一步</VanButton
-                    >
+                    <VanButton block type="info" native-type="submit" class="submit-button">{{
+                        editAudit ? '提交' : '下一步'
+                    }}</VanButton>
                 </div>
             </Form>
         </div>
@@ -106,7 +109,7 @@ import { isEmpty } from 'lodash-es'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+const { $toast, $store } = instance.proxy
 
 const areaIndex = reactive({
     data: {
@@ -163,21 +166,10 @@ const formData = reactive({
         unicomManagerPhone: ''
     }
 })
-const submitDisabled = ref(true)
+const editAudit = ref(false)
 
 const onClickLeft = () => {
     router.push({ name: 'Operator' })
-}
-
-const changeValidate = () => {
-    formRef.value
-        .validate()
-        .then(async () => {
-            submitDisabled.value = false
-        })
-        .catch(() => {
-            submitDisabled.value = true
-        })
 }
 
 const afterRead = async (file, details) => {
@@ -198,18 +190,15 @@ const afterRead = async (file, details) => {
             file.message = '上传完成'
             unicomContractUrls.value[unicomContractUrls.value.length - 1].imgUrl = res.data[0]
             formData.data[details.name] = unicomContractUrls.value.map(item => item.imgUrl)
-            changeValidate()
         }
     } catch (err) {
         file.status = 'failed'
         file.message = '上传失败'
-        changeValidate()
     }
 }
 
 const deleteRead = (file, details) => {
     formData.data[details.name] = unicomContractUrls.value.map(item => item.imgUrl)
-    changeValidate()
 }
 
 const onConfirm = (columns, indexs) => {
@@ -221,7 +210,6 @@ const onConfirm = (columns, indexs) => {
     ]
     formData.data.unicomProvince = `${selectAreaData.value[0].name} / ${selectAreaData.value[1].name}`
     showPicker.value = false
-    changeValidate()
 }
 const onSubmit = async () => {
     const enterpriseId = wsCache.get('enterpriseId')
@@ -233,14 +221,19 @@ const onSubmit = async () => {
             unicomCityCode: selectAreaData.value[1].code
         })
         data['unicomProvince'] = selectAreaData.value[0].name
-        try {
-            await submitEnterpriseUnicomInfo({
-                data
+        formRef.value
+            .validate()
+            .then(async () => {
+                try {
+                    await submitEnterpriseUnicomInfo({
+                        data
+                    })
+                    router.push({ name: !editAudit.value ? 'Network' : 'Audit' })
+                } catch (err) {
+                    return false
+                }
             })
-            router.push({ name: 'Network' })
-        } catch (err) {
-            return false
-        }
+            .catch(() => {})
     } else {
         $toast.fail({
             message: '请重新登录',
@@ -268,29 +261,32 @@ const backFillData = async () => {
                 hideloading: true
             })
             if (!isEmpty(res.data)) {
-                const current = areaList.value.filter(item => item.code === res.data.unicomProvinceCode)
-                formData.data = res.data
-                formData.data.unicomProvince = `${res.data.unicomProvince} / ${res.data.unicomCity}`
-                // areaIndex
-                areaIndex.data.province = areaList.value.findIndex(item => item.code === res.data.unicomProvinceCode)
-                areaIndex.data.city = current[0].children.findIndex(item => item.code === res.data.unicomCityCode)
-                const item = areaList.value[areaIndex.data.province]
-                const itemChildren = item.children[areaIndex.data.city]
-                selectAreaData.value = [
-                    {
-                        name: item.text,
-                        code: item.code
-                    },
-                    { name: itemChildren.text, code: itemChildren.code }
-                ]
-                unicomContractUrls.value = res.data.unicomContractUrls
-                    ? res.data.unicomContractUrls.map(item => {
-                          return {
-                              url: `https://${item}`
-                          }
-                      })
-                    : []
-                changeValidate()
+                if (res.data.unicomManagerPhone) {
+                    const current = areaList.value.filter(item => item.code === res.data.unicomProvinceCode)
+                    formData.data = res.data
+                    formData.data.unicomProvince = `${res.data.unicomProvince} / ${res.data.unicomCity}`
+                    // areaIndex
+                    areaIndex.data.province = areaList.value.findIndex(
+                        item => item.code === res.data.unicomProvinceCode
+                    )
+                    areaIndex.data.city = current[0].children.findIndex(item => item.code === res.data.unicomCityCode)
+                    const item = areaList.value[areaIndex.data.province]
+                    const itemChildren = item.children[areaIndex.data.city]
+                    selectAreaData.value = [
+                        {
+                            name: item.text,
+                            code: item.code
+                        },
+                        { name: itemChildren.text, code: itemChildren.code }
+                    ]
+                    unicomContractUrls.value = res.data.unicomContractUrls
+                        ? res.data.unicomContractUrls.map(item => {
+                              return {
+                                  url: `https://${item}`
+                              }
+                          })
+                        : []
+                }
             }
         } catch (err) {
             return false
@@ -299,6 +295,7 @@ const backFillData = async () => {
 }
 
 onMounted(async () => {
+    editAudit.value = $store.getters.editAudit
     try {
         const res = await regionInfo({
             hideloading: true

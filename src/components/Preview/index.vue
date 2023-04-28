@@ -403,6 +403,10 @@ export default {
         isSubmit: {
             type: Boolean,
             default: false
+        },
+        isAlert: {
+            type: Boolean,
+            default: false
         }
     },
     data() {
@@ -410,11 +414,19 @@ export default {
             buyListIndex: [],
             buyList: {},
             setmealList: [],
-            formData: {}
+            formData: {},
+            instance: null
         }
     },
     methods: {
         async submitData() {
+            const { $toast } = this.instance.proxy
+            if (this.isAlert) {
+                $toast.success({
+                    message: '收货确认单上传成功'
+                })
+                return false
+            }
             const { wsCache } = useCache()
             const enterpriseId = wsCache.get('enterpriseId')
             try {
@@ -431,8 +443,7 @@ export default {
         },
         async backFillData() {
             const { wsCache } = useCache()
-            const instance = getCurrentInstance()
-            const { $toast } = instance.proxy
+            const { $toast } = this.instance.proxy
             const enterpriseId = wsCache.get('enterpriseId')
             if (enterpriseId) {
                 try {
@@ -469,6 +480,7 @@ export default {
         }
     },
     mounted() {
+        this.instance = getCurrentInstance()
         this.backFillData()
     }
 }

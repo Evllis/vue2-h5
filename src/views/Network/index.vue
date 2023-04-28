@@ -2,10 +2,11 @@
     <div class="network-page">
         <NavBar
             title="合同预填写"
-            left-arrow
+            :left-arrow="!editAudit"
             @click-left="onClickLeft"
             :right-text="list.data.arr.length ? '新增' : ''"
             @click-right="addItem"
+            :style="{ paddingLeft: `${editAudit ? '15px' : ''}` }"
         />
         <div class="body-container network-page__body pt-25px">
             <div class="van-form">
@@ -58,21 +59,38 @@
                     </ul>
                 </div>
                 <div class="flex submit-footer">
-                    <VanButton block type="info" native-type="button" class="submit-button mr-10px" to="/cooperate/home"
-                        >上一步</VanButton
-                    >
-                    <template v-if="list.data.arr.length">
+                    <div v-if="!editAudit" class="flex flex-1">
+                        <VanButton
+                            block
+                            type="info"
+                            native-type="button"
+                            class="submit-button mr-10px"
+                            to="/cooperate/home"
+                            >上一步</VanButton
+                        >
+                        <template v-if="list.data.arr.length">
+                            <VanButton
+                                block
+                                type="info"
+                                native-type="button"
+                                class="submit-button"
+                                @click="submitFormData"
+                                >下一步</VanButton
+                            >
+                        </template>
+                        <template v-else>
+                            <VanButton block type="info" native-type="button" class="submit-button" @click="addItem"
+                                >新增套餐信息</VanButton
+                            >
+                        </template>
+                    </div>
+                    <div v-else class="flex flex-1">
                         <VanButton block type="info" native-type="button" class="submit-button" @click="submitFormData"
-                            >下一步</VanButton
+                            >提交</VanButton
                         >
-                    </template>
-                    <template v-else>
-                        <VanButton block type="info" native-type="button" class="submit-button" @click="addItem"
-                            >新增套餐信息</VanButton
-                        >
-                    </template>
+                    </div>
                 </div>
-                <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom" @opened="popupOpened">
+                <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom">
                     <VanIcon name="cross" class="close-icon" @click="showPicker = false" />
                     <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                         <Field
@@ -80,7 +98,6 @@
                             name="name"
                             label="套餐名称"
                             placeholder="请输入套餐名称"
-                            @change="changeValidate('name')"
                             :rules="rules.name"
                         />
                         <Field
@@ -89,7 +106,6 @@
                             type="digit"
                             label="办理数量"
                             placeholder="请输入办理数量"
-                            @change="changeValidate('number')"
                             :rules="rules.number"
                             :formatter="formatterMax"
                         />
@@ -99,7 +115,6 @@
                             type="number"
                             label="月套餐费用(元)"
                             placeholder="请输入月套餐费用(元)"
-                            @change="changeValidate('monthlyPayment')"
                             :rules="rules.monthlyPayment"
                             :formatter="formatterNumber"
                         />
@@ -118,8 +133,6 @@
                                         <DropdownItem
                                             v-model="packageData.data.period"
                                             :options="columns"
-                                            @change="changeValidate"
-                                            @close="changeValidate"
                                             get-container="#drop-container"
                                         ></DropdownItem>
                                     </DropdownMenu>
@@ -132,7 +145,6 @@
                             type="number"
                             label="定向电子券金额(元)"
                             placeholder="请输入定向电子券金额(元)"
-                            @change="changeValidate('voucherAmount')"
                             :rules="rules.voucherAmount"
                             :formatter="formatterNumber"
                         />
@@ -144,19 +156,13 @@
                             clickable
                             placeholder="请输入入网日期"
                             class="select-wrap"
-                            @change="changeValidate('tradeTime')"
                             :rules="rules.tradeTime"
                             @click="showDate = true"
                         />
                         <div class="shadow-none p-0 submit-footer">
-                            <VanButton
-                                block
-                                :disabled="submitDisabled"
-                                type="info"
-                                native-type="submit"
-                                class="submit-button"
-                                >{{ addType === 'add' ? '确定' : '提交' }}</VanButton
-                            >
+                            <VanButton block type="info" native-type="submit" class="submit-button">{{
+                                addType === 'add' ? '确定' : '提交'
+                            }}</VanButton>
                         </div>
                     </Form>
                 </Popup>
@@ -193,7 +199,7 @@ import { isEmpty } from 'lodash-es'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+const { $toast, $store } = instance.proxy
 
 const list = reactive({
     data: {
@@ -224,7 +230,6 @@ const date = reactive({
 })
 const addType = ref('add')
 const skeletonShow = ref(false)
-const submitDisabled = ref(true)
 const formRef = ref()
 const packageData = reactive({
     data: {
@@ -245,6 +250,7 @@ const columns = ref([
 const showPicker = ref(false)
 const showDate = ref(false)
 const socialSecurityNumber = ref(0)
+const editAudit = ref(false)
 
 const onConfirm = val => {
     const date = new Date(val)
@@ -252,7 +258,6 @@ const onConfirm = val => {
     month = month < 10 ? `0${month}` : month
     packageData.data.tradeTime = `${date.getFullYear()}-${month}`
     showDate.value = false
-    changeValidate()
 }
 
 const popupClosed = () => {
@@ -263,12 +268,6 @@ const popupClosed = () => {
 
 const onClickLeft = () => {
     router.push({ name: 'Cooperate' })
-}
-
-const popupOpened = () => {
-    if (addType.value === 'edit') {
-        changeValidate()
-    }
 }
 
 const formatterMax = val => {
@@ -302,7 +301,7 @@ const submitFormData = async () => {
                 step: '5'
             }
         })
-        router.push({ name: 'Procurement' })
+        router.push({ name: !editAudit.value ? 'Procurement' : 'Audit' })
     } catch (err) {
         return false
     }
@@ -315,21 +314,25 @@ const onSubmit = async () => {
         if (setmealId.value) {
             packageData.data['setmealId'] = setmealId.value
         }
-        try {
-            await editSetmeal({
-                data: packageData.data
+        formRef.value
+            .validate()
+            .then(async () => {
+                try {
+                    await editSetmeal({
+                        data: packageData.data
+                    })
+                    showPicker.value = false
+                    popupClosed()
+                    list.data.arr.length = 0
+                    currentPage.value = 0
+                    date.data.currentDate = new Date(new Date().getFullYear(), new Date().getMonth())
+                    list.data.finished = false
+                    await findSetmealListAccess()
+                } catch (err) {
+                    return false
+                }
             })
-            showPicker.value = false
-            popupClosed()
-            list.data.arr.length = 0
-            currentPage.value = 0
-            submitDisabled.value = true
-            date.data.currentDate = new Date(new Date().getFullYear(), new Date().getMonth())
-            list.data.finished = false
-            await findSetmealListAccess()
-        } catch (err) {
-            return false
-        }
+            .catch(() => {})
     } else {
         $toast.fail({
             message: '请重新登录',
@@ -340,20 +343,8 @@ const onSubmit = async () => {
     }
 }
 
-const changeValidate = () => {
-    formRef.value
-        .validate()
-        .then(async () => {
-            submitDisabled.value = false
-        })
-        .catch(() => {
-            submitDisabled.value = true
-        })
-}
-
 const addItem = () => {
     addType.value = 'add'
-    submitDisabled.value = true
     setmealId.value = ''
     popupClosed()
     showPicker.value = true
@@ -361,6 +352,7 @@ const addItem = () => {
 
 onMounted(async () => {
     const socialNumber = wsCache.get('socialSecurityNumber')
+    editAudit.value = $store.getters.editAudit
     if (socialNumber) {
         socialSecurityNumber.value = +socialNumber
     }

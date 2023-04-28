@@ -1,6 +1,11 @@
 <template>
     <div class="enterprise-page">
-        <NavBar title="企业基本信息" left-arrow @click-left="onClickLeft" />
+        <NavBar
+            title="企业基本信息"
+            :left-arrow="!editAudit"
+            @click-left="onClickLeft"
+            :style="{ paddingLeft: `${editAudit ? '15px' : ''}` }"
+        />
         <div class="body-container enterprise-page__body">
             <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                 <div class="form-wrap pt-25px">
@@ -10,7 +15,6 @@
                         name="name"
                         label="企业名称"
                         placeholder="请输入您的企业名称"
-                        @change="changeValidate"
                     />
                     <Field
                         v-model="formData.data.licenseNum"
@@ -18,7 +22,6 @@
                         name="licenseNum"
                         label="营业执照/社会信用代码"
                         placeholder="请输入您营业执照/社会信用代码"
-                        @change="changeValidate"
                     />
                     <Field
                         v-model="formData.data.industryType"
@@ -35,7 +38,6 @@
                                     <DropdownItem
                                         v-model="formData.data.industryType"
                                         :options="columns"
-                                        @change="dropItemChange"
                                         get-container="#drop-container"
                                     ></DropdownItem>
                                 </DropdownMenu>
@@ -126,7 +128,6 @@
                     <Field
                         v-model="formData.data.corporateName"
                         :rules="rules.corporateName"
-                        @change="changeValidate"
                         name="corporateName"
                         label="法人姓名"
                         placeholder="请输入法人姓名"
@@ -134,7 +135,6 @@
                     <Field
                         v-model="formData.data.corporateId"
                         :rules="rules.corporateId"
-                        @change="changeValidate"
                         name="corporateId"
                         label="法人身份证号"
                         placeholder="请输入法人身份证号"
@@ -143,16 +143,15 @@
                         v-model="formData.data.corporatePhone"
                         :rules="rules.corporatePhone"
                         :readonly="isDisabled"
-                        @change="changeValidate"
                         name="corporatePhone"
                         label="法人联系方式"
                         placeholder="请输入法人联系方式"
                     />
                 </div>
                 <div class="submit-footer">
-                    <VanButton block :disabled="submitDisabled" type="info" native-type="submit" class="submit-button"
-                        >下一步</VanButton
-                    >
+                    <VanButton block type="info" native-type="submit" class="submit-button">{{
+                        editAudit ? '提交' : '下一步'
+                    }}</VanButton>
                 </div>
             </Form>
         </div>
@@ -161,7 +160,7 @@
 
 <script setup>
 import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem } from 'vant'
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, getCurrentInstance } from 'vue'
 import { nonCharacter, isName, isIdCard, isPhone } from '@/utils/validate'
 import { isEmpty } from 'lodash-es'
 import router from '@/router'
@@ -175,6 +174,8 @@ import cameraIcon from '@/assets/icon/camera-icon.png'
 import cardFront from '@/assets/img/card-front.png'
 import cardBack from '@/assets/img/card-back.png'
 
+const instance = getCurrentInstance()
+const { $store } = instance.proxy
 const { wsCache } = useCache()
 // 行业类型：1  建筑业 2  制造业 3  交通运输、仓储业和邮政业 4  信息传输、计算机服务和软件业 5  批发和零售业 6  住宿、餐饮业 7  金融、保险业 8  房地产业 9  租赁和商务服务业 10  教育、培训 11  文化、体育、娱乐业 12  其它
 const columns = ref([
@@ -208,10 +209,12 @@ const formData = reactive({
     }
 })
 const licensePhone = ref('')
-const submitDisabled = ref(true)
-const placeholderShow = ref(true)
 const isDisabled = ref(false)
 const formRef = ref()
+// 是否是从驳回列表页进来的
+const editAudit = ref(false)
+// 企业id
+const enterpriseId = ref('')
 
 const queryLicenseNumAccess = val => {
     return new Promise(resolve => {
@@ -222,7 +225,8 @@ const queryLicenseNumAccess = val => {
         try {
             queryLicenseNum({
                 data: {
-                    licenseNum: val
+                    licenseNum: val,
+                    enterpriseId: enterpriseId.value
                 },
                 hideloading: true
             }).then(res => {
@@ -292,22 +296,6 @@ const rules = reactive({
     ]
 })
 
-const dropItemChange = () => {
-    placeholderShow.value = false
-    changeValidate()
-}
-
-const changeValidate = () => {
-    formRef.value
-        .validate()
-        .then(async () => {
-            submitDisabled.value = false
-        })
-        .catch(() => {
-            submitDisabled.value = true
-        })
-}
-
 const onClickLeft = () => {
     router.push({ name: 'Customer' })
 }
@@ -329,12 +317,10 @@ const afterRead = async (file, details) => {
             file.status = 'done'
             file.message = '上传完成'
             formData.data[details.name] = res.data[0]
-            changeValidate()
         }
     } catch (err) {
         file.status = 'failed'
         file.message = '上传失败'
-        changeValidate()
     }
 }
 
@@ -344,56 +330,63 @@ const deleteRead = (file, details) => {
     } else {
         formData.data[details.name] = ''
     }
-    changeValidate()
 }
 
 const onSubmit = async () => {
-    try {
-        const res = await submitEnterpriseInfo({
-            data: formData.data
-        })
-        if (!isEmpty(res)) {
-            // Person: 经办人, Operator: 门头
-            const type = wsCache.get('role') === '1' ? 'Operator' : 'Person'
-            // 这里需要判断身份, 跳转不同的页面
-            // 经办人: Person, 企业门头: Operator
-            const enterpriseId = wsCache.get('enterpriseId')
-            if (!enterpriseId) {
-                wsCache.set('enterpriseId', res.data.id)
+    formRef.value
+        .validate()
+        .then(async () => {
+            try {
+                const res = await submitEnterpriseInfo({
+                    data: formData.data
+                })
+                if (!isEmpty(res)) {
+                    // Person: 经办人, Operator: 门头
+                    const type = wsCache.get('role') === '1' ? 'Operator' : 'Person'
+                    // 这里需要判断身份, 跳转不同的页面
+                    // 经办人: Person, 企业门头: Operator
+                    // const enterpriseId = wsCache.get('enterpriseId')
+                    if (!enterpriseId.value) {
+                        wsCache.set('enterpriseId', res.data.id)
+                    }
+                    router.push({ name: !editAudit.value ? type : 'Audit' })
+                }
+            } catch (err) {
+                return false
             }
-            router.push({ name: type })
-        }
-    } catch (err) {
-        return false
-    }
+        })
+        .catch(() => {})
 }
 
 onMounted(async () => {
-    const enterpriseId = wsCache.get('enterpriseId')
+    enterpriseId.value = wsCache.get('enterpriseId') || ''
     const role = wsCache.get('role')
-    if (enterpriseId) {
+    editAudit.value = $store.getters.editAudit
+    if (enterpriseId.value) {
         try {
             const res = await findEnterpriseInfo({
                 data: {
-                    id: enterpriseId
+                    id: enterpriseId.value
                 },
                 hideloading: true
             })
             if (!isEmpty(res.data)) {
-                if (+role === 1) {
-                    isDisabled.value = true
+                if (res.data.businessLicense) {
+                    isDisabled.value = +role === 1
+                    formData.data = res.data
+                    if (formData.data.industryType) {
+                        formData.data.industryType = `${formData.data.industryType}`
+                    }
+                    businessLicense.value = res.data.businessLicense
+                        ? [{ url: `https://${res.data.businessLicense}` }]
+                        : []
+                    corporateIdFront.value = res.data.corporateIdFront
+                        ? [{ url: `https://${res.data.corporateIdFront}` }]
+                        : []
+                    corporateIdBack.value = res.data.corporateIdBack
+                        ? [{ url: `https://${res.data.corporateIdBack}` }]
+                        : []
                 }
-                formData.data = res.data
-                if (formData.data.industryType) {
-                    formData.data.industryType = `${formData.data.industryType}`
-                    placeholderShow.value = false
-                }
-                businessLicense.value = res.data.businessLicense ? [{ url: `https://${res.data.businessLicense}` }] : []
-                corporateIdFront.value = res.data.corporateIdFront
-                    ? [{ url: `https://${res.data.corporateIdFront}` }]
-                    : []
-                corporateIdBack.value = res.data.corporateIdBack ? [{ url: `https://${res.data.corporateIdBack}` }] : []
-                changeValidate()
             }
         } catch (err) {
             return false

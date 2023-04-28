@@ -3,6 +3,7 @@ const getters = {
     token: state => state.app.token,
     enterpriseId: state => state.app.enterpriseId,
     role: state => state.app.role,
-    step: state => state.app.step
+    step: state => state.app.step,
+    editAudit: state => state.app.editAudit
 }
 export default getters

@@ -31,7 +31,7 @@
                             <div class="flex items-center package-body">
                                 <div class="flex-1 flex flex-col package-wrap">
                                     <div class="flex package-info text-[var(--secondary-color)]">
-                                        <span>{{ item.step }}</span>
+                                        <span>{{ item.title }}</span>
                                     </div>
                                     <div>
                                         <span>{{ item.msg }}</span>
@@ -66,7 +66,7 @@ import { onMounted, ref, computed, getCurrentInstance } from 'vue'
 import { NavBar, Image as VanImage } from 'vant'
 import { useCache } from '@/hooks/useCache'
 import { isEmpty } from 'lodash-es'
-// import { stepMap } from '@/store/config'
+import { stepMap } from '@/store/config'
 import router from '@/router'
 
 import Preview from '@/components/Preview'
@@ -78,7 +78,7 @@ import auditFail from '@/assets/img/audit-fail.png'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+const { $toast, $store } = instance.proxy
 
 const auditExpireTime = ref('')
 const auditStatus = ref(2)
@@ -92,6 +92,14 @@ const auditParams = computed(() => {
             img: auditIng,
             title: '审核中'
         }
+    } else if (+auditStatus.value === 4) {
+        return {
+            title: '完善信息'
+        }
+    } else if (+auditStatus.value === 3) {
+        return {
+            title: '协议'
+        }
     }
     return {
         img: auditFail,
@@ -99,21 +107,9 @@ const auditParams = computed(() => {
     }
 })
 
-const queryAuditAccess = async () => {
-    try {
-        const res = await queryAudit({
-            data: {
-                enterpriseId: enterpriseId.value
-            },
-            hideloading: true
-        })
-        if (!isEmpty(res)) {
-            // res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
-            auditList.value = res.data.auditList.map(item => item)
-        }
-    } catch (err) {
-        return false
-    }
+const modifyAudit = async item => {
+    await $store.dispatch('setEditAudit', true)
+    router.push({ name: stepMap.value[item.step] })
 }
 
 onMounted(async () => {
@@ -130,6 +126,10 @@ onMounted(async () => {
             if (!isEmpty(res)) {
                 // res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
                 auditStatus.value = res.data.auditStatus
+                if (+auditStatus.value === 3) {
+                    router.push({ name: 'Preview', query: { success: true } })
+                    return false
+                }
                 auditExpireTime.value = res.data.auditExpireTime
                 // if (+res.data.auditStatus === 2) {
                 //     auditMsg.value = '您的授信审核已提交，预计T+1审核完成'
@@ -142,7 +142,7 @@ onMounted(async () => {
                 //     auditMsg.value = '您司不符合准入标准，xxxx年xx月xx日可再次提交审核'
                 // }
                 if (+auditStatus.value === 4) {
-                    queryAuditAccess()
+                    auditList.value = res.data.auditList.map(item => item)
                 }
             }
         } catch (err) {

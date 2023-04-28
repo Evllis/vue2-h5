@@ -3,7 +3,8 @@ const state = {
     token: '',
     enterpriseId: '',
     role: '',
-    step: ''
+    step: '',
+    editAudit: false
 }
 const mutations = {
     SET_USER_NAME(state, name) {
@@ -20,6 +21,9 @@ const mutations = {
     },
     SET_STEP(state, step) {
         state.step = step
+    },
+    SET_EDIT_AUDIT(state, edit) {
+        state.editAudit = edit
     }
 }
 const actions = {
@@ -38,6 +42,9 @@ const actions = {
     },
     setStep({ commit }, step) {
         commit('SET_STEP', step)
+    },
+    setEditAudit({ commit }, edit) {
+        commit('SET_EDIT_AUDIT', edit)
     }
 }
 export default {

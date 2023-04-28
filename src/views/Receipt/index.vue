@@ -1,6 +1,11 @@
 <template>
     <div class="receipt-page">
-        <NavBar title="合同预填写" left-arrow @click-left="onClickLeft" />
+        <NavBar
+            title="合同预填写"
+            :left-arrow="!editAudit"
+            @click-left="onClickLeft"
+            :style="{ paddingLeft: `${editAudit ? '15px' : ''}` }"
+        />
         <div class="body-container receipt-page__body">
             <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                 <div class="form-wrap pt-25px">
@@ -10,9 +15,8 @@
                         type="number"
                         label="首付款(元)"
                         placeholder="请输入首付款(元)"
-                        @change="changeValidate('firstPaymentSum')"
                         :rules="rules.firstPaymentSum"
-                        :formatter="formatterNumber"
+                        :formatter="formatterNumberZero"
                     />
                     <Field
                         v-model="formData.data.monthlyPaymentSum"
@@ -20,7 +24,6 @@
                         type="number"
                         label="支付款合计(元)"
                         placeholder="请输入支付款合计(元)"
-                        @change="changeValidate('monthlyPaymentSum')"
                         :rules="rules.monthlyPaymentSum"
                         :formatter="formatterNumber"
                     />
@@ -35,7 +38,6 @@
                         name="consigneeName"
                         label="收货人姓名"
                         placeholder="请输入收货人姓名"
-                        @change="changeValidate('consigneeName')"
                         :rules="rules.consigneeName"
                     />
                     <Field
@@ -43,7 +45,6 @@
                         name="consigneePhone"
                         label="收货人联系方式"
                         placeholder="请输入收货人联系方式"
-                        @change="changeValidate('consigneePhone')"
                         :rules="rules.consigneePhone"
                     />
                     <Field
@@ -51,12 +52,12 @@
                         name="consigneeAddress"
                         label="收货地址"
                         placeholder="请输入收货地址"
-                        @change="changeValidate('consigneeAddress')"
                         :rules="rules.consigneeAddress"
                     />
                 </div>
                 <div class="flex submit-footer">
                     <VanButton
+                        v-if="!editAudit"
                         block
                         type="info"
                         native-type="button"
@@ -64,9 +65,9 @@
                         to="/procurement/home"
                         >上一步</VanButton
                     >
-                    <VanButton block :disabled="submitDisabled" type="info" native-type="submit" class="submit-button"
-                        >下一步</VanButton
-                    >
+                    <VanButton block type="info" native-type="submit" class="submit-button">{{
+                        editAudit ? '提交' : '下一步'
+                    }}</VanButton>
                 </div>
             </Form>
         </div>
@@ -77,7 +78,7 @@
 import { NavBar, Form, Field } from 'vant'
 import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
 import router from '@/router'
-import { formatterNumber } from '@/utils'
+import { formatterNumber, formatterNumberZero } from '@/utils'
 import { isName, isPhone, isAddress } from '@/utils/validate'
 import { useCache } from '@/hooks/useCache'
 
@@ -86,9 +87,9 @@ import { isEmpty } from 'lodash-es'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+const { $toast, $store } = instance.proxy
 
-const submitDisabled = ref(true)
+const editAudit = ref(false)
 const formRef = ref()
 const formData = reactive({
     data: {
@@ -121,14 +122,19 @@ const onSubmit = async () => {
     const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         formData.data['enterpriseId'] = enterpriseId
-        try {
-            await submitEnterpriseContract({
-                data: formData.data
+        formRef.value
+            .validate()
+            .then(async () => {
+                try {
+                    await submitEnterpriseContract({
+                        data: formData.data
+                    })
+                    router.push({ name: !editAudit.value ? 'Preview' : 'Audit' })
+                } catch (err) {
+                    return false
+                }
             })
-            router.push({ name: 'Preview' })
-        } catch (err) {
-            return false
-        }
+            .catch(() => {})
     } else {
         $toast.fail({
             message: '请重新登录',
@@ -139,23 +145,13 @@ const onSubmit = async () => {
     }
 }
 
-const changeValidate = name => {
-    formRef.value
-        .validate(name)
-        .then(async () => {
-            submitDisabled.value = false
-        })
-        .catch(() => {
-            submitDisabled.value = true
-        })
-}
-
 const onClickLeft = () => {
     router.push({ name: 'Procurement' })
 }
 
 onMounted(async () => {
     const enterpriseId = wsCache.get('enterpriseId')
+    editAudit.value = $store.getters.editAudit
     if (enterpriseId) {
         try {
             const res = await findEnterpriseContract({
@@ -165,8 +161,11 @@ onMounted(async () => {
                 hideloading: true
             })
             if (!isEmpty(res.data)) {
-                formData.data = res.data
-                changeValidate()
+                if (res.data.consigneeAddress) {
+                    formData.data = res.data
+                } else {
+                    formData.data.enterpriseName = res.data.enterpriseName
+                }
             }
         } catch (err) {
             return false
