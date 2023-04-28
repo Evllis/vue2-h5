@@ -127,7 +127,7 @@ onMounted(async () => {
                 // res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
                 auditStatus.value = res.data.auditStatus
                 if (+auditStatus.value === 3) {
-                    router.push({ name: 'Preview', query: { success: true } })
+                    router.push({ name: 'Confirm' })
                     return false
                 }
                 auditExpireTime.value = res.data.auditExpireTime

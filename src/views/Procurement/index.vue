@@ -13,44 +13,39 @@
                 <div class="form-wrap">
                     <h3 class="fs-13 mb-20px">采购清单</h3>
                     <ul class="package-list">
-                        <div v-if="skeletonShow">
-                            <Skeleton v-for="index of 4" :row="3" :key="index" class="mb-30px" />
-                        </div>
-                        <div v-else>
-                            <List
-                                v-model="list.data.loading"
-                                :finished="list.data.finished"
-                                finished-text="没有更多了"
-                                @load="findBuyListAccess"
-                            >
-                                <li v-for="item in list.data.arr" :key="item.id" class="package-item">
-                                    <div class="flex items-center package-body">
-                                        <div class="flex-1 flex flex-col package-wrap">
-                                            <div class="flex package-info">
-                                                <span class="truncate max-w-100px">{{ item.brand }}</span>
-                                                <span class="truncate max-w-100px">{{ item.dispose }}</span>
-                                            </div>
-                                            <div class="flex text-[var(--primary-active-color)]">
-                                                <span class="truncate max-w-80px">共{{ item.count }}台</span>
-                                                <span class="truncate max-w-150px"
-                                                    >月支付金额{{ item.monthlyPayment }}元/台</span
-                                                >
-                                            </div>
+                        <List
+                            v-model="list.data.loading"
+                            :finished="list.data.finished"
+                            finished-text="没有更多了"
+                            @load="findBuyListAccess"
+                        >
+                            <li v-for="item in list.data.arr" :key="item.id" class="package-item">
+                                <div class="flex items-center package-body">
+                                    <div class="flex-1 flex flex-col package-wrap">
+                                        <div class="flex package-info">
+                                            <span class="truncate max-w-100px">{{ item.brand }}</span>
+                                            <span class="truncate max-w-100px">{{ item.dispose }}</span>
                                         </div>
-                                        <div class="package-opts">
-                                            <VanButton
-                                                plain
-                                                type="primary"
-                                                native-type="button"
-                                                color="var(--primary-active-color)"
-                                                @click="editItem(item)"
-                                                >编辑</VanButton
+                                        <div class="flex text-[var(--primary-active-color)]">
+                                            <span class="truncate max-w-80px">共{{ item.count }}台</span>
+                                            <span class="truncate max-w-150px"
+                                                >月支付金额{{ item.monthlyPayment }}元/台</span
                                             >
                                         </div>
                                     </div>
-                                </li>
-                            </List>
-                        </div>
+                                    <div class="package-opts">
+                                        <VanButton
+                                            plain
+                                            type="primary"
+                                            native-type="button"
+                                            color="var(--primary-active-color)"
+                                            @click="editItem(item)"
+                                            >编辑</VanButton
+                                        >
+                                    </div>
+                                </div>
+                            </li>
+                        </List>
                     </ul>
                 </div>
                 <div class="flex submit-footer">
@@ -180,7 +175,7 @@
 </template>
 
 <script setup>
-import { NavBar, Form, Field, Popup, Skeleton, List, DropdownMenu, DropdownItem } from 'vant'
+import { NavBar, Form, Field, Popup, List, DropdownMenu, DropdownItem } from 'vant'
 import { reactive, ref, onMounted, getCurrentInstance } from 'vue'
 import { isEmpty } from 'lodash-es'
 import { formatterNumber } from '@/utils'
@@ -196,7 +191,6 @@ const { wsCache } = useCache()
 const instance = getCurrentInstance()
 const { $toast, $store } = instance.proxy
 
-const skeletonShow = ref(false)
 const columns = ref([
     { text: '12', value: '12' },
     { text: '24', value: '24' },
@@ -336,7 +330,6 @@ const submitFormData = async () => {
 }
 
 const findBuyListAccess = async () => {
-    skeletonShow.value = true
     const enterpriseId = wsCache.get('enterpriseId')
     currentPage.value++
     try {
@@ -353,10 +346,8 @@ const findBuyListAccess = async () => {
             if (list.data.arr.length < 5 || list.data.arr.length === res.data.total) {
                 list.data.finished = true
             }
-            skeletonShow.value = false
         }
     } catch (err) {
-        skeletonShow.value = false
         if (currentPage.value) {
             currentPage.value--
         }
@@ -378,6 +369,7 @@ onMounted(async () => {
 .network-page {
     background-color: #f8f8f8;
     .form-wrap {
+        padding-top: 20px;
         background-color: #f8f8f8;
     }
 }

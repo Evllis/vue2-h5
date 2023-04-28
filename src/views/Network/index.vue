@@ -13,49 +13,42 @@
                 <div class="form-wrap">
                     <h3 class="fs-13 mb-20px">入网清单</h3>
                     <ul class="package-list">
-                        <div v-if="skeletonShow">
-                            <Skeleton v-for="index of 4" :row="3" :key="index" class="mb-30px" />
-                        </div>
-                        <div v-else>
-                            <List
-                                v-model="list.data.loading"
-                                :finished="list.data.finished"
-                                :immediate-check="false"
-                                finished-text="没有更多了"
-                                @load="findSetmealListAccess"
-                            >
-                                <li v-for="item in list.data.arr" :key="item.id" class="package-item">
-                                    <div class="flex items-center package-body">
-                                        <div class="flex-1 flex flex-col package-wrap">
-                                            <div class="flex package-info">
-                                                <span class="truncate max-w-100px">{{ item.name }}</span>
-                                                <span class="truncate max-w-100px">{{ item.monthlyPayment }}元/月</span>
-                                                <span class="truncate !mr-0">{{ item.period }}期</span>
-                                            </div>
-                                            <div class="flex text-[var(--primary-active-color)]">
-                                                <span class="truncate max-w-100px"
-                                                    >电子券{{ item.voucherAmount }}元</span
-                                                >
-                                                <span class="truncate max-w-100px">办理数量x{{ item.number }}</span>
-                                            </div>
+                        <List
+                            v-model="list.data.loading"
+                            :finished="list.data.finished"
+                            :immediate-check="false"
+                            finished-text="没有更多了"
+                            @load="findSetmealListAccess"
+                        >
+                            <li v-for="item in list.data.arr" :key="item.id" class="package-item">
+                                <div class="flex items-center package-body">
+                                    <div class="flex-1 flex flex-col package-wrap">
+                                        <div class="flex package-info">
+                                            <span class="truncate max-w-100px">{{ item.name }}</span>
+                                            <span class="truncate max-w-100px">{{ item.monthlyPayment }}元/月</span>
+                                            <span class="truncate !mr-0">{{ item.period }}期</span>
                                         </div>
-                                        <div class="package-opts w-60px">
-                                            <VanButton
-                                                plain
-                                                type="primary"
-                                                native-type="button"
-                                                color="var(--primary-active-color)"
-                                                @click="editItem(item)"
-                                                >编辑</VanButton
-                                            >
+                                        <div class="flex text-[var(--primary-active-color)]">
+                                            <span class="truncate max-w-100px">电子券{{ item.voucherAmount }}元</span>
+                                            <span class="truncate max-w-100px">办理数量x{{ item.number }}</span>
                                         </div>
                                     </div>
-                                    <div v-if="item.tradeTime" class="package-desc">
-                                        {{ filterDateFormatter(item.tradeTime) }}入网
+                                    <div class="package-opts w-60px">
+                                        <VanButton
+                                            plain
+                                            type="primary"
+                                            native-type="button"
+                                            color="var(--primary-active-color)"
+                                            @click="editItem(item)"
+                                            >编辑</VanButton
+                                        >
                                     </div>
-                                </li>
-                            </List>
-                        </div>
+                                </div>
+                                <div v-if="item.tradeTime" class="package-desc">
+                                    {{ filterDateFormatter(item.tradeTime) }}入网
+                                </div>
+                            </li>
+                        </List>
                     </ul>
                 </div>
                 <div class="flex submit-footer">
@@ -183,7 +176,7 @@
 </template>
 
 <script setup>
-import { NavBar, Form, Field, Popup, DatetimePicker, DropdownMenu, DropdownItem, List, Skeleton } from 'vant'
+import { NavBar, Form, Field, Popup, DatetimePicker, DropdownMenu, DropdownItem, List } from 'vant'
 import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
 import router from '@/router'
 import { useCache } from '@/hooks/useCache'
@@ -229,7 +222,6 @@ const date = reactive({
     }
 })
 const addType = ref('add')
-const skeletonShow = ref(false)
 const formRef = ref()
 const packageData = reactive({
     data: {
@@ -361,7 +353,6 @@ onMounted(async () => {
 
 const findSetmealListAccess = async () => {
     const enterpriseId = wsCache.get('enterpriseId')
-    skeletonShow.value = true
     currentPage.value++
     try {
         const res = await findSetmealList({
@@ -372,7 +363,6 @@ const findSetmealListAccess = async () => {
             hideloading: true
         })
         if (!isEmpty(res.data)) {
-            skeletonShow.value = false
             list.data.arr = [...list.data.arr, ...res.data.commercialSetmealInfos]
             list.data.loading = false
             if (list.data.arr.length < 5 || list.data.arr.length === res.data.total) {
@@ -380,7 +370,6 @@ const findSetmealListAccess = async () => {
             }
         }
     } catch (err) {
-        skeletonShow.value = false
         return false
     }
 }
@@ -395,6 +384,7 @@ const filterDateFormatter = val => {
 .network-page {
     background-color: #f8f8f8;
     .form-wrap {
+        padding-top: 20px;
         background-color: #f8f8f8;
     }
 }

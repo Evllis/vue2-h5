@@ -237,6 +237,10 @@ body.van-overflow-hidden {
     background-color: white;
     padding: 18px 32px 39px 32px;
     box-shadow: 0px -2px 6px 0px rgba(227, 227, 227, 0.5);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
     .submit-button {
         width: 100%;
         height: 43px;
@@ -251,6 +255,10 @@ body.van-overflow-hidden {
     }
 }
 .van-nav-bar {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    width: 100%;
     @include border-1px(bottom, #E5E5E5);
     .van-nav-bar__title,
     .van-icon {

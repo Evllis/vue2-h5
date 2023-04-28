@@ -359,9 +359,14 @@ const onSubmit = async () => {
 }
 
 onMounted(async () => {
+    const phone = wsCache.get('phone') || ''
     enterpriseId.value = wsCache.get('enterpriseId') || ''
     const role = wsCache.get('role')
     editAudit.value = $store.getters.editAudit
+    if (phone) {
+        isDisabled.value = +role === 1
+        formData.data.corporatePhone = phone
+    }
     if (enterpriseId.value) {
         try {
             const res = await findEnterpriseInfo({

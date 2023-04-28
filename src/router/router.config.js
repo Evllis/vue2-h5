@@ -175,5 +175,22 @@ export const asyncRouterMap = [
                 meta: { title: '审核结果', keepAlive: false }
             }
         ]
+    },
+    {
+        path: '/confirm',
+        component: () => import('@/views/Layouts/index'),
+        redirect: '/confirm/home',
+        meta: {
+            title: '收货确认单',
+            keepAlive: false
+        },
+        children: [
+            {
+                path: 'home',
+                name: 'Confirm',
+                component: () => import('@/views/Confirm/index'),
+                meta: { title: '收货确认单', keepAlive: false }
+            }
+        ]
     }
 ]

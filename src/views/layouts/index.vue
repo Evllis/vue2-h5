@@ -31,6 +31,10 @@ export default {
             display: flex;
             flex-direction: column;
         }
+        & > .body-container {
+            padding-top: 46px;
+            padding-bottom: 100px;
+        }
     }
 }
 </style>

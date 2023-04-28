@@ -173,6 +173,9 @@ const onSubmit = async () => {
             if (res.data.enterpriseId) {
                 wsCache.set('enterpriseId', res.data.enterpriseId)
             }
+            if (res.data.phone) {
+                wsCache.set('phone', res.data.phone)
+            }
             router.push({ name: routerName })
         }
     } catch (err) {
