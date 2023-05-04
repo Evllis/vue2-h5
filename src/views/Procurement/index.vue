@@ -19,7 +19,7 @@
                             finished-text="没有更多了"
                             @load="findBuyListAccess"
                         >
-                            <li v-for="item in list.data.arr" :key="item.id" class="package-item">
+                            <li v-for="(item, index) in list.data.arr" :key="`${item.id}${index}`" class="package-item">
                                 <div class="flex items-center package-body">
                                     <div class="flex-1 flex flex-col package-wrap">
                                         <div class="flex package-info">
@@ -176,7 +176,7 @@
 
 <script setup>
 import { NavBar, Form, Field, Popup, List, DropdownMenu, DropdownItem } from 'vant'
-import { reactive, ref, onMounted, getCurrentInstance } from 'vue'
+import { reactive, ref, onMounted, getCurrentInstance, nextTick } from 'vue'
 import { isEmpty } from 'lodash-es'
 import { formatterNumber } from '@/utils'
 import { useCache } from '@/hooks/useCache'
@@ -293,12 +293,12 @@ const onSubmit = async () => {
                     await editBuy({
                         data: packageData.data
                     })
-                    showPicker.value = false
                     popupClosed()
+                    showPicker.value = false
+                    await nextTick()
                     list.data.arr.length = 0
                     currentPage.value = 0
                     list.data.finished = false
-                    await findBuyListAccess()
                 } catch (err) {
                     return false
                 }
@@ -330,6 +330,7 @@ const submitFormData = async () => {
 }
 
 const findBuyListAccess = async () => {
+    if (list.data.finished) return false
     const enterpriseId = wsCache.get('enterpriseId')
     currentPage.value++
     try {
@@ -343,7 +344,7 @@ const findBuyListAccess = async () => {
         if (!isEmpty(res.data)) {
             list.data.arr = [...list.data.arr, ...res.data.commercialBuyInfos]
             list.data.loading = false
-            if (list.data.arr.length < 5 || list.data.arr.length === res.data.total) {
+            if (res.data.commercialBuyInfos.length < 5 || list.data.arr.length === res.data.total) {
                 list.data.finished = true
             }
         }
@@ -361,7 +362,6 @@ onMounted(async () => {
     if (socialNumber) {
         socialSecurityNumber.value = +socialNumber
     }
-    await findBuyListAccess()
 })
 </script>
 

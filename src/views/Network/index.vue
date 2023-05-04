@@ -16,7 +16,6 @@
                         <List
                             v-model="list.data.loading"
                             :finished="list.data.finished"
-                            :immediate-check="false"
                             finished-text="没有更多了"
                             @load="findSetmealListAccess"
                         >
@@ -177,7 +176,7 @@
 
 <script setup>
 import { NavBar, Form, Field, Popup, DatetimePicker, DropdownMenu, DropdownItem, List } from 'vant'
-import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
+import { reactive, ref, getCurrentInstance, onMounted, nextTick } from 'vue'
 import router from '@/router'
 import { useCache } from '@/hooks/useCache'
 
@@ -313,13 +312,13 @@ const onSubmit = async () => {
                     await editSetmeal({
                         data: packageData.data
                     })
-                    showPicker.value = false
                     popupClosed()
+                    showPicker.value = false
+                    await nextTick()
                     list.data.arr.length = 0
                     currentPage.value = 0
                     date.data.currentDate = new Date(new Date().getFullYear(), new Date().getMonth())
                     list.data.finished = false
-                    await findSetmealListAccess()
                 } catch (err) {
                     return false
                 }
@@ -348,7 +347,6 @@ onMounted(async () => {
     if (socialNumber) {
         socialSecurityNumber.value = +socialNumber
     }
-    await findSetmealListAccess()
 })
 
 const findSetmealListAccess = async () => {
