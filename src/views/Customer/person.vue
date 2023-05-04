@@ -281,9 +281,11 @@ onMounted(async () => {
     enterpriseId.value = wsCache.get('enterpriseId') || ''
     const role = wsCache.get('role')
     editAudit.value = $store.getters.editAudit
-    if (phone) {
+    if (phone && enterpriseId.value) {
         isDisabled.value = +role === 2
-        formData.data.operatorPhone = phone
+        if (+role === 2) {
+            formData.data.operatorPhone = phone
+        }
     }
     if (enterpriseId.value) {
         try {

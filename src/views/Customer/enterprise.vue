@@ -363,9 +363,11 @@ onMounted(async () => {
     enterpriseId.value = wsCache.get('enterpriseId') || ''
     const role = wsCache.get('role')
     editAudit.value = $store.getters.editAudit
-    if (phone) {
+    if (phone && enterpriseId.value) {
         isDisabled.value = +role === 1
-        formData.data.corporatePhone = phone
+        if (!isDisabled.value) {
+            formData.data.corporatePhone = phone
+        }
     }
     if (enterpriseId.value) {
         try {
@@ -379,6 +381,9 @@ onMounted(async () => {
                 if (res.data.businessLicense) {
                     isDisabled.value = +role === 1
                     formData.data = res.data
+                    if (!isDisabled.value) {
+                        formData.data.corporatePhone = ''
+                    }
                     if (formData.data.industryType) {
                         formData.data.industryType = `${formData.data.industryType}`
                     }
