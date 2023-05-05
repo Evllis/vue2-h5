@@ -34,11 +34,13 @@
                     >
                         <template #input>
                             <div id="drop-container" class="drop-container">
+                                <div class="drop-placeholder" v-if="placeholderShow">请选择行业类型</div>
                                 <DropdownMenu>
                                     <DropdownItem
                                         v-model="formData.data.industryType"
                                         :options="columns"
                                         get-container="#drop-container"
+                                        @change="dropItemChange"
                                     ></DropdownItem>
                                 </DropdownMenu>
                             </div>
@@ -215,6 +217,11 @@ const formRef = ref()
 const editAudit = ref(false)
 // 企业id
 const enterpriseId = ref('')
+const placeholderShow = ref(true)
+
+const dropItemChange = () => {
+    placeholderShow.value = false
+}
 
 const queryLicenseNumAccess = val => {
     return new Promise(resolve => {

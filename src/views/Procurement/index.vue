@@ -99,11 +99,13 @@
                         >
                             <template #input>
                                 <div id="period" class="drop-container">
+                                    <div class="drop-placeholder" v-if="placeholderShow.data.period">请选择合约期</div>
                                     <DropdownMenu>
                                         <DropdownItem
                                             v-model="packageData.data.period"
                                             :options="columns"
                                             get-container="#period"
+                                            @change="dropItemChange('period')"
                                         ></DropdownItem>
                                     </DropdownMenu>
                                 </div>
@@ -120,11 +122,13 @@
                         >
                             <template #input>
                                 <div id="category" class="drop-container">
+                                    <div class="drop-placeholder" v-if="placeholderShow.data.category">请选择品类</div>
                                     <DropdownMenu>
                                         <DropdownItem
                                             v-model="packageData.data.category"
                                             :options="categoryColumns"
                                             get-container="#category"
+                                            @change="dropItemChange('category')"
                                         ></DropdownItem>
                                     </DropdownMenu>
                                 </div>
@@ -239,6 +243,17 @@ const addType = ref('add')
 const buyId = ref('')
 const socialSecurityNumber = ref(0)
 const editAudit = ref(false)
+
+const placeholderShow = reactive({
+    data: {
+        period: true,
+        category: true
+    }
+})
+
+const dropItemChange = type => {
+    placeholderShow.data[type] = false
+}
 
 const popupClosed = () => {
     for (const i in packageData.data) {

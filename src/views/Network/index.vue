@@ -121,11 +121,13 @@
                         >
                             <template #input>
                                 <div id="drop-container" class="drop-container">
+                                    <div class="drop-placeholder" v-if="placeholderShow">请选择合约期</div>
                                     <DropdownMenu>
                                         <DropdownItem
                                             v-model="packageData.data.period"
                                             :options="columns"
                                             get-container="#drop-container"
+                                            @change="dropItemChange"
                                         ></DropdownItem>
                                     </DropdownMenu>
                                 </div>
@@ -242,6 +244,11 @@ const showPicker = ref(false)
 const showDate = ref(false)
 const socialSecurityNumber = ref(0)
 const editAudit = ref(false)
+const placeholderShow = ref(true)
+
+const dropItemChange = () => {
+    placeholderShow.value = false
+}
 
 const onConfirm = val => {
     const date = new Date(val)

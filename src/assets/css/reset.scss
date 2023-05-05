@@ -15,6 +15,7 @@ body.van-overflow-hidden {
     .van-dropdown-menu__bar {
         box-shadow: none;
         height: 16px;
+        background-color: transparent;
     }
     .van-dropdown-menu__title {
         width: 100%;
@@ -23,6 +24,14 @@ body.van-overflow-hidden {
             display: none;
             right: 0;
         }
+    }
+    .drop-placeholder {
+        position: absolute;
+        left: 0;
+        top: 0;
+        font-size: 16px;
+        line-height: 16px;
+        color: #C5C6C9;
     }
     .van-dropdown-item {
         width: calc(100% - 30px);
