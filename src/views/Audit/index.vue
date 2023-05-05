@@ -9,7 +9,7 @@
                 <VanImage :src="auditParams.img" />
                 <!-- <p>{{ auditMsg }}</p> -->
                 <div v-if="+auditStatus === 2" class="flex flex-col items-center justify-center w-4/5">
-                    <p>您的授信审核已提交，预计T+1审核完成</p>
+                    <p>您的业务申请已提交，预计T+1审核完成</p>
                     <VanButton block type="info" native-type="button" class="submit-button">确定</VanButton>
                 </div>
                 <div v-if="+auditStatus === 5" class="flex flex-col items-center justify-center w-4/5">
