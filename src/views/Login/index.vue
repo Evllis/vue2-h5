@@ -114,9 +114,6 @@ const codeTimer = ref(0)
 const codeTime = ref(60)
 const show = ref(false)
 
-// result
-const resultPhoneCode = ref('')
-
 // 获取手机验证码
 const getCode = () => {
     formRef.value
@@ -126,7 +123,6 @@ const getCode = () => {
             if (!isEmpty(res) && +res.returnCode === 1000) {
                 $toast.success('发送成功')
                 codeButton.data.disabled = true
-                resultPhoneCode.value = res.data || ''
                 renderMobileCode()
                 return false
             }
@@ -158,7 +154,7 @@ const onSubmit = async () => {
         return false
     }
     try {
-        const res = await loginRegister({ phone: phone.value, code: '000000' }).catch(() => {})
+        const res = await loginRegister({ phone: phone.value, code: code.value }).catch(() => {})
         if (!isEmpty(res)) {
             wsCache.clear()
             wsCache.set('token', res.data.token)
