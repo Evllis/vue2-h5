@@ -24,6 +24,7 @@
                                     :max-count="6"
                                     :upload-icon="addIcon"
                                     @delete="deleteRead"
+                                    multiple
                                     name="unicomContractUrls"
                                 />
                             </div>
@@ -105,7 +106,7 @@ import { isLetterNumber, isName, isPhone } from '@/utils/validate'
 
 import inactiveIcon from '@/assets/icon/select-icon.png'
 import addIcon from '@/assets/icon/add-icon.png'
-import { isEmpty } from 'lodash-es'
+import { isEmpty, isArray } from 'lodash-es'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
@@ -172,28 +173,53 @@ const onClickLeft = () => {
     router.push({ name: 'Operator' })
 }
 
-const afterRead = async (file, details) => {
-    file.status = 'uploading'
-    file.message = '上传中...'
-    try {
-        const res = await uploadFile({
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            },
-            data: {
-                file: file.file
-            },
-            hideloading: true
+const updateUploadItem = (arr, status = 'uploading', text = '上传中...') => {
+    if (isArray(arr)) {
+        arr.forEach(item => {
+            item.status = status
+            item.message = text
         })
-        if (!isEmpty(res.data)) {
-            file.status = 'done'
-            file.message = '上传完成'
-            unicomContractUrls.value[unicomContractUrls.value.length - 1].imgUrl = res.data[0]
-            formData.data[details.name] = unicomContractUrls.value.map(item => item.imgUrl)
+    } else {
+        arr.status = status
+        arr.message = text
+    }
+}
+
+const afterRead = async (file, details) => {
+    updateUploadItem(file)
+    const data = new FormData()
+    if (isArray(file)) {
+        const arr = file.map(item => item.file)
+        arr.forEach(item => {
+            data.append('file', item)
+        })
+    } else {
+        data.append('file', file.file)
+    }
+    const res = await uploadFile({
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        },
+        data,
+        hideloading: true
+    })
+    if (!isEmpty(res.data)) {
+        if (+res.returnCode !== 1000) {
+            updateUploadItem(file, 'failed', '上传失败')
+            return false
         }
-    } catch (err) {
-        file.status = 'failed'
-        file.message = '上传失败'
+        updateUploadItem(file, 'done', '上传完成')
+        res.data.forEach(item => {
+            for (const val of unicomContractUrls.value) {
+                if (!val.imgUrl) {
+                    val['imgUrl'] = item
+                    break
+                }
+            }
+        })
+        formData.data[details.name] = unicomContractUrls.value.map(item => item.imgUrl)
+    } else {
+        updateUploadItem(file, 'failed', '上传失败')
     }
 }
 
