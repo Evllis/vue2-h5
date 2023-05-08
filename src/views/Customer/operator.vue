@@ -70,7 +70,7 @@
                         label="社保缴纳人数"
                         placeholder="请输入社保缴纳人数"
                         class="!mb-0"
-                        :formatter="formatterNumber"
+                        :formatter="formatterGtZeroInteger"
                         :rules="[{ required: true, message: '请填写社保缴纳人数' }]"
                     />
                     <Field class="custom-wrap social-wrap" :rules="rules.socialSecurityUrls" name="socialSecurityUrls">
@@ -83,6 +83,7 @@
                                     :max-count="6"
                                     :upload-icon="addIcon"
                                     @delete="deleteRead"
+                                    multiple
                                     name="socialSecurityUrls"
                                 />
                             </div>
@@ -111,9 +112,10 @@
 <script setup>
 import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem, ImagePreview } from 'vant'
 import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
-import { isEmpty } from 'lodash-es'
+import { isEmpty, isArray } from 'lodash-es'
 import router from '@/router'
 import { useCache } from '@/hooks/useCache'
+import { formatterGtZeroInteger } from '@/utils'
 
 import { uploadFile } from '@/api/common'
 import { submitEnterpriseSocialSecurity, findEnterpriseSocialSecurity } from '@/api/customer'
@@ -177,32 +179,57 @@ const previewExample = () => {
     ImagePreview([example])
 }
 
-const afterRead = async (file, details) => {
-    file.status = 'uploading'
-    file.message = '上传中...'
-    try {
-        const res = await uploadFile({
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            },
-            data: {
-                file: file.file
-            },
-            hideloading: true
+const updateUploadItem = (arr, status = 'uploading', text = '上传中...') => {
+    if (isArray(arr)) {
+        arr.forEach(item => {
+            item.status = status
+            item.message = text
         })
-        if (!isEmpty(res.data)) {
-            file.status = 'done'
-            file.message = '上传完成'
-            if (details.name !== 'socialSecurityUrls') {
-                formData.data[details.name] = res.data[0]
-            } else {
-                socialSecurityUrls.value[socialSecurityUrls.value.length - 1].imgUrl = res.data[0]
-                formData.data[details.name] = socialSecurityUrls.value.map(item => item.imgUrl)
-            }
+    } else {
+        arr.status = status
+        arr.message = text
+    }
+}
+
+const afterRead = async (file, details) => {
+    updateUploadItem(file)
+    const data = new FormData()
+    if (isArray(file)) {
+        const arr = file.map(item => item.file)
+        arr.forEach(item => {
+            data.append('file', item)
+        })
+    } else {
+        data.append('file', file.file)
+    }
+    const res = await uploadFile({
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        },
+        data,
+        hideloading: true
+    })
+    if (!isEmpty(res.data)) {
+        if (+res.returnCode !== 1000) {
+            updateUploadItem(file, 'failed', '上传失败')
+            return false
         }
-    } catch (err) {
-        file.status = 'failed'
-        file.message = '上传失败'
+        updateUploadItem(file, 'done', '上传完成')
+        if (details.name !== 'socialSecurityUrls') {
+            formData.data[details.name] = res.data[0]
+        } else {
+            res.data.forEach(item => {
+                for (const val of socialSecurityUrls.value) {
+                    if (!val.imgUrl) {
+                        val['imgUrl'] = item
+                        break
+                    }
+                }
+            })
+            formData.data[details.name] = socialSecurityUrls.value.map(item => item.imgUrl)
+        }
+    } else {
+        updateUploadItem(file, 'failed', '上传失败')
     }
 }
 
@@ -269,11 +296,6 @@ onMounted(async () => {
         }
     }
 })
-
-/**
- * formatter
- */
-const formatterNumber = value => value.replace(/[^\d]/g, '')
 </script>
 
 <style lang="scss" scoped>

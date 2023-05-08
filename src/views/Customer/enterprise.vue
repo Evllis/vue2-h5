@@ -392,6 +392,7 @@ onMounted(async () => {
                         formData.data.corporatePhone = ''
                     }
                     if (formData.data.industryType) {
+                        placeholderShow.value = false
                         formData.data.industryType = `${formData.data.industryType}`
                     }
                     businessLicense.value = res.data.businessLicense

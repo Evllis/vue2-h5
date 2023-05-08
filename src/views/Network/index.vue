@@ -82,7 +82,7 @@
                         >
                     </div>
                 </div>
-                <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom">
+                <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom" @closed="popupClosed">
                     <VanIcon name="cross" class="close-icon" @click="showPicker = false" />
                     <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                         <Field
@@ -259,6 +259,7 @@ const onConfirm = val => {
 }
 
 const popupClosed = () => {
+    placeholderShow.value = true
     for (const i in packageData.data) {
         packageData.data[i] = ''
     }
@@ -279,6 +280,7 @@ const formatterMax = val => {
 const editItem = item => {
     addType.value = 'edit'
     showPicker.value = true
+    placeholderShow.value = false
     packageData.data = {
         name: item.name,
         number: item.number,

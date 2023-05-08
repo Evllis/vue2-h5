@@ -130,3 +130,11 @@ export const formatterNumber = val => {
     if (num <= 0) return ''
     return num
 }
+
+// 大于0正整数
+export const formatterGtZeroInteger = value => {
+    if (!/^[1-9]\d*$/.test(value)) {
+        return ''
+    }
+    return value
+}

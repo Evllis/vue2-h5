@@ -85,7 +85,7 @@
                         >
                     </div>
                 </div>
-                <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom">
+                <Popup v-model="showPicker" position="bottom" get-container="#app" class="custom" @closed="popupClosed">
                     <VanIcon name="cross" class="close-icon" @click="showPicker = false" />
                     <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                         <Field
@@ -256,6 +256,10 @@ const dropItemChange = type => {
 }
 
 const popupClosed = () => {
+    placeholderShow.data = {
+        period: true,
+        category: true
+    }
     for (const i in packageData.data) {
         packageData.data[i] = ''
     }
@@ -283,6 +287,10 @@ const addItem = () => {
 const editItem = item => {
     addType.value = 'edit'
     showPicker.value = true
+    placeholderShow.data = {
+        period: false,
+        category: false
+    }
     packageData.data = {
         period: item.period,
         category: item.category,
