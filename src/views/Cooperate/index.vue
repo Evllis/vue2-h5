@@ -1,7 +1,7 @@
 <template>
     <div class="cooperate-page">
         <NavBar
-            title="与联通合作相关信息"
+            title="客户经理信息绑定"
             @click-left="onClickLeft"
             :left-arrow="!editAudit"
             :style="{ paddingLeft: `${editAudit ? '15px' : ''}` }"
@@ -9,27 +9,6 @@
         <div class="body-container cooperate-page__body">
             <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                 <div class="form-wrap pt-25px">
-                    <Field
-                        class="custom-wrap social-wrap"
-                        label="集团客户服务合同"
-                        :rules="rules.unicomContractUrls"
-                        name="unicomContractUrls"
-                    >
-                        <template #input>
-                            <div class="upload-container w-full h-full">
-                                <h3>贵司与联通关键合同页面（3-6张）</h3>
-                                <Uploader
-                                    v-model="unicomContractUrls"
-                                    :after-read="afterRead"
-                                    :max-count="6"
-                                    :upload-icon="addIcon"
-                                    @delete="deleteRead"
-                                    multiple
-                                    name="unicomContractUrls"
-                                />
-                            </div>
-                        </template>
-                    </Field>
                     <Field
                         v-model="formData.data.unicomProvince"
                         :right-icon="inactiveIcon"
@@ -65,18 +44,7 @@
                     />
                 </div>
                 <div class="flex submit-footer">
-                    <VanButton
-                        v-if="!editAudit"
-                        block
-                        type="info"
-                        native-type="button"
-                        class="submit-button mr-10px"
-                        to="/customer/operator"
-                        >上一步</VanButton
-                    >
-                    <VanButton block type="info" native-type="submit" class="submit-button">{{
-                        editAudit ? '提交' : '下一步'
-                    }}</VanButton>
+                    <VanButton block type="info" native-type="submit" class="submit-button">提交</VanButton>
                 </div>
             </Form>
         </div>
@@ -94,19 +62,18 @@
 </template>
 
 <script setup>
-import { NavBar, Form, Field, Popup, Picker, Uploader } from 'vant'
+import { NavBar, Form, Field, Popup, Picker } from 'vant'
 import { reactive, ref, onMounted, getCurrentInstance, nextTick } from 'vue'
 import router from '@/router'
 import { useCache } from '@/hooks/useCache'
 
-import { regionInfo, uploadFile } from '@/api/common'
+import { regionInfo } from '@/api/common'
 import { submitEnterpriseUnicomInfo, findEnterpriseUnicomInfo } from '@/api/cooperate'
 
 import { isLetterNumber, isName, isPhone } from '@/utils/validate'
 
 import inactiveIcon from '@/assets/icon/select-icon.png'
-import addIcon from '@/assets/icon/add-icon.png'
-import { isEmpty, isArray } from 'lodash-es'
+import { isEmpty } from 'lodash-es'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
@@ -122,27 +89,9 @@ const areaRef = ref()
 const formRef = ref()
 const selectAreaData = ref([])
 const showPicker = ref(false)
-const unicomContractUrls = ref([])
 
-// const areaList = reactive({
-//     data: {
-//         province_list: {},
-//         city_list: {}
-//     }
-// })
 const areaList = ref([])
 const rules = reactive({
-    unicomContractUrls: [
-        {
-            validator: () => {
-                if (!formData.data.unicomContractUrls || formData.data.unicomContractUrls.length < 3) {
-                    return false
-                }
-                return true
-            },
-            message: '关键合同页面至少上传3张'
-        }
-    ],
     unicomProvince: [{ required: true, message: '请填写归属联通省公司' }],
     unicomManagerNumber: [
         { required: true, message: '请填写客户经理工号' },
@@ -160,7 +109,6 @@ const rules = reactive({
 })
 const formData = reactive({
     data: {
-        unicomContractUrls: [],
         unicomProvince: '',
         unicomManagerNumber: '',
         unicomManagerName: '',
@@ -171,60 +119,6 @@ const editAudit = ref(false)
 
 const onClickLeft = () => {
     router.push({ name: 'Operator' })
-}
-
-const updateUploadItem = (arr, status = 'uploading', text = '上传中...') => {
-    if (isArray(arr)) {
-        arr.forEach(item => {
-            item.status = status
-            item.message = text
-        })
-    } else {
-        arr.status = status
-        arr.message = text
-    }
-}
-
-const afterRead = async (file, details) => {
-    updateUploadItem(file)
-    const data = new FormData()
-    if (isArray(file)) {
-        const arr = file.map(item => item.file)
-        arr.forEach(item => {
-            data.append('file', item)
-        })
-    } else {
-        data.append('file', file.file)
-    }
-    const res = await uploadFile({
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        },
-        data,
-        hideloading: true
-    })
-    if (!isEmpty(res.data)) {
-        if (+res.returnCode !== 1000) {
-            updateUploadItem(file, 'failed', '上传失败')
-            return false
-        }
-        updateUploadItem(file, 'done', '上传完成')
-        res.data.forEach(item => {
-            for (const val of unicomContractUrls.value) {
-                if (!val.imgUrl) {
-                    val['imgUrl'] = item
-                    break
-                }
-            }
-        })
-        formData.data[details.name] = unicomContractUrls.value.map(item => item.imgUrl)
-    } else {
-        updateUploadItem(file, 'failed', '上传失败')
-    }
-}
-
-const deleteRead = (file, details) => {
-    formData.data[details.name] = unicomContractUrls.value.map(item => item.imgUrl)
 }
 
 const onConfirm = (columns, indexs) => {
@@ -305,13 +199,6 @@ const backFillData = async () => {
                         },
                         { name: itemChildren.text, code: itemChildren.code }
                     ]
-                    unicomContractUrls.value = res.data.unicomContractUrls
-                        ? res.data.unicomContractUrls.map(item => {
-                              return {
-                                  url: `https://${item}`
-                              }
-                          })
-                        : []
                 }
             }
         } catch (err) {

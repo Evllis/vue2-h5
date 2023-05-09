@@ -304,7 +304,8 @@ const rules = reactive({
 })
 
 const onClickLeft = () => {
-    router.push({ name: 'Customer' })
+    const role = wsCache.get('role')
+    router.push({ name: +role === 1 ? 'Customer' : 'Person' })
 }
 
 const afterRead = async (file, details) => {
@@ -349,14 +350,14 @@ const onSubmit = async () => {
                 })
                 if (!isEmpty(res)) {
                     // Person: 经办人, Operator: 门头
-                    const type = wsCache.get('role') === '1' ? 'Operator' : 'Person'
+                    // const type = wsCache.get('role') === '1' ? 'Operator' : 'Person'
                     // 这里需要判断身份, 跳转不同的页面
                     // 经办人: Person, 企业门头: Operator
                     // const enterpriseId = wsCache.get('enterpriseId')
                     if (!enterpriseId.value) {
                         wsCache.set('enterpriseId', res.data.id)
                     }
-                    router.push({ name: !editAudit.value ? type : 'Audit' })
+                    router.push({ name: !editAudit.value ? 'Operator' : 'Audit' })
                 }
             } catch (err) {
                 return false

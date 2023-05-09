@@ -79,7 +79,7 @@ export const asyncRouterMap = [
         component: () => import('@/views/Layouts/index'),
         redirect: '/cooperate/home',
         meta: {
-            title: '与联通合作相关信息',
+            title: '客户经理信息绑定',
             keepAlive: false
         },
         children: [
@@ -87,7 +87,7 @@ export const asyncRouterMap = [
                 path: 'home',
                 name: 'Cooperate',
                 component: () => import('@/views/Cooperate/index'),
-                meta: { title: '与联通合作相关信息', keepAlive: false }
+                meta: { title: '客户经理信息绑定', keepAlive: false }
             }
         ]
     },

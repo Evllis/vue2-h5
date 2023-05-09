@@ -60,7 +60,7 @@ const submitData = async () => {
         if (!isEmpty(res.data)) {
             wsCache.set('token', res.data.token)
             wsCache.set('role', customer.value)
-            router.push({ name: 'Enterprise' })
+            router.push({ name: customer.value === '1' ? 'Enterprise' : 'Person' })
         }
     } catch (err) {
         return false

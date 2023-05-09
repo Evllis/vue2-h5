@@ -218,7 +218,7 @@ const rules = reactive({
 })
 
 const onClickLeft = () => {
-    router.push({ name: 'Enterprise' })
+    router.push({ name: 'Customer' })
 }
 
 const afterRead = async (file, details) => {
@@ -260,7 +260,7 @@ const onSubmit = async () => {
                     await submitEnterpriseOperator({
                         data: formData.data
                     })
-                    router.push({ name: !editAudit.value ? 'Operator' : 'Audit' })
+                    router.push({ name: !editAudit.value ? 'Enterprise' : 'Audit' })
                 } catch (err) {
                     return false
                 }
