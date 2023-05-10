@@ -30,7 +30,7 @@ export const digitInteger = number => /^\d{6}$/g.test(number)
 /**
  * 禁止输入表情符号、特殊符号, 字符限制: 4-50个字符
  */
-export const nonCharacter = val => /^(?!_)(?!.*?_$)[a-zA-Z0-9\u4e00-\u9fa5]+$/.test(val)
+export const nonCharacter = val => /^(?!_)(?!.*?_$)[a-zA-Z0-9\u4e00-\u9fa5]{4,50}$/.test(val)
 
 /**
  * 法人姓名
