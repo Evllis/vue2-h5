@@ -148,7 +148,7 @@ const onSubmit = async () => {
                     await submitEnterpriseUnicomInfo({
                         data
                     })
-                    router.push({ name: !editAudit.value ? 'Network' : 'Audit' })
+                    router.push({ name: 'Audit' })
                 } catch (err) {
                     return false
                 }
