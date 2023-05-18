@@ -1,6 +1,7 @@
 const path = require('path')
 const defaultSettings = require('./src/config/index.js')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
 
 const resolve = dir => path.join(__dirname, dir)
 // page title
@@ -94,6 +95,7 @@ module.exports = defineConfig({
     },
     configureWebpack: config => {
         config.name = name
+        config.plugins.push(new NodePolyfillPlugin())
 
         // 为生产环境修改配置...
         // if (IS_PROD) {

@@ -17,6 +17,24 @@ const service = axios.create({
     timeout: 5000 // request timeout
 })
 
+const getFail = res => {
+    if (res.returnCode && res.returnCode !== '1000') {
+        // 登录失效, 清除token, 跳转到登录页面
+        if (res.returnCode === '9997') {
+            wsCache.clear()
+            Toast.fail({
+                message: res.returnMsg,
+                onClose: () => {
+                    router.push({ name: 'Login' })
+                }
+            })
+        } else {
+            Toast.fail(res.returnMsg)
+            throw new Error()
+        }
+    }
+}
+
 // request拦截器 request interceptor
 service.interceptors.request.use(
     config => {
@@ -62,32 +80,34 @@ service.interceptors.response.use(
         // } else {
         //     return Promise.resolve(res)
         // }
-        if (res.returnCode && res.returnCode !== '1000') {
-            // 登录失效, 清除token, 跳转到登录页面
-            if (res.returnCode === '9997') {
-                wsCache.clear()
-                Toast.fail({
-                    message: res.returnMsg,
-                    onClose: () => {
-                        router.push({ name: 'Login' })
-                    }
-                })
-            } else {
-                Toast.fail(res.returnMsg)
-                throw new Error()
-            }
-        } else {
-            // 不传递默认开启loading
-            // if (!response.config.hideloading) {
-            //     Toast.success(res.returnMsg)
-            // }
-        }
+        // if (res.returnCode && res.returnCode !== '1000') {
+        //     // 登录失效, 清除token, 跳转到登录页面
+        //     if (res.returnCode === '9997') {
+        //         wsCache.clear()
+        //         Toast.fail({
+        //             message: res.returnMsg,
+        //             onClose: () => {
+        //                 router.push({ name: 'Login' })
+        //             }
+        //         })
+        //     } else {
+        //         Toast.fail(res.returnMsg)
+        //         throw new Error()
+        //     }
+        // } else {
+        //     // 不传递默认开启loading
+        //     // if (!response.config.hideloading) {
+        //     //     Toast.success(res.returnMsg)
+        //     // }
+        // }
+        getFail(res)
         return Promise.resolve(res)
     },
     error => {
         done()
         Toast.clear()
         const data = error?.response?.data
+        getFail(data)
         Toast.fail(data.returnMsg || error.message)
         return Promise.reject(data || error)
     }

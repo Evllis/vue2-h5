@@ -116,6 +116,7 @@ import { isEmpty, isArray } from 'lodash-es'
 import router from '@/router'
 import { useCache } from '@/hooks/useCache'
 import { formatterGtZeroInteger } from '@/utils'
+import * as imageConversion from 'image-conversion'
 
 import { uploadFile } from '@/api/common'
 import { submitEnterpriseSocialSecurity, findEnterpriseSocialSecurity } from '@/api/customer'
@@ -179,6 +180,21 @@ const previewExample = () => {
     ImagePreview([example])
 }
 
+const imageCompress = async file => {
+    const { lastModified, lastModifiedDate, name, type, webkitRelativePath } = file
+    const res = await imageConversion.compress(file, 0.4)
+    const newFile = new File([res], name, {
+        lastModified,
+        lastModifiedDate,
+        type,
+        size: res.size,
+        webkitRelativePath
+    })
+    return new Promise(reject => {
+        reject(newFile)
+    })
+}
+
 const updateUploadItem = (arr, status = 'uploading', text = '上传中...') => {
     if (isArray(arr)) {
         arr.forEach(item => {
@@ -196,11 +212,13 @@ const afterRead = async (file, details) => {
     const data = new FormData()
     if (isArray(file)) {
         const arr = file.map(item => item.file)
-        arr.forEach(item => {
-            data.append('file', item)
-        })
+        for (const item of arr) {
+            const fileData = await imageCompress(item)
+            data.append('file', fileData)
+        }
     } else {
-        data.append('file', file.file)
+        const fileData = await imageCompress(file.file)
+        data.append('file', fileData)
     }
     const res = await uploadFile({
         headers: {

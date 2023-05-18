@@ -1,6 +1,6 @@
 <template>
     <div class="audit-page">
-        <NavBar :title="auditParams.title" />
+        <NavBar :title="auditParams.title" :left-arrow="false" :style="{ paddingLeft: '15px' }" />
         <div class="body-container audit-page__body">
             <div
                 v-if="+auditStatus === 2 || +auditStatus === 5"
@@ -17,9 +17,9 @@
                     <VanButton block type="info" native-type="button" class="submit-button">完成</VanButton>
                 </div>
             </div>
-            <div v-if="+auditStatus === 3">
+            <!-- <div v-if="+auditStatus === 3">
                 <Preview :isSubmit="true" />
-            </div>
+            </div> -->
             <div
                 v-if="+auditStatus === 4"
                 class="form-wrap !p-0"
@@ -69,7 +69,7 @@ import { isEmpty } from 'lodash-es'
 import { stepMap } from '@/store/config'
 import router from '@/router'
 
-import Preview from '@/components/Preview'
+// import Preview from '@/components/Preview'
 
 import { queryAudit } from '@/api/audit'
 
@@ -98,7 +98,7 @@ const auditParams = computed(() => {
         }
     } else if (+auditStatus.value === 3) {
         return {
-            title: '协议'
+            title: '签署协议'
         }
     }
     return {
@@ -127,7 +127,13 @@ onMounted(async () => {
                 // res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
                 auditStatus.value = res.data.auditStatus
                 if (+auditStatus.value === 3) {
-                    router.push({ name: 'Confirm' })
+                    wsCache.set('pdfurl', res.data.contractUrl || '')
+                    router.push({
+                        name: 'Sign',
+                        params: {
+                            url: res.data.contractUrl
+                        }
+                    })
                     return false
                 }
                 auditExpireTime.value = res.data.auditExpireTime
@@ -162,9 +168,6 @@ onMounted(async () => {
 <style lang="scss" scoped>
 @import '../../assets/css/mixin.scss';
 .audit-page {
-    :deep(.van-nav-bar__content) {
-        padding-left: 30px;
-    }
     &__body {
         :deep(.van-image__img) {
             width: 107px;

@@ -131,6 +131,7 @@ const onConfirm = (columns, indexs) => {
     formData.data.unicomProvince = `${selectAreaData.value[0].name} / ${selectAreaData.value[1].name}`
     showPicker.value = false
 }
+
 const onSubmit = async () => {
     const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
@@ -138,7 +139,8 @@ const onSubmit = async () => {
             enterpriseId,
             unicomProvinceCode: selectAreaData.value[0].code,
             unicomCity: selectAreaData.value[1].name,
-            unicomCityCode: selectAreaData.value[1].code
+            unicomCityCode: selectAreaData.value[1].code,
+            type: editAudit.value ? '2' : '1'
         })
         data['unicomProvince'] = selectAreaData.value[0].name
         formRef.value

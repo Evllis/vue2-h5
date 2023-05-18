@@ -167,6 +167,7 @@ import { nonCharacter, isName, isIdCard, isPhone } from '@/utils/validate'
 import { isEmpty } from 'lodash-es'
 import router from '@/router'
 import { useCache } from '@/hooks/useCache'
+import * as imageConversion from 'image-conversion'
 
 import { submitEnterpriseInfo, findEnterpriseInfo } from '@/api/customer'
 import { uploadFile, queryLicenseNum } from '@/api/common'
@@ -307,24 +308,34 @@ const onClickLeft = () => {
     router.push({ name: 'Customer' })
 }
 
-const afterRead = async (file, details) => {
+const afterRead = (file, details) => {
     file.status = 'uploading'
     file.message = '上传中...'
     try {
-        const res = await uploadFile({
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            },
-            data: {
-                file: file.file
-            },
-            hideloading: true
+        const { lastModified, lastModifiedDate, name, type, webkitRelativePath } = file.file
+        imageConversion.compress(file.file, 0.4).then(async resData => {
+            const newFile = new File([resData], name, {
+                lastModified,
+                lastModifiedDate,
+                type,
+                size: resData.size,
+                webkitRelativePath
+            })
+            const res = await uploadFile({
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                data: {
+                    file: newFile
+                },
+                hideloading: true
+            })
+            if (!isEmpty(res.data)) {
+                file.status = 'done'
+                file.message = '上传完成'
+                formData.data[details.name] = res.data[0]
+            }
         })
-        if (!isEmpty(res.data)) {
-            file.status = 'done'
-            file.message = '上传完成'
-            formData.data[details.name] = res.data[0]
-        }
     } catch (err) {
         file.status = 'failed'
         file.message = '上传失败'

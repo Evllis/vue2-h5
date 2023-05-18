@@ -41,6 +41,9 @@ const api = {
     Audit: {
         queryAudit: `${apiPrefix}/commercialEnterprise/queryAudit`
     },
+    Sign: {
+        signContract: `${apiPrefix}/commercialEnterprise/signContract`
+    },
     Common: {
         uploadFile: `${apiPrefix}/file/uploadFile`,
         regionInfo: `${apiPrefix}/region/regionInfo`,
