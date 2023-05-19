@@ -92,6 +92,12 @@ const onSubmit = async () => {
         .catch(() => {})
 }
 
+const filterProtocol = () => {
+    const protocol = location.protocol
+    if (!protocol || protocol.indexOf('http') === -1) return 'https:'
+    return protocol
+}
+
 onMounted(() => {
     pdfurl.value = wsCache.get('pdfurl')
     isSign.value = !!router.currentRoute.params.isSign
@@ -102,7 +108,7 @@ onMounted(() => {
         // pdfurl.value = `${location.origin}/api/${pdfurl.value.split('https://www.techwis.cn/')[1]}`
         // const url = 'https://soft.xiaoz.org/office/hee%20hee.pdf'
         new Pdfh5('#preview-pdf', {
-            pdfurl: `${location.protocol || 'https:'}//${pdfurl.value}`,
+            pdfurl: `${filterProtocol()}//${pdfurl.value}`,
             lazy: true,
             cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.2.228/cmaps/',
             cMapPacked: true
