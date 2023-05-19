@@ -97,7 +97,7 @@ onMounted(() => {
     isSign.value = !!router.currentRoute.params.isSign
     if (pdfurl.value) {
         setTimeout(() => countdownRef.value.start(), 1000)
-        // 如果是开发的时候，则打开下面的处理，使用代理访问，否则会出现跨域
+        // 如果是本地开发的时候，则打开下面的处理，使用代理访问，否则会出现跨域
         // 线上的话，要注释掉下面的处理
         // pdfurl.value = `${location.origin}/api/${pdfurl.value.split('https://www.techwis.cn/')[1]}`
         // const url = 'https://soft.xiaoz.org/office/hee%20hee.pdf'
