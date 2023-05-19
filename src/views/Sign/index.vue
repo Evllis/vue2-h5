@@ -102,7 +102,7 @@ onMounted(() => {
         // pdfurl.value = `${location.origin}/api/${pdfurl.value.split('https://www.techwis.cn/')[1]}`
         // const url = 'https://soft.xiaoz.org/office/hee%20hee.pdf'
         new Pdfh5('#preview-pdf', {
-            pdfurl: `${location.protocol || 'https:'}//pdfurl.value`,
+            pdfurl: `${location.protocol || 'https:'}//${pdfurl.value}`,
             lazy: true,
             cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.2.228/cmaps/',
             cMapPacked: true
