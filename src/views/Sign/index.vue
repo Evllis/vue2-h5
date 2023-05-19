@@ -94,6 +94,7 @@ const onSubmit = async () => {
 
 onMounted(() => {
     pdfurl.value = wsCache.get('pdfurl')
+    isSign.value = !!router.currentRoute.params.isSign
     if (pdfurl.value) {
         setTimeout(() => countdownRef.value.start(), 1000)
         pdfurl.value = `${location.origin}/api/${pdfurl.value.split('https://www.techwis.cn/')[1]}`

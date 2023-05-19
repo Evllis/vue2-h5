@@ -52,7 +52,7 @@
                     </ul>
                 </div>
                 <div class="flex submit-footer">
-                    <VanButton block type="info" native-type="button" class="submit-button !m-0" to="/preview/home"
+                    <VanButton block type="info" native-type="button" class="submit-button !m-0" @click="submitData"
                         >全部提交</VanButton
                     >
                 </div>
@@ -71,7 +71,7 @@ import router from '@/router'
 
 // import Preview from '@/components/Preview'
 
-import { queryAudit } from '@/api/audit'
+import { queryAudit, auditStatusFourSubmit } from '@/api/audit'
 
 import auditIng from '@/assets/img/audit-ing.png'
 import auditFail from '@/assets/img/audit-fail.png'
@@ -81,7 +81,7 @@ const instance = getCurrentInstance()
 const { $toast, $store } = instance.proxy
 
 const auditExpireTime = ref('')
-const auditStatus = ref(2)
+const auditStatus = ref(0)
 const enterpriseId = ref('')
 const auditList = ref([])
 // const auditMsg = ref('')
@@ -110,6 +110,25 @@ const auditParams = computed(() => {
 const modifyAudit = async item => {
     await $store.dispatch('setEditAudit', true)
     router.push({ name: stepMap.value[item.step] })
+}
+
+const submitData = async () => {
+    try {
+        await auditStatusFourSubmit({
+            data: {
+                enterpriseId: enterpriseId.value
+            }
+        })
+        $toast.fail({
+            message: '提交成功',
+            onClose: () => {
+                auditStatus.value = 2
+            }
+        })
+    } catch (err) {
+        $toast.fail('提交失败，请重试')
+        return false
+    }
 }
 
 onMounted(async () => {

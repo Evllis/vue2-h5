@@ -10,3 +10,12 @@ export const queryAudit = d => {
         ...d
     })
 }
+
+// 审核驳回状态下页面提交接口
+export const auditStatusFourSubmit = d => {
+    return request({
+        url: api.Audit.auditStatusFourSubmit,
+        method: 'post',
+        ...d
+    })
+}

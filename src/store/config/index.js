@@ -10,5 +10,6 @@ export const stepMap = ref({
     6: 'Procurement',
     7: 'Receipt',
     8: 'Preview',
-    9: 'Audit'
+    9: 'Audit',
+    10: 'Sign'
 })

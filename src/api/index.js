@@ -39,7 +39,8 @@ const api = {
         enterpriseContractPreview: `${apiPrefix}/commercialEnterprise/enterpriseContractPreview`
     },
     Audit: {
-        queryAudit: `${apiPrefix}/commercialEnterprise/queryAudit`
+        queryAudit: `${apiPrefix}/commercialEnterprise/queryAudit`,
+        auditStatusFourSubmit: `${apiPrefix}/commercialEnterprise/auditStatusFourSubmit`
     },
     Sign: {
         signContract: `${apiPrefix}/commercialEnterprise/signContract`
