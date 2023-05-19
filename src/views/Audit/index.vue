@@ -29,12 +29,12 @@
                     <ul class="package-list">
                         <li v-for="item in auditList" :key="item.step" class="package-item">
                             <div class="flex items-center package-body">
-                                <div class="flex-1 flex flex-col package-wrap">
+                                <div class="flex-1 flex flex-col package-wrap !mr-10px">
                                     <div class="flex package-info text-[var(--secondary-color)]">
                                         <span>{{ item.title }}</span>
                                     </div>
                                     <div>
-                                        <span>{{ item.msg }}</span>
+                                        <span class="!m-0 !leading-2.4">{{ item.msg }}</span>
                                     </div>
                                 </div>
                                 <div class="package-opts">
