@@ -10,7 +10,8 @@ const plugins = [
             style: true
         },
         'vant'
-    ]
+    ],
+    ['@babel/plugin-proposal-private-methods']
 ]
 // 去除 console.log
 if (IS_PROD) {

@@ -184,5 +184,6 @@ module.exports = defineConfig({
     },
     pluginOptions: {
         windicss: {}
-    }
+    },
+    transpileDependencies: ['pdfjs-dist']
 })
