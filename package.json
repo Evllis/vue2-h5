@@ -5,7 +5,7 @@
   "description": "A vue h5 template with Vant UI",
   "author": "Alliestrasza <evllis.jolia@gmail.com>",
   "scripts": {
-    "serve": "vue-cli-service serve --mode development",
+    "serve": "vue-cli-service serve --mode staging",
     "build:prod": "vue-cli-service build --mode production",
     "build:dev": "vue-cli-service build --mode development",
     "lint": "vue-cli-service lint",

@@ -3,7 +3,7 @@
 //     UserInfo: '/user/userinfo',
 //     UserName: '/user/name'
 // }
-const isDev = process.env.VUE_APP_ENV === 'development'
+const isDev = process.env.VUE_APP_ENV === 'staging'
 const apiPrefix = `${isDev ? '/api' : ''}/commercial-enterprise-service`
 const api = {
     Login: {

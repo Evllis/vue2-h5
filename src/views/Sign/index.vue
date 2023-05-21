@@ -74,7 +74,7 @@ const { wsCache } = useCache()
 const instance = getCurrentInstance()
 const { $toast } = instance.proxy
 
-const IS_PROD = ['production', 'prod'].includes(process.env.VUE_APP_ENV)
+const IS_STAGING = process.env.VUE_APP_ENV === 'staging'
 const title = ref('签署协议')
 const formRef = ref()
 const countdownRef = ref()
@@ -160,6 +160,15 @@ const onSubmit = async () => {
         .catch(() => {})
 }
 
+const filterProtocol = url => {
+    if (url.indexOf('http') === -1) {
+        const name = url.split(`${location.origin}/`)[1]
+        const str = `${location.origin}/api/${name}`
+        return str
+    }
+    return url
+}
+
 onMounted(() => {
     document.querySelector('html').classList.add('overflow-hidden')
     let url = wsCache.get('pdfurl')
@@ -168,8 +177,10 @@ onMounted(() => {
         setTimeout(() => countdownRef.value.start(), 1000)
         // 如果是本地开发的时候，则打开下面的处理，使用代理访问，否则会出现跨域
         // 线上的话，要注释掉下面的处理
-        if (!IS_PROD) {
+        if (IS_STAGING) {
             url = `${location.origin}/api/${url.split('www.techwis.cn/')[1]}`
+        } else {
+            url = filterProtocol(url)
         }
         pdfdata.value = pdf.createLoadingTask({
             url,
