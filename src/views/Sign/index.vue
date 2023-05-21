@@ -101,8 +101,6 @@ const focusSmall = () => {
     }
 }
 
-const loadTimer = ref(0)
-const loadingTimer = ref(0)
 const getElement = (parent, children) => {
     let timer = 0
     return new Promise(reject => {
