@@ -76,6 +76,7 @@ const { $toast } = instance.proxy
 
 const IS_STAGING = process.env.VUE_APP_ENV === 'staging'
 const title = ref('签署协议')
+console.log(6666, process.env.VUE_APP_ENV)
 const formRef = ref()
 const countdownRef = ref()
 const isSign = ref(false)
@@ -162,9 +163,7 @@ const onSubmit = async () => {
 
 const filterProtocol = url => {
     if (url.indexOf('http') === -1) {
-        const name = url.split(`${location.origin}/`)[1]
-        const str = `${location.origin}/api/${name}`
-        return str
+        return `https://${url}`
     }
     return url
 }
