@@ -40,7 +40,7 @@
                                 :auto-start="false"
                                 format="ss"
                                 ref="countdownRef"
-                                @finish="countDownFinish"
+                                @change="countDownChange"
                             >
                                 <template #default="timeData">
                                     <span>({{ timeData.seconds }}s)</span>
@@ -127,8 +127,11 @@ const handle_pdf_link = params => {
     page.scrollIntoView()
 }
 
-const countDownFinish = () => {
-    countShow.value = false
+const countDownChange = val => {
+    if (val.seconds <= 0) {
+        countShow.value = false
+        countdownRef.value.pause()
+    }
 }
 
 const onSubmit = async () => {
