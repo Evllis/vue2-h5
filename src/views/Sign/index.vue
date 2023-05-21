@@ -76,7 +76,6 @@ const { $toast } = instance.proxy
 
 const IS_STAGING = process.env.VUE_APP_ENV === 'staging'
 const title = ref('签署协议')
-console.log(6666, process.env.VUE_APP_ENV)
 const formRef = ref()
 const countdownRef = ref()
 const isSign = ref(false)
