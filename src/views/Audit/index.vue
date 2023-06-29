@@ -13,6 +13,9 @@
                     <VanButton block type="info" native-type="button" class="submit-button">确定</VanButton>
                 </div>
                 <div v-if="+auditStatus === 5" class="flex flex-col items-center justify-center w-4/5">
+                    <p>业务申请已通过，请联系您的大客户经理确认协议内容</p>
+                </div>
+                <div v-if="+auditStatus === 3" class="flex flex-col items-center justify-center w-4/5">
                     <p>您司不符合准入标准，{{ auditExpireTime }}可再次提交审核</p>
                     <VanButton block type="info" native-type="button" class="submit-button">完成</VanButton>
                 </div>
@@ -74,6 +77,7 @@ import router from '@/router'
 import { queryAudit, auditStatusFourSubmit } from '@/api/audit'
 
 import auditIng from '@/assets/img/audit-ing.png'
+import auditSucc from '@/assets/img/audit-success.png'
 import auditFail from '@/assets/img/audit-fail.png'
 
 const { wsCache } = useCache()
@@ -84,6 +88,7 @@ const auditExpireTime = ref('')
 const auditStatus = ref(0)
 const enterpriseId = ref('')
 const auditList = ref([])
+const contractUrl = ref('')
 // const auditMsg = ref('')
 
 const auditParams = computed(() => {
@@ -92,13 +97,20 @@ const auditParams = computed(() => {
             img: auditIng,
             title: '审核中'
         }
-    } else if (+auditStatus.value === 4) {
-        return {
-            title: '完善信息'
-        }
     } else if (+auditStatus.value === 3) {
         return {
-            title: '签署协议'
+            img: auditIng,
+            title: '审核驳回'
+        }
+    } else if (+auditStatus.value === 4) {
+        return {
+            img: auditIng,
+            title: '完善信息'
+        }
+    } else if (+auditStatus.value === 5) {
+        return {
+            img: auditSucc,
+            title: '审核通过'
         }
     }
     return {
@@ -131,31 +143,34 @@ const submitData = async () => {
     }
 }
 
+// const closeAudit = () => {
+//     wsCache.set('pdfurl', contractUrl.value || '')
+//     router.push({
+//         name: 'Sign'
+//     })
+// }
+
 onMounted(async () => {
     // auditStatus.value = router?.history?.current?.query?.type
     enterpriseId.value = wsCache.get('enterpriseId')
-    if (enterpriseId.value) {
+    const token = wsCache.get('token') || ''
+    if (enterpriseId.value && token) {
         try {
             const res = await queryAudit({
+                headers: {
+                    Authorization: token
+                },
                 data: {
                     enterpriseId: enterpriseId.value
                 },
                 hideloading: true
             })
             if (!isEmpty(res)) {
-                // res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
+                // 旧 - res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
+                // 新 - 审核状态：1-未提交 2-资质审核中 3-资质驳回 4-资质拒绝 5-协议待上传 6-协议待签署 7-协议已签署 8-协议驳回
                 auditStatus.value = res.data.auditStatus
-                if (+auditStatus.value === 3) {
-                    wsCache.set('pdfurl', res.data.contractUrl || '')
-                    router.push({
-                        name: 'Sign',
-                        params: {
-                            url: res.data.contractUrl
-                        }
-                    })
-                    return false
-                }
-                auditExpireTime.value = res.data.auditExpireTime
+                // 审核失效时间 auditStatus = 4 时存在
+                auditExpireTime.value = res.data.auditExpireTime || ''
                 // if (+res.data.auditStatus === 2) {
                 //     auditMsg.value = '您的授信审核已提交，预计T+1审核完成'
                 // } else if (+res.data.auditStatus === 3) {
@@ -166,8 +181,17 @@ onMounted(async () => {
                 // } else if (+res.data.auditStatus === 5) {
                 //     auditMsg.value = '您司不符合准入标准，xxxx年xx月xx日可再次提交审核'
                 // }
-                if (+auditStatus.value === 4) {
+                // 审核驳回信息列表 auditStatus = 3 时存在
+                if (+auditStatus.value === 3) {
                     auditList.value = res.data.auditList.map(item => item)
+                }
+                // 已填充好，准备签章pdf协议地址 auditStatus = 6和7 时存在
+                if (+auditStatus.value === 6 || +auditStatus.value === 7) {
+                    contractUrl.value = res.data.contractUrl
+                    wsCache.set('pdfurl', contractUrl.value || '')
+                    router.push({
+                        name: 'Sign'
+                    })
                 }
             }
         } catch (err) {

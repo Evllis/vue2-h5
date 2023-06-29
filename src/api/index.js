@@ -43,7 +43,9 @@ const api = {
         auditStatusFourSubmit: `${apiPrefix}/commercialEnterprise/auditStatusFourSubmit`
     },
     Sign: {
-        signContract: `${apiPrefix}/commercialEnterprise/signContract`
+        signContract: `${apiPrefix}/commercialEnterprise/signContract`,
+        getRealName: `${apiPrefix}/commercialEnterprise/getRealname`,
+        realNameAuth: `${apiPrefix}/commercialEnterprise/realnameAuth`
     },
     Common: {
         uploadFile: `${apiPrefix}/file/uploadFile`,

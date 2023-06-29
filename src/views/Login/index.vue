@@ -173,13 +173,7 @@ const onSubmit = async () => {
                 wsCache.set('phone', res.data.phone)
             }
             router.push({
-                name: routerName,
-                params:
-                    routerName === 'Sign'
-                        ? {
-                              isSign: true
-                          }
-                        : ''
+                name: routerName
             })
         }
     } catch (err) {
