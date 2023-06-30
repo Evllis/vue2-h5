@@ -28,3 +28,12 @@ export const realNameAuth = d => {
         ...d
     })
 }
+
+// 实名认证重新下发短信验证码
+export const realNameSendMsg = d => {
+    return request({
+        url: api.Sign.realNameSendMsg,
+        method: 'post',
+        ...d
+    })
+}

@@ -6,12 +6,18 @@
                 <Loading />
             </div>
             <Form v-if="!isSign">
-                <div class="flex items-center flex-col buttons">
+                <div class="flex items-center flex-col buttons" v-if="isSignSuccess">
                     <Button plain type="primary" native-type="button" @click="focusBig" class="mb-10px">
                         <Icon name="plus" />
+                        <span class="span-text block">放大</span>
                     </Button>
-                    <Button plain type="primary" native-type="button" @click="focusSmall">
+                    <Button plain type="primary" native-type="button" @click="focusSmall" class="mb-10px">
                         <Icon name="minus" />
+                        <span class="span-text block">缩小</span>
+                    </Button>
+                    <Button plain type="primary" native-type="button" class="save-pdf" @click="savePdf">
+                        <VanImage :src="savePdfIcon" class="w-20px h-20px" />
+                        <span class="span-text block">保存协议</span>
                     </Button>
                 </div>
                 <div class="form-wrap pt-25px">
@@ -30,7 +36,7 @@
                         />
                     </div>
                 </div>
-                <div class="submit-footer">
+                <div class="submit-footer" v-if="!isSignSuccess">
                     <VanButton block type="info" native-type="button" class="submit-button" @click="userSign"
                         >确定</VanButton
                     >
@@ -53,9 +59,21 @@
                     </VanButton> -->
                 </div>
             </Form>
-            <div v-else class="flex flex-ai flex-col items-center sing-success mt-1/3">
+            <!-- <div v-else class="flex flex-ai flex-col items-center sing-success mt-1/3">
                 <VanImage :src="auditSuccess" class="mb-24px" />
                 <p class="text-center">合同已签署成功，请线下联系您的客户经理完成业务受理</p>
+            </div> -->
+            <div v-if="signReject" class="flex flex-ai flex-col items-center sing-success mt-1/3">
+                <VanImage :src="auditFail" class="mb-24px" />
+                <p class="text-center">内容审核有误，请联系您的大客户经理确认协议内容</p>
+                <VanButton
+                    block
+                    type="info"
+                    native-type="button"
+                    class="submit-button w-170px mt-24px"
+                    @click="refreshSign"
+                    >刷新</VanButton
+                >
             </div>
         </div>
         <Popup v-model="show" closeable round get-container="#app" @opened="getRealNameAccess">
@@ -112,13 +130,16 @@ import { NavBar, Form, Field, Image as VanImage, Button, Icon, Loading, Popup } 
 import pdf from 'pdfvuer'
 import 'pdfjs-dist/build/pdf.worker.entry' // not needed since v1.9.1
 import router from '@/router'
+import axios from 'axios'
 import { isPhone, digitInteger } from '@/utils/validate'
 
-// import { signContract } from '@/api/sign'
-import { getRealName, realNameAuth } from '@/api/sign'
+import { getRealName, realNameAuth, realNameSendMsg, signContract } from '@/api/sign'
+import { queryAudit } from '@/api/audit'
 
 import { useCache } from '@/hooks/useCache'
-import auditSuccess from '@/assets/img/audit-success.png'
+// import auditSuccess from '@/assets/img/audit-success.png'
+import auditFail from '@/assets/img/audit-fail.png'
+import savePdfIcon from '@/assets/icon/save-pdf-icon.png'
 import { isEmpty } from 'lodash-es'
 
 const { wsCache } = useCache()
@@ -168,6 +189,11 @@ const corporate = reactive({
     }
 })
 
+const auditStatus = ref(0)
+const auditExpireTime = ref('')
+const auditList = ref([])
+const contractUrl = ref('')
+
 // const countdown = ref(5000)
 // const countShow = ref(true)
 const show = ref(false)
@@ -175,29 +201,55 @@ const show = ref(false)
 const pdfdata = ref(undefined)
 const numPages = ref(0)
 const scale = ref(1)
+const codeTimer = ref(0)
+const codeTime = ref(60)
+const sendButtonDisabled = ref(false)
+const isSignSuccess = ref(false)
+const signReject = ref(false)
+const pdfUrl = ref('')
 
 // 获取手机验证码
 const getCode = () => {
+    if (sendButtonDisabled.value) return false
     formRef.value
         .validate('phone')
         .then(async () => {
-            console.log(1111111, corporate.data.corporatePhone)
             const token = wsCache.get('token') || ''
             if (token) {
-                const res = await realNameAuth({
-                    headers: {
-                        Authorization: token
-                    },
-                    data: {
-                        corporateName: formData.value.corporateName,
-                        corporateId: formData.value.corporateId,
-                        corporatePhone: corporate.data.corporatePhone
-                    }
-                })
-                if (!isEmpty(res)) {
+                let res = null
+                if (!flowId.value) {
+                    res = await realNameAuth({
+                        headers: {
+                            Authorization: token
+                        },
+                        data: {
+                            corporateName: formData.value.corporateName,
+                            corporateId: formData.value.corporateId,
+                            corporatePhone: corporate.data.corporatePhone
+                        }
+                    })
+                } else {
+                    res = await realNameSendMsg({
+                        headers: {
+                            Authorization: token
+                        },
+                        data: {
+                            flowId: flowId.value
+                        }
+                    })
+                }
+                if (!isEmpty(res) && !flowId.value) {
                     flowId.value = res.data.flowId
                 }
-                console.log(22222, res)
+                if (+res.returnCode === 1000) {
+                    sendButtonDisabled.value = true
+                    isCodeSend.value = true
+                    phoneReadonly.value = true
+                    $toast.success('发送成功')
+                    renderMobileCode()
+                } else {
+                    $toast.fail(res.returnMsg || '发送失败')
+                }
             } else {
                 wsCache.clear()
                 $toast.fail({
@@ -207,15 +259,85 @@ const getCode = () => {
                     }
                 })
             }
-            // if (!isEmpty(res) && +res.returnCode === 1000) {
-            //     $toast.success('发送成功')
-            //     codeButton.data.disabled = true
-            //     renderMobileCode()
-            //     return false
-            // }
-            // res.returnMsg || $toast.fail(res.returnMsg)
         })
         .catch(() => {})
+}
+
+const refreshSign = async () => {
+    const token = wsCache.get('token') || ''
+    const enterpriseId = wsCache.get('enterpriseId') || ''
+    if (token && enterpriseId) {
+        const res = await queryAudit({
+            headers: {
+                Authorization: token
+            },
+            data: {
+                enterpriseId
+            },
+            hideloading: true
+        })
+        if (!isEmpty(res)) {
+            // 旧 - res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
+            // 新 - 审核状态：1-未提交 2-资质审核中 3-资质驳回 4-资质拒绝 5-协议待上传 6-协议待签署 7-协议已签署 8-协议驳回
+            wsCache.delete('isSignSuccess')
+            auditStatus.value = res.data.auditStatus
+            if (+auditStatus.value === 8) {
+                $toast.fail('协议未生成，请联系大客经理确认')
+                return false
+            }
+            // 审核失效时间 auditStatus = 4 时存在
+            auditExpireTime.value = res.data.auditExpireTime || ''
+            // if (+res.data.auditStatus === 2) {
+            //     auditMsg.value = '您的授信审核已提交，预计T+1审核完成'
+            // } else if (+res.data.auditStatus === 3) {
+            //     auditMsg.value = '审核通过'
+            // } else if (+res.data.auditStatus === 4) {
+            //     auditMsg.value = '审核驳回'
+            //     // setTimeout(() => router.push({ name: stepMap[res.data.auditList.step] }), 1500)
+            // } else if (+res.data.auditStatus === 5) {
+            //     auditMsg.value = '您司不符合准入标准，xxxx年xx月xx日可再次提交审核'
+            // }
+            // 审核驳回信息列表 auditStatus = 3 时存在
+            if (+auditStatus.value === 3) {
+                auditList.value = res.data.auditList.map(item => item)
+            }
+            // 已填充好，准备签章pdf协议地址 auditStatus = 6和7 时存在
+            if (+auditStatus.value === 6 || +auditStatus.value === 7) {
+                contractUrl.value = res.data.contractUrl
+                wsCache.set('pdfurl', contractUrl.value || '')
+                wsCache.set('isSignSuccess', +auditStatus.value === 7)
+                router.push({
+                    name: 'Sign'
+                })
+            }
+        }
+    } else {
+        $toast.fail({
+            message: '请重新登录',
+            onClose: () => {
+                router.push({ name: 'Login' })
+            }
+        })
+    }
+}
+
+const renderMobileCode = () => {
+    codeTimer.value = setTimeout(() => {
+        codeTime.value--
+        codeButton.data.text = `${codeTime.value}s后重新获取`
+        if (codeTime.value <= 0) {
+            clearTimeout(codeTimer.value)
+            codeButton.data = {
+                text: '获取验证码',
+                disabled: false
+            }
+            codeTime.value = 60
+            sendButtonDisabled.value = false
+            isCodeSend.value = false
+        } else {
+            renderMobileCode()
+        }
+    }, 1000)
 }
 
 const getRealNameAccess = async () => {
@@ -241,13 +363,11 @@ const getRealNameAccess = async () => {
                 corporatePhone: res.data.corporatePhone
             }
         }
-        console.log(111111, corporate.data)
     }
 }
 
 const userSign = () => {
     show.value = true
-    console.log(222222)
 }
 
 const focusBig = () => {
@@ -258,11 +378,34 @@ const focusBig = () => {
 }
 
 const modifyPhone = () => {
+    if (isCodeSend.value) return false
     phoneReadonly.value = false
-    console.log(555555, phoneInputRef.value)
     setTimeout(() => {
         phoneInputRef.value.focus()
     }, 100)
+}
+
+const savePdf = () => {
+    $toast.loading({
+        message: '下载中...',
+        forbidClick: true
+    })
+    axios(pdfUrl.value, {
+        //pdf的位置
+        responseType: 'blob' //重要代码
+    }).then(res => {
+        const customUrl = pdfUrl.value.split('/')
+        const name = customUrl[customUrl.length - 1].split('.')[0]
+        const url = window.URL.createObjectURL(new Blob([res.data]))
+        const link = document.createElement('a')
+        const fileName = `${name || 'download'}.pdf` //保存到本地的文件名称
+        link.href = url
+        link.setAttribute('download', fileName)
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        $toast.clear()
+    })
 }
 
 const focusSmall = () => {
@@ -309,28 +452,42 @@ const onSubmit = async () => {
     formRef.value
         .validate()
         .then(async () => {
-            console.log(11111111)
-            // const enterpriseId = wsCache.get('enterpriseId')
-            // if (!enterpriseId) {
-            //     $toast.fail({
-            //         message: '请重新登录',
-            //         onClose: () => {
-            //             router.push({ name: 'Login' })
-            //         }
-            //     })
-            //     return false
-            // }
-            // try {
-            //     await signContract({
-            //         data: {
-            //             enterpriseId
-            //         }
-            //     })
-            //     title.value = '签署成功'
-            //     isSign.value = true
-            // } catch (err) {
-            //     return false
-            // }
+            const enterpriseId = wsCache.get('enterpriseId')
+            const token = wsCache.get('token') || ''
+            if (!enterpriseId || !token) {
+                $toast.fail({
+                    message: '请重新登录',
+                    onClose: () => {
+                        router.push({ name: 'Login' })
+                    }
+                })
+                return false
+            }
+            try {
+                show.value = false
+                const res = await signContract({
+                    headers: {
+                        Authorization: token
+                    },
+                    data: {
+                        enterpriseId,
+                        flowId: flowId.value,
+                        authcode: code.value,
+                        phone: corporate.data.corporatePhone
+                    }
+                })
+                if (+res.returnCode === 1000) {
+                    $toast.success('签署成功')
+                    isSignSuccess.value = true
+                    renderPdf(res.data.contractUrl)
+                } else {
+                    $toast.fail(res.returnMsg || '签署失败')
+                }
+                // title.value = '签署成功'
+                // isSign.value = true
+            } catch (err) {
+                $toast.fail('签署失败')
+            }
         })
         .catch(() => {})
 }
@@ -342,28 +499,42 @@ const filterProtocol = url => {
     return url
 }
 
+const renderPdf = url => {
+    let pdfURL = ''
+    if (IS_STAGING) {
+        pdfURL = `${location.origin}/api/${url.split('www.techwis.cn/')[1]}`
+    } else {
+        pdfURL = filterProtocol(url)
+    }
+    pdfUrl.value = pdfURL
+    pdfdata.value = pdf.createLoadingTask({
+        url: pdfURL,
+        cMapPacked: true,
+        withCredentials: true,
+        cMapUrl: './pdf/cmaps/'
+    })
+    pdfdata.value.then(pdf => {
+        numPages.value = pdf.numPages
+        getLoadSuccess()
+    })
+}
+
 onMounted(() => {
     document.querySelector('html').classList.add('overflow-hidden')
     let url = wsCache.get('pdfurl')
+    const signReject1 = wsCache.get('signReject')
+    const isSignSuccess1 = wsCache.get('isSignSuccess')
     isSign.value = !!router.currentRoute.params.isSign
+    if (isSignSuccess1) {
+        isSignSuccess.value = true
+    }
+    if (signReject1) {
+        signReject.value = true
+        document.querySelector('html').classList.remove('overflow-hidden')
+        isSign.value = true
+    }
     if (url) {
-        // setTimeout(() => countdownRef.value.start(), 1000)
-        // 如果是本地开发的时候，则打开下面的处理，使用代理访问，否则会出现跨域
-        // 线上的话，要注释掉下面的处理
-        if (IS_STAGING) {
-            url = `${location.origin}/api/${url.split('www.techwis.cn/')[1]}`
-        } else {
-            url = filterProtocol(url)
-        }
-        pdfdata.value = pdf.createLoadingTask({
-            url,
-            cMapPacked: true,
-            cMapUrl: 'https://unpkg.com/pdfjs-dist@2.0.943/cmaps/'
-        })
-        pdfdata.value.then(pdf => {
-            numPages.value = pdf.numPages
-            getLoadSuccess()
-        })
+        renderPdf(url)
     }
 })
 </script>
@@ -391,17 +562,23 @@ html {
         bottom: 30%;
         z-index: 10;
         button {
-            width: 24px;
-            height: 24px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
-            background-color: #ececec;
-            color: #818181;
-            border-color: #ccc;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
             padding: 0;
-            font-size: 12px;
+            font-size: 10px;
+            border: 0;
             &::before,
             &::after {
                 border-radius: 100%;
+            }
+            i {
+                font-size: 22px;
+            }
+            .span-text {
+                transform: scale(0.8);
             }
         }
     }

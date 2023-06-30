@@ -166,6 +166,8 @@ onMounted(async () => {
                 hideloading: true
             })
             if (!isEmpty(res)) {
+                wsCache.delete('signReject')
+                wsCache.delete('isSignSuccess')
                 // 旧 - res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
                 // 新 - 审核状态：1-未提交 2-资质审核中 3-资质驳回 4-资质拒绝 5-协议待上传 6-协议待签署 7-协议已签署 8-协议驳回
                 auditStatus.value = res.data.auditStatus
@@ -189,6 +191,13 @@ onMounted(async () => {
                 if (+auditStatus.value === 6 || +auditStatus.value === 7) {
                     contractUrl.value = res.data.contractUrl
                     wsCache.set('pdfurl', contractUrl.value || '')
+                    wsCache.set('isSignSuccess', +auditStatus.value === 7)
+                    router.push({
+                        name: 'Sign'
+                    })
+                }
+                if (+auditStatus.value === 8) {
+                    wsCache.set('signReject', true)
                     router.push({
                         name: 'Sign'
                     })

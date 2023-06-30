@@ -45,7 +45,8 @@ const api = {
     Sign: {
         signContract: `${apiPrefix}/commercialEnterprise/signContract`,
         getRealName: `${apiPrefix}/commercialEnterprise/getRealname`,
-        realNameAuth: `${apiPrefix}/commercialEnterprise/realnameAuth`
+        realNameAuth: `${apiPrefix}/commercialEnterprise/realnameAuth`,
+        realNameSendMsg: `${apiPrefix}/commercialEnterprise/realnameSendMsg`
     },
     Common: {
         uploadFile: `${apiPrefix}/file/uploadFile`,
