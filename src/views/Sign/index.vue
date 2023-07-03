@@ -65,15 +65,15 @@
             </div> -->
             <div v-if="signReject" class="flex flex-ai flex-col items-center sing-success mt-1/3">
                 <VanImage :src="auditFail" class="mb-24px" />
-                <p class="text-center">内容审核有误，请联系您的大客户经理确认协议内容</p>
-                <VanButton
+                <p class="text-center">协议内容有误，请联系您的大客户经理确认协议内容</p>
+                <!-- <VanButton
                     block
                     type="info"
                     native-type="button"
                     class="submit-button w-170px mt-24px"
                     @click="refreshSign"
                     >刷新</VanButton
-                >
+                > -->
             </div>
         </div>
         <Popup v-model="show" closeable round get-container="#app" @opened="getRealNameAccess">
@@ -134,7 +134,7 @@ import axios from 'axios'
 import { isPhone, digitInteger } from '@/utils/validate'
 
 import { getRealName, realNameAuth, realNameSendMsg, signContract } from '@/api/sign'
-import { queryAudit } from '@/api/audit'
+// import { queryAudit } from '@/api/audit'
 
 import { useCache } from '@/hooks/useCache'
 // import auditSuccess from '@/assets/img/audit-success.png'
@@ -189,10 +189,10 @@ const corporate = reactive({
     }
 })
 
-const auditStatus = ref(0)
-const auditExpireTime = ref('')
-const auditList = ref([])
-const contractUrl = ref('')
+// const auditStatus = ref(0)
+// const auditExpireTime = ref('')
+// const auditList = ref([])
+// const contractUrl = ref('')
 
 // const countdown = ref(5000)
 // const countShow = ref(true)
@@ -263,63 +263,63 @@ const getCode = () => {
         .catch(() => {})
 }
 
-const refreshSign = async () => {
-    const token = wsCache.get('token') || ''
-    const enterpriseId = wsCache.get('enterpriseId') || ''
-    if (token && enterpriseId) {
-        const res = await queryAudit({
-            headers: {
-                Authorization: token
-            },
-            data: {
-                enterpriseId
-            },
-            hideloading: true
-        })
-        if (!isEmpty(res)) {
-            // 旧 - res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
-            // 新 - 审核状态：1-未提交 2-资质审核中 3-资质驳回 4-资质拒绝 5-协议待上传 6-协议待签署 7-协议已签署 8-协议驳回
-            wsCache.delete('isSignSuccess')
-            auditStatus.value = res.data.auditStatus
-            if (+auditStatus.value === 8) {
-                $toast.fail('协议未生成，请联系大客经理确认')
-                return false
-            }
-            // 审核失效时间 auditStatus = 4 时存在
-            auditExpireTime.value = res.data.auditExpireTime || ''
-            // if (+res.data.auditStatus === 2) {
-            //     auditMsg.value = '您的授信审核已提交，预计T+1审核完成'
-            // } else if (+res.data.auditStatus === 3) {
-            //     auditMsg.value = '审核通过'
-            // } else if (+res.data.auditStatus === 4) {
-            //     auditMsg.value = '审核驳回'
-            //     // setTimeout(() => router.push({ name: stepMap[res.data.auditList.step] }), 1500)
-            // } else if (+res.data.auditStatus === 5) {
-            //     auditMsg.value = '您司不符合准入标准，xxxx年xx月xx日可再次提交审核'
-            // }
-            // 审核驳回信息列表 auditStatus = 3 时存在
-            if (+auditStatus.value === 3) {
-                auditList.value = res.data.auditList.map(item => item)
-            }
-            // 已填充好，准备签章pdf协议地址 auditStatus = 6和7 时存在
-            if (+auditStatus.value === 6 || +auditStatus.value === 7) {
-                contractUrl.value = res.data.contractUrl
-                wsCache.set('pdfurl', contractUrl.value || '')
-                wsCache.set('isSignSuccess', +auditStatus.value === 7)
-                router.push({
-                    name: 'Sign'
-                })
-            }
-        }
-    } else {
-        $toast.fail({
-            message: '请重新登录',
-            onClose: () => {
-                router.push({ name: 'Login' })
-            }
-        })
-    }
-}
+// const refreshSign = async () => {
+//     const token = wsCache.get('token') || ''
+//     const enterpriseId = wsCache.get('enterpriseId') || ''
+//     if (token && enterpriseId) {
+//         const res = await queryAudit({
+//             headers: {
+//                 Authorization: token
+//             },
+//             data: {
+//                 enterpriseId
+//             },
+//             hideloading: true
+//         })
+//         if (!isEmpty(res)) {
+//             // 旧 - res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
+//             // 新 - 审核状态：1-未提交 2-资质审核中 3-资质驳回 4-资质拒绝 5-协议待上传 6-协议待签署 7-协议已签署 8-协议驳回
+//             wsCache.delete('isSignSuccess')
+//             auditStatus.value = res.data.auditStatus
+//             if (+auditStatus.value === 8) {
+//                 $toast.fail('协议未生成，请联系大客经理确认')
+//                 return false
+//             }
+//             // 审核失效时间 auditStatus = 4 时存在
+//             auditExpireTime.value = res.data.auditExpireTime || ''
+//             // if (+res.data.auditStatus === 2) {
+//             //     auditMsg.value = '您的授信审核已提交，预计T+1审核完成'
+//             // } else if (+res.data.auditStatus === 3) {
+//             //     auditMsg.value = '审核通过'
+//             // } else if (+res.data.auditStatus === 4) {
+//             //     auditMsg.value = '审核驳回'
+//             //     // setTimeout(() => router.push({ name: stepMap[res.data.auditList.step] }), 1500)
+//             // } else if (+res.data.auditStatus === 5) {
+//             //     auditMsg.value = '您司不符合准入标准，xxxx年xx月xx日可再次提交审核'
+//             // }
+//             // 审核驳回信息列表 auditStatus = 3 时存在
+//             if (+auditStatus.value === 3) {
+//                 auditList.value = res.data.auditList.map(item => item)
+//             }
+//             // 已填充好，准备签章pdf协议地址 auditStatus = 6和7 时存在
+//             if (+auditStatus.value === 6 || +auditStatus.value === 7) {
+//                 contractUrl.value = res.data.contractUrl
+//                 wsCache.set('pdfurl', contractUrl.value || '')
+//                 wsCache.set('isSignSuccess', +auditStatus.value === 7)
+//                 router.push({
+//                     name: 'Sign'
+//                 })
+//             }
+//         }
+//     } else {
+//         $toast.fail({
+//             message: '请重新登录',
+//             onClose: () => {
+//                 router.push({ name: 'Login' })
+//             }
+//         })
+//     }
+// }
 
 const renderMobileCode = () => {
     codeTimer.value = setTimeout(() => {

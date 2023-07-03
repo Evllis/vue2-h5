@@ -2,32 +2,25 @@
     <div class="audit-page">
         <NavBar :title="auditParams.title" :left-arrow="false" :style="{ paddingLeft: '15px' }" />
         <div class="body-container audit-page__body">
-            <div
-                v-if="+auditStatus === 2 || +auditStatus === 5"
-                class="flex flex-1 flex-col items-center justify-center -mt-16 audit-wrap"
-            >
+            <div v-if="+auditStatus !== 3" class="flex flex-1 flex-col items-center justify-center -mt-16 audit-wrap">
                 <VanImage :src="auditParams.img" />
                 <!-- <p>{{ auditMsg }}</p> -->
                 <div v-if="+auditStatus === 2" class="flex flex-col items-center justify-center w-4/5">
                     <p>您的业务申请已提交，预计T+1审核完成</p>
-                    <VanButton block type="info" native-type="button" class="submit-button">确定</VanButton>
+                    <!-- <VanButton block type="info" native-type="button" class="submit-button">确定</VanButton> -->
                 </div>
                 <div v-if="+auditStatus === 5" class="flex flex-col items-center justify-center w-4/5">
-                    <p>业务申请已通过，请联系您的大客户经理确认协议内容</p>
+                    <p>业务申请已通过，请联系您的大客经理确认协议内容</p>
                 </div>
-                <div v-if="+auditStatus === 3" class="flex flex-col items-center justify-center w-4/5">
+                <div v-if="+auditStatus === 4" class="flex flex-col items-center justify-center w-4/5">
                     <p>您司不符合准入标准，{{ auditExpireTime }}可再次提交审核</p>
-                    <VanButton block type="info" native-type="button" class="submit-button">完成</VanButton>
+                    <!-- <VanButton block type="info" native-type="button" class="submit-button">完成</VanButton> -->
                 </div>
             </div>
             <!-- <div v-if="+auditStatus === 3">
                 <Preview :isSubmit="true" />
             </div> -->
-            <div
-                v-if="+auditStatus === 4"
-                class="form-wrap !p-0"
-                :style="{ backgroundColor: '#F8F8F8', paddingTop: '20px' }"
-            >
+            <div v-else class="form-wrap !p-0" :style="{ backgroundColor: '#F8F8F8', paddingTop: '20px' }">
                 <div class="mt-0 !p-15px scroll-wrap">
                     <ul class="package-list">
                         <li v-for="item in auditList" :key="item.step" class="package-item">
@@ -104,8 +97,8 @@ const auditParams = computed(() => {
         }
     } else if (+auditStatus.value === 4) {
         return {
-            img: auditIng,
-            title: '完善信息'
+            img: auditFail,
+            title: '审核拒绝'
         }
     } else if (+auditStatus.value === 5) {
         return {
@@ -115,7 +108,7 @@ const auditParams = computed(() => {
     }
     return {
         img: auditFail,
-        title: '审核拒绝'
+        title: ''
     }
 })
 
