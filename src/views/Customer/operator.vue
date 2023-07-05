@@ -1,7 +1,7 @@
 <template>
     <div class="operator-page">
         <NavBar
-            title="企业门头/社保信息"
+            title="企业其它信息"
             :left-arrow="!editAudit"
             @click-left="backRouter"
             :style="{ paddingLeft: `${editAudit ? '15px' : ''}` }"
@@ -73,10 +73,13 @@
                         :formatter="formatterGtZeroInteger"
                         :rules="[{ required: true, message: '请填写社保缴纳人数' }]"
                     />
-                    <Field class="custom-wrap social-wrap" :rules="rules.socialSecurityUrls" name="socialSecurityUrls">
+                    <Field class="social-wrap mb-16px" :rules="rules.socialSecurityUrls" name="socialSecurityUrls">
                         <template #input>
                             <div class="upload-container w-full h-full">
-                                <h3>最近连续6个月内社保缴纳截图（3-6张）</h3>
+                                <h3 class="flex items-center justify-between">
+                                    最近连续6个月内社保缴纳截图（1-6张）
+                                    <span class="underline" @click="socialShow = true">查看示例</span>
+                                </h3>
                                 <Uploader
                                     v-model="socialSecurityUrls"
                                     :after-read="afterRead"
@@ -86,6 +89,17 @@
                                     multiple
                                     name="socialSecurityUrls"
                                 />
+                            </div>
+                        </template>
+                    </Field>
+                    <Field class="social-wrap">
+                        <template #input>
+                            <div class="upload-container w-full h-full">
+                                <h3 class="flex items-center justify-between">
+                                    纳税截图（非必填，1-6张）
+                                    <span class="underline" @click="payShow = true">查看示例</span>
+                                </h3>
+                                <Uploader :max-count="6" :upload-icon="addIcon" multiple />
                             </div>
                         </template>
                     </Field>
@@ -105,12 +119,62 @@
                     }}</VanButton>
                 </div>
             </Form>
+            <Popup
+                v-model="socialShow"
+                position="right"
+                :style="{ width: '100%', height: '100%' }"
+                get-container="#app"
+            >
+                <NavBar title="查看示例" left-arrow @click-left="socialShow = false" />
+                <div class="example-body">
+                    <p class="mark">社保截图要求：</p>
+                    <ul class="mb-24px">
+                        <li>*社保截图必须为真实电子原件，且内容清晰可辨、无遮挡</li>
+                        <li>
+                            *社保截图内容至少需包含<span class="font-bold underline"
+                                >单位信息、参保人员明细、查询日期、近半年缴存情况</span
+                            >等4大要素
+                        </li>
+                    </ul>
+                    <p class="mb-24px">备注：可在官方社保平台进行查询截图 (网址后缀为gov.cn)</p>
+                    <p class="mb-10px">示例图：</p>
+                    <VanImage :src="socialImage" lass="mb-10px" />
+                    <P>网址：【 江苏：http://rs.jshrss.jiangsu.gov.cn 】</P>
+                </div>
+            </Popup>
+            <Popup v-model="payShow" position="right" :style="{ width: '100%', height: '100%' }" get-container="#app">
+                <NavBar title="查看示例" left-arrow @click-left="payShow = false" />
+                <div class="example-body">
+                    <p class="mark">纳税截图要求：</p>
+                    <ul class="mb-24px">
+                        <li>*纳税截图必须为真实电子原件，且内容清晰可辨、无遮挡</li>
+                        <li>
+                            *纳税截图内容必须包含<span class="font-bold underline"
+                                >二维码、纳税人信息、纳税总额、税务章</span
+                            >等要素
+                        </li>
+                    </ul>
+                    <p class="mb-10px">示例图：</p>
+                    <VanImage :src="payImage" />
+                </div>
+            </Popup>
         </div>
     </div>
 </template>
 
 <script setup>
-import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem, ImagePreview } from 'vant'
+import {
+    NavBar,
+    Form,
+    Field,
+    Uploader,
+    Icon,
+    DropdownMenu,
+    DropdownItem,
+    ImagePreview,
+    Popup,
+    Image as VanImage
+} from 'vant'
 import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
 import { isEmpty, isArray } from 'lodash-es'
 import router from '@/router'
@@ -125,11 +189,15 @@ import cameraIcon from '@/assets/icon/camera-icon.png'
 import addIcon from '@/assets/icon/add-icon.png'
 import example from '@/assets/img/example.png'
 import inactiveIcon from '@/assets/icon/select-icon.png'
+import socialImage from '@/assets/img/social-image.png'
+import payImage from '@/assets/img/pay-image.png'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
 const { $toast, $store } = instance.proxy
 
+const socialShow = ref(false)
+const payShow = ref(false)
 const editAudit = ref(false)
 const formRef = ref()
 const doorHeadPhoto = ref([])
@@ -161,12 +229,12 @@ const rules = reactive({
     socialSecurityUrls: [
         {
             validator: () => {
-                if (!formData.data.socialSecurityUrls || formData.data.socialSecurityUrls.length < 3) {
+                if (!formData.data.socialSecurityUrls || formData.data.socialSecurityUrls.length < 1) {
                     return false
                 }
                 return true
             },
-            message: '社保缴纳截图至少上传3张'
+            message: '社保缴纳截图至少上传1张'
         }
     ]
 })
@@ -330,6 +398,14 @@ onMounted(async () => {
         &::after {
             display: none;
         }
+    }
+}
+.example-body {
+    padding: 64px 14px 14px 14px;
+    font-size: 13px;
+    line-height: 23px;
+    .mark {
+        color: #ff5f01;
     }
 }
 </style>

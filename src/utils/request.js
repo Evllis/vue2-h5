@@ -106,7 +106,7 @@ service.interceptors.response.use(
     error => {
         done()
         Toast.clear()
-        const data = error?.response?.data
+        const data = error.response.data
         getFail(data)
         Toast.fail(data.returnMsg || error.message)
         return Promise.reject(data || error)

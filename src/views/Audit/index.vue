@@ -144,7 +144,6 @@ const submitData = async () => {
 // }
 
 onMounted(async () => {
-    // auditStatus.value = router?.history?.current?.query?.type
     enterpriseId.value = wsCache.get('enterpriseId')
     const token = wsCache.get('token') || ''
     if (enterpriseId.value && token) {
@@ -183,7 +182,7 @@ onMounted(async () => {
                 // 已填充好，准备签章pdf协议地址 auditStatus = 6和7 时存在
                 if (+auditStatus.value === 6 || +auditStatus.value === 7) {
                     contractUrl.value = res.data.contractUrl
-                    wsCache.set('pdfurl', contractUrl.value || '')
+                    wsCache.set('pdfurl', encodeURIComponent(contractUrl.value) || '')
                     wsCache.set('isSignSuccess', +auditStatus.value === 7)
                     router.push({
                         name: 'Sign'

@@ -1,4 +1,4 @@
-import api from './index'
+import api from '@/api/index'
 // axios
 import request from '@/utils/request'
 

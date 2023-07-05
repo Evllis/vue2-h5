@@ -21,7 +21,11 @@
                     </Button>
                 </div>
                 <div class="form-wrap pt-25px">
-                    <div id="preview-pdf" :style="{ transform: `scale(${scale})`, 'transform-origin': 'left top' }">
+                    <div
+                        v-if="isRender"
+                        id="preview-pdf"
+                        :style="{ transform: `scale(${scale})`, 'transform-origin': 'left top' }"
+                    >
                         <pdf
                             :src="pdfdata"
                             v-for="i in numPages"
@@ -36,47 +40,25 @@
                         />
                     </div>
                 </div>
-                <div class="submit-footer" v-if="!isSignSuccess">
+                <div v-if="!isSignSuccess" class="submit-footer">
                     <VanButton block type="info" native-type="button" class="submit-button" @click="userSign"
                         >确定</VanButton
                     >
-                    <!-- <VanButton block type="info" native-type="submit" class="submit-button" :disabled="countShow">
-                        <div class="flex flex-ai">
-                            <span class="mr-6px">签署协议</span>
-                            <CountDown
-                                v-if="countShow"
-                                :time="countdown"
-                                :auto-start="false"
-                                format="ss"
-                                ref="countdownRef"
-                                @change="countDownChange"
-                            >
-                                <template #default="timeData">
-                                    <span>({{ timeData.seconds }}s)</span>
-                                </template>
-                            </CountDown>
-                        </div>
-                    </VanButton> -->
                 </div>
             </Form>
-            <!-- <div v-else class="flex flex-ai flex-col items-center sing-success mt-1/3">
-                <VanImage :src="auditSuccess" class="mb-24px" />
-                <p class="text-center">合同已签署成功，请线下联系您的客户经理完成业务受理</p>
-            </div> -->
             <div v-if="signReject" class="flex flex-ai flex-col items-center sing-success mt-1/3">
                 <VanImage :src="auditFail" class="mb-24px" />
                 <p class="text-center">协议内容有误，请联系您的大客户经理确认协议内容</p>
-                <!-- <VanButton
-                    block
-                    type="info"
-                    native-type="button"
-                    class="submit-button w-170px mt-24px"
-                    @click="refreshSign"
-                    >刷新</VanButton
-                > -->
             </div>
         </div>
-        <Popup v-model="show" closeable round get-container="#app" @opened="getRealNameAccess">
+        <Popup
+            v-model="show"
+            closeable
+            round
+            get-container="#app"
+            @opened="getRealNameAccess"
+            @closed="phoneReadonly = true"
+        >
             <Form
                 @submit="onSubmit"
                 :validate-first="true"
@@ -94,6 +76,7 @@
                     ref="phoneInputRef"
                     :readonly="phoneReadonly"
                     :rules="rules.phone"
+                    @blur="phoneReadonly = true"
                 >
                     <template #button>
                         <span class="text-[var(--primary-active-color)] fs-14" @click="modifyPhone">修改</span>
@@ -125,7 +108,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { ref, reactive, onMounted, getCurrentInstance, nextTick } from 'vue'
 import { NavBar, Form, Field, Image as VanImage, Button, Icon, Loading, Popup } from 'vant'
 import pdf from 'pdfvuer'
 import 'pdfjs-dist/build/pdf.worker.entry' // not needed since v1.9.1
@@ -134,10 +117,9 @@ import axios from 'axios'
 import { isPhone, digitInteger } from '@/utils/validate'
 
 import { getRealName, realNameAuth, realNameSendMsg, signContract } from '@/api/sign'
-// import { queryAudit } from '@/api/audit'
 
+import { hideName, hideIdCard } from '@/utils'
 import { useCache } from '@/hooks/useCache'
-// import auditSuccess from '@/assets/img/audit-success.png'
 import auditFail from '@/assets/img/audit-fail.png'
 import savePdfIcon from '@/assets/icon/save-pdf-icon.png'
 import { isEmpty } from 'lodash-es'
@@ -165,14 +147,12 @@ const codeButton = reactive({
 })
 
 const IS_STAGING = process.env.VUE_APP_ENV === 'staging'
+const isRender = ref(true)
 const code = ref('')
 const title = ref('签署协议')
 const formRef = ref()
 const phoneInputRef = ref()
-// const countdownRef = ref()
 const isSign = ref(false)
-// 用户是否已经签署协议
-// const userSignStatus = ref(false)
 const phoneReadonly = ref(true)
 const isCodeSend = ref(false)
 const flowId = ref('')
@@ -189,13 +169,6 @@ const corporate = reactive({
     }
 })
 
-// const auditStatus = ref(0)
-// const auditExpireTime = ref('')
-// const auditList = ref([])
-// const contractUrl = ref('')
-
-// const countdown = ref(5000)
-// const countShow = ref(true)
 const show = ref(false)
 
 const pdfdata = ref(undefined)
@@ -263,64 +236,6 @@ const getCode = () => {
         .catch(() => {})
 }
 
-// const refreshSign = async () => {
-//     const token = wsCache.get('token') || ''
-//     const enterpriseId = wsCache.get('enterpriseId') || ''
-//     if (token && enterpriseId) {
-//         const res = await queryAudit({
-//             headers: {
-//                 Authorization: token
-//             },
-//             data: {
-//                 enterpriseId
-//             },
-//             hideloading: true
-//         })
-//         if (!isEmpty(res)) {
-//             // 旧 - res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
-//             // 新 - 审核状态：1-未提交 2-资质审核中 3-资质驳回 4-资质拒绝 5-协议待上传 6-协议待签署 7-协议已签署 8-协议驳回
-//             wsCache.delete('isSignSuccess')
-//             auditStatus.value = res.data.auditStatus
-//             if (+auditStatus.value === 8) {
-//                 $toast.fail('协议未生成，请联系大客经理确认')
-//                 return false
-//             }
-//             // 审核失效时间 auditStatus = 4 时存在
-//             auditExpireTime.value = res.data.auditExpireTime || ''
-//             // if (+res.data.auditStatus === 2) {
-//             //     auditMsg.value = '您的授信审核已提交，预计T+1审核完成'
-//             // } else if (+res.data.auditStatus === 3) {
-//             //     auditMsg.value = '审核通过'
-//             // } else if (+res.data.auditStatus === 4) {
-//             //     auditMsg.value = '审核驳回'
-//             //     // setTimeout(() => router.push({ name: stepMap[res.data.auditList.step] }), 1500)
-//             // } else if (+res.data.auditStatus === 5) {
-//             //     auditMsg.value = '您司不符合准入标准，xxxx年xx月xx日可再次提交审核'
-//             // }
-//             // 审核驳回信息列表 auditStatus = 3 时存在
-//             if (+auditStatus.value === 3) {
-//                 auditList.value = res.data.auditList.map(item => item)
-//             }
-//             // 已填充好，准备签章pdf协议地址 auditStatus = 6和7 时存在
-//             if (+auditStatus.value === 6 || +auditStatus.value === 7) {
-//                 contractUrl.value = res.data.contractUrl
-//                 wsCache.set('pdfurl', contractUrl.value || '')
-//                 wsCache.set('isSignSuccess', +auditStatus.value === 7)
-//                 router.push({
-//                     name: 'Sign'
-//                 })
-//             }
-//         }
-//     } else {
-//         $toast.fail({
-//             message: '请重新登录',
-//             onClose: () => {
-//                 router.push({ name: 'Login' })
-//             }
-//         })
-//     }
-// }
-
 const renderMobileCode = () => {
     codeTimer.value = setTimeout(() => {
         codeTime.value--
@@ -354,12 +269,11 @@ const getRealNameAccess = async () => {
             }
         })
         if (!isEmpty(res)) {
+            // eslint-disable-next-line prettier/prettier
             formData.value = { ...res.data }
             corporate.data = {
-                corporateName: res.data.corporateName ? `${res.data.corporateName}`.replace(/(?<=.)./g, '*') : '',
-                corporateId: res.data.corporateId
-                    ? `${res.data.corporateId}`.replace(/^(.{6})(?:\d+)(.{4})$/, '$1********$2')
-                    : '',
+                corporateName: res.data.corporateName ? hideName(res.data.corporateName) : '',
+                corporateId: res.data.corporateId ? hideIdCard(res.data.corporateId, 6, 4) : '',
                 corporatePhone: res.data.corporatePhone
             }
         }
@@ -377,12 +291,11 @@ const focusBig = () => {
     }
 }
 
-const modifyPhone = () => {
+const modifyPhone = async () => {
     if (isCodeSend.value) return false
     phoneReadonly.value = false
-    setTimeout(() => {
-        phoneInputRef.value.focus()
-    }, 100)
+    await nextTick()
+    phoneInputRef.value.focus()
 }
 
 const savePdf = () => {
@@ -419,7 +332,7 @@ const getElement = (parent, children) => {
     let timer = 0
     return new Promise(reject => {
         timer = setInterval(() => {
-            const res = parent.querySelector(children)
+            const res = parent && parent.querySelector(children)
             if (res) {
                 clearInterval(timer)
                 reject(res)
@@ -440,13 +353,6 @@ const handle_pdf_link = params => {
     const page = document.getElementById(String(params.pageNumber))
     page.scrollIntoView()
 }
-
-// const countDownChange = val => {
-//     if (val.seconds <= 0) {
-//         countShow.value = false
-//         countdownRef.value.pause()
-//     }
-// }
 
 const onSubmit = async () => {
     formRef.value
@@ -479,12 +385,10 @@ const onSubmit = async () => {
                 if (+res.returnCode === 1000) {
                     $toast.success('签署成功')
                     isSignSuccess.value = true
-                    renderPdf(res.data.contractUrl)
+                    renderPdf(res.data.contractUrl, true)
                 } else {
-                    $toast.fail(res.returnMsg || '签署失败')
+                    $toast.fail(res.returnMsg || '签署失败11')
                 }
-                // title.value = '签署成功'
-                // isSign.value = true
             } catch (err) {
                 $toast.fail('签署失败')
             }
@@ -499,7 +403,10 @@ const filterProtocol = url => {
     return url
 }
 
-const renderPdf = url => {
+const renderPdf = (url, render) => {
+    if (render) {
+        isRender.value = false
+    }
     let pdfURL = ''
     if (IS_STAGING) {
         pdfURL = `${location.origin}/api/${url.split('www.techwis.cn/')[1]}`
@@ -515,6 +422,9 @@ const renderPdf = url => {
     })
     pdfdata.value.then(pdf => {
         numPages.value = pdf.numPages
+        if (render) {
+            isRender.value = true
+        }
         getLoadSuccess()
     })
 }
@@ -534,7 +444,7 @@ onMounted(() => {
         isSign.value = true
     }
     if (url) {
-        renderPdf(url)
+        renderPdf(decodeURIComponent(url))
     }
 })
 </script>

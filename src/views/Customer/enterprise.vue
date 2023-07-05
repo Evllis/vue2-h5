@@ -24,6 +24,13 @@
                         placeholder="请输入您营业执照/社会信用代码"
                     />
                     <Field
+                        v-model="formData.data.businessAddress"
+                        :rules="rules.businessAddress"
+                        name="businessAddress"
+                        label="实际经营地址"
+                        placeholder="请输入您的实际经营地址"
+                    />
+                    <Field
                         v-model="formData.data.industryType"
                         :right-icon="inactiveIcon"
                         :rules="rules.industryType"
@@ -202,6 +209,7 @@ const formData = reactive({
     data: {
         name: '',
         licenseNum: '',
+        businessAddress: '',
         industryType: '',
         businessLicense: '',
         corporateIdFront: '',
@@ -254,10 +262,12 @@ const queryLicenseNumAccess = val => {
 const rules = reactive({
     name: [
         { required: true, message: '请填写企业名称' },
+        { pattern: /^.{4,50}$/, message: '长度必须是4-50位' },
         { validator: nonCharacter, message: '请输入正确的企业名称' }
     ],
     licenseNum: [
         { required: true, message: '请填写营业执照号/社会信用代码' },
+        { pattern: /^.{4,50}$/, message: '长度必须是4-50位' },
         { validator: nonCharacter, message: '请输入正确的营业执照号/社会信用代码' },
         {
             validator: queryLicenseNumAccess,
@@ -265,6 +275,11 @@ const rules = reactive({
                 return `该企业正在申请中，请使用末尾为${licensePhone.value.slice(-4)}的账户继续进行`
             }
         }
+    ],
+    businessAddress: [
+        { required: true, message: '请填写实际经营地址' },
+        { pattern: /^.{1,100}$/, message: '长度必须是1-100位' },
+        { validator: nonCharacter, message: '请输入正确的实际经营地址' }
     ],
     industryType: [{ required: true, message: '请选择行业类型' }],
     businessLicense: [{ required: true, message: '请上传营业执照' }],

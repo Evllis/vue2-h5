@@ -138,3 +138,52 @@ export const formatterGtZeroInteger = value => {
     }
     return value
 }
+
+/**
+ * 姓名脱敏
+ * 张*        王**        A****
+ * @param { String } name 姓名字符串
+ * @returns String
+ */
+export const hideName = name => {
+    if (!name) {
+        return name
+    }
+    return name.replace(/(^.{1})(.+)$/g, (...args) => {
+        let tempStr = ''
+        if (args[2] && args[2].length) {
+            tempStr = Array.from({
+                length: args[2].length + 1
+            }).join('*')
+        }
+        return args[1] + tempStr
+    })
+}
+
+/**
+ * 证件号码脱敏
+ * keepWord是要传入的不脱敏的位数
+ * @param { String } idCard 身份证号
+ * @param { String || Number } start 前脱敏位数，默认0，不脱敏
+ * @param { String || Number } start 后脱敏位数，默认0，不脱敏
+ * @returns String
+ */
+export const hideIdCard = (idCard, start = 0, end = 0) => {
+    if (!idCard) {
+        return idCard
+    }
+
+    let reg = new RegExp(`(^\\w{${start}})(\\w+)(\\w{${end}}$)`, 'g')
+
+    return idCard.replace(reg, function (...args) {
+        let tempStr = ''
+
+        if (args[2] && args[2].length) {
+            for (let i = 0, len = args[2].length; i < len; i++) {
+                tempStr += '*'
+            }
+        }
+
+        return args[1] + tempStr + args[3]
+    })
+}
