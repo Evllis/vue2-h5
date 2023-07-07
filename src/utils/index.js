@@ -187,3 +187,28 @@ export const hideIdCard = (idCard, start = 0, end = 0) => {
         return args[1] + tempStr + args[3]
     })
 }
+
+/**
+ * 手机号码脱敏
+ * 137****9050
+ * @param { String } phone 手机号
+ */
+export const hidePhone = phone => {
+    let reg = /(\d{3})\d*(\d{4})/
+    return phone ? phone.replace(reg, '$1****$2') : ''
+}
+
+/**
+ * 银行卡卡号脱敏
+ * 622*********1496
+ * @param { String } bankAccount 银行卡号
+ */
+export const hideBankAccount = bankAccount => {
+    let reg = /(\d{3})(\d+)(\d{4})/
+    var strLength = bankAccount.match(reg)[2].length
+    let strValue = ''
+    for (let i = 0; i < strLength; i++) {
+        strValue += '*'
+    }
+    return bankAccount.replace(reg, '$1' + strValue + '$3')
+}
