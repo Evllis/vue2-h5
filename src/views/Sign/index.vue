@@ -2,9 +2,9 @@
     <div class="sign-page">
         <NavBar :title="title" :left-arrow="false" :style="{ paddingLeft: '15px' }" />
         <div class="body-container sign-page__body">
-            <div class="loading-wrap">
+            <!-- <div class="loading-wrap">
                 <Loading />
-            </div>
+            </div> -->
             <Form v-if="!isSign">
                 <div class="flex items-center flex-col buttons" v-if="isSignSuccess">
                     <Button plain type="primary" native-type="button" @click="focusBig" class="mb-10px">
@@ -109,7 +109,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance, nextTick } from 'vue'
-import { NavBar, Form, Field, Image as VanImage, Button, Icon, Loading, Popup } from 'vant'
+import { NavBar, Form, Field, Image as VanImage, Button, Icon, Popup } from 'vant'
 import pdf from 'pdfvuer'
 import 'pdfjs-dist/build/pdf.worker.entry' // not needed since v1.9.1
 import router from '@/router'
@@ -117,6 +117,7 @@ import axios from 'axios'
 import { isPhone, digitInteger } from '@/utils/validate'
 
 import { getRealName, realNameAuth, realNameSendMsg, signContract } from '@/api/sign'
+import { queryAudit } from '@/api/audit'
 
 import { hideName, hideIdCard } from '@/utils'
 import { useCache } from '@/hooks/useCache'
@@ -328,26 +329,26 @@ const focusSmall = () => {
     }
 }
 
-const getElement = (parent, children) => {
-    let timer = 0
-    return new Promise(reject => {
-        timer = setInterval(() => {
-            const res = parent && parent.querySelector(children)
-            if (res) {
-                clearInterval(timer)
-                reject(res)
-            }
-        }, 500)
-    })
-}
-const getLoadSuccess = async () => {
-    const previewPdf = document.querySelector('#preview-pdf')
-    const isChildren = await getElement(previewPdf, 'div')
-    const textLayer = await getElement(isChildren, '.textLayer')
-    if (textLayer) {
-        document.querySelector('html').classList.remove('overflow-hidden')
-    }
-}
+// const getElement = (parent, children) => {
+//     let timer = 0
+//     return new Promise(reject => {
+//         timer = setInterval(() => {
+//             const res = parent && parent.querySelector(children)
+//             if (res) {
+//                 clearInterval(timer)
+//                 reject(res)
+//             }
+//         }, 500)
+//     })
+// }
+// const getLoadSuccess = async () => {
+//     const previewPdf = document.querySelector('#preview-pdf')
+//     const isChildren = await getElement(previewPdf, 'div')
+//     const textLayer = await getElement(isChildren, '.textLayer')
+//     if (textLayer) {
+//         document.querySelector('html').classList.remove('overflow-hidden')
+//     }
+// }
 
 const handle_pdf_link = params => {
     const page = document.getElementById(String(params.pageNumber))
@@ -383,14 +384,40 @@ const onSubmit = async () => {
                     }
                 })
                 if (+res.returnCode === 1000) {
-                    $toast.success('签署成功')
                     isSignSuccess.value = true
-                    renderPdf(res.data.contractUrl, true)
+                    wsCache.delete('pdfurl')
+                    $toast.success({
+                        message: '签署成功',
+                        onClose: () => {
+                            renderPdf(res.data.contractUrl, true)
+                        }
+                    })
+                    // window.location.reload()
                 } else {
-                    $toast.fail(res.returnMsg || '签署失败11')
+                    $toast.fail(res.returnMsg || '签署失败')
                 }
             } catch (err) {
                 $toast.fail('签署失败')
+                // isSignSuccess.value = true
+                // wsCache.delete('pdfurl')
+                // $toast.success({
+                //     message: '签署成功',
+                //     onClose: () => {
+                //         $toast.loading({
+                //             message: '正在生成...',
+                //             duration: 0,
+                //             forbidClick: true,
+                //             loadingType: 'spinner'
+                //         })
+                //         renderPdf(
+                //             'www.techwis.cn/commercialEnterprise/contractFile/contract/河北2023071098610.pdf',
+                //             true
+                //         )
+                //     }
+                // })
+                // renderPdf('www.techwis.cn/commercialEnterprise/contractFile/contract/河北2023071098610.pdf', true)
+                // https://www.techwis.cn/commercialEnterprise/contractFile/contract/20230421901650704773.pdf
+                // www.techwis.cn/commercialEnterprise/contractFile/contract/河北2023071098610.pdf
             }
         })
         .catch(() => {})
@@ -404,6 +431,12 @@ const filterProtocol = url => {
 }
 
 const renderPdf = (url, render) => {
+    $toast.loading({
+        message: '正在生成...',
+        duration: 0,
+        forbidClick: true,
+        loadingType: 'spinner'
+    })
     if (render) {
         isRender.value = false
     }
@@ -423,15 +456,41 @@ const renderPdf = (url, render) => {
     pdfdata.value.then(pdf => {
         numPages.value = pdf.numPages
         if (render) {
-            isRender.value = true
+            setTimeout(() => {
+                isRender.value = true
+                $toast.clear()
+                // getLoadSuccess()
+            }, 2000)
+        } else {
+            // getLoadSuccess()
         }
-        getLoadSuccess()
     })
 }
 
-onMounted(() => {
-    document.querySelector('html').classList.add('overflow-hidden')
+const getPdfUrl = async () => {
+    const enterpriseId = wsCache.get('enterpriseId') || ''
+    const token = wsCache.get('token') || ''
+    if (enterpriseId && token) {
+        const res = await queryAudit({
+            headers: {
+                Authorization: token
+            },
+            data: {
+                enterpriseId: enterpriseId
+            },
+            hideloading: true
+        })
+        return res.data.contractUrl
+    }
+    return ''
+}
+
+onMounted(async () => {
+    // document.querySelector('html').classList.add('overflow-hidden')
     let url = wsCache.get('pdfurl')
+    // url = 'www.techwis.cn/commercialEnterprise/contractFile/contract/20230421901650704771.pdf'
+    // 第一次不需要获取pdfurl, 之后每次刷新页面都需要重新获取pdfurl
+    wsCache.delete('pdfurl')
     const signReject1 = wsCache.get('signReject')
     const isSignSuccess1 = wsCache.get('isSignSuccess')
     isSign.value = !!router.currentRoute.params.isSign
@@ -440,11 +499,14 @@ onMounted(() => {
     }
     if (signReject1) {
         signReject.value = true
-        document.querySelector('html').classList.remove('overflow-hidden')
+        // document.querySelector('html').classList.remove('overflow-hidden')
         isSign.value = true
     }
     if (url) {
-        renderPdf(decodeURIComponent(url))
+        renderPdf(decodeURIComponent(url), true)
+    } else {
+        const pdfUrl = await getPdfUrl()
+        renderPdf(decodeURIComponent(pdfUrl), true)
     }
 })
 </script>
