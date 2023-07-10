@@ -81,7 +81,7 @@
                                     <span class="underline" @click="socialShow = true">查看示例</span>
                                 </h3>
                                 <Uploader
-                                    v-model="socialSecurityUrls"
+                                    v-model="urls.socialSecurityUrls"
                                     :after-read="afterRead"
                                     :max-count="6"
                                     :upload-icon="addIcon"
@@ -92,14 +92,22 @@
                             </div>
                         </template>
                     </Field>
-                    <Field class="social-wrap">
+                    <Field class="social-wrap" name="taxCertificateUrls">
                         <template #input>
                             <div class="upload-container w-full h-full">
                                 <h3 class="flex items-center justify-between">
                                     纳税截图（非必填，1-6张）
                                     <span class="underline" @click="payShow = true">查看示例</span>
                                 </h3>
-                                <Uploader :max-count="6" :upload-icon="addIcon" multiple />
+                                <Uploader
+                                    v-model="urls.taxCertificateUrls"
+                                    :after-read="afterRead"
+                                    :max-count="6"
+                                    :upload-icon="addIcon"
+                                    @delete="deleteRead"
+                                    multiple
+                                    name="taxCertificateUrls"
+                                />
                             </div>
                         </template>
                     </Field>
@@ -201,13 +209,17 @@ const payShow = ref(false)
 const editAudit = ref(false)
 const formRef = ref()
 const doorHeadPhoto = ref([])
-const socialSecurityUrls = ref([])
+const urls = reactive({
+    socialSecurityUrls: [],
+    taxCertificateUrls: []
+})
 const formData = reactive({
     data: {
         doorHeadPhoto: [],
         socialSecurityType: '1',
         socialSecurityNumber: '',
-        socialSecurityUrls: []
+        socialSecurityUrls: [],
+        taxCertificateUrls: []
     }
 })
 const columns = ref([
@@ -301,18 +313,18 @@ const afterRead = async (file, details) => {
             return false
         }
         updateUploadItem(file, 'done', '上传完成')
-        if (details.name !== 'socialSecurityUrls') {
+        if (['socialSecurityUrls', 'taxCertificateUrls'].indexOf(details.name) === -1) {
             formData.data[details.name] = res.data[0]
         } else {
             res.data.forEach(item => {
-                for (const val of socialSecurityUrls.value) {
+                for (const val of urls[details.name]) {
                     if (!val.imgUrl) {
                         val['imgUrl'] = item
                         break
                     }
                 }
             })
-            formData.data[details.name] = socialSecurityUrls.value.map(item => item.imgUrl)
+            formData.data[details.name] = urls[details.name].map(item => item.imgUrl)
         }
     } else {
         updateUploadItem(file, 'failed', '上传失败')
@@ -321,7 +333,9 @@ const afterRead = async (file, details) => {
 
 const deleteRead = (file, details) => {
     formData.data[details.name] =
-        details.name !== 'socialSecurityUrls' ? '' : socialSecurityUrls.value.map(item => item.imgUrl)
+        ['socialSecurityUrls', 'taxCertificateUrls'].indexOf(details.name) === -1
+            ? ''
+            : urls[details.name].map(item => item.imgUrl)
 }
 
 const onSubmit = async () => {
@@ -368,8 +382,15 @@ onMounted(async () => {
                     formData.data = res.data
                     formData.data.socialSecurityType = `${formData.data.socialSecurityType}`
                     doorHeadPhoto.value = res.data.doorHeadPhoto ? [{ url: `https://${res.data.doorHeadPhoto}` }] : []
-                    socialSecurityUrls.value = res.data.socialSecurityUrls
+                    urls.socialSecurityUrls = res.data.socialSecurityUrls
                         ? res.data.socialSecurityUrls.map(item => {
+                              return {
+                                  url: `https://${item}`
+                              }
+                          })
+                        : []
+                    urls.taxCertificateUrls = res.data.taxCertificateUrls
+                        ? res.data.taxCertificateUrls.map(item => {
                               return {
                                   url: `https://${item}`
                               }
