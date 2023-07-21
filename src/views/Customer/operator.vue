@@ -215,6 +215,7 @@ const urls = reactive({
 })
 const formData = reactive({
     data: {
+        type: '', // 页面入口来源 1-正常流程进入 2-审核驳回页面进入
         doorHeadPhoto: [],
         socialSecurityType: '1',
         socialSecurityNumber: '',
@@ -342,6 +343,7 @@ const onSubmit = async () => {
     const enterpriseId = wsCache.get('enterpriseId')
     if (enterpriseId) {
         formData.data['enterpriseId'] = enterpriseId
+        formData.data['type'] = !editAudit.value ? '1' : '2'
         formRef.value
             .validate()
             .then(async () => {
