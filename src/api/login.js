@@ -20,6 +20,15 @@ export const loginRegister = data => {
     })
 }
 
+// 用户登录注册v2
+export const loginRegisterV2 = data => {
+    return request({
+        url: api.Login.loginRegisterV2,
+        method: 'post',
+        data
+    })
+}
+
 // // 登录
 // export function login(data) {
 //     return request({

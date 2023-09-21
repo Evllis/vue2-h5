@@ -4,20 +4,25 @@
 //     UserName: '/user/name'
 // }
 const isDev = process.env.VUE_APP_ENV === 'staging'
-const apiPrefix = `${isDev ? '/api' : ''}/commercial-enterprise-service`
+// const apiPrefix = `${isDev ? '/api' : ''}/commercial-enterprise-service`
+const apiPrefix = `${isDev ? '/api' : ''}/commercial-enterprise-customer`
 const api = {
     Login: {
         loginRegister: `${apiPrefix}/login/loginRegister`,
+        loginRegisterV2: `${apiPrefix}/login/loginRegister/v2`,
         sendMsg: `${apiPrefix}/login/sendMsg`
     },
     Customer: {
         setRole: `${apiPrefix}/user/setRole`,
+        editCustomerInfo: `${apiPrefix}/user/editCustomerInfo`,
         submitEnterpriseInfo: `${apiPrefix}/commercialEnterprise/submitEnterpriseInfo`,
         submitEnterpriseOperator: `${apiPrefix}/commercialEnterprise/submitEnterpriseOperator`,
         submitEnterpriseSocialSecurity: `${apiPrefix}/commercialEnterprise/submitEnterpriseSocialSecurity`,
+        submitEnterpriseSocialSecurityV2: `${apiPrefix}/commercialEnterprise/submitEnterpriseSocialSecurity/v2`,
         findEnterpriseInfo: `${apiPrefix}/commercialEnterprise/findEnterpriseInfo`,
         findEnterpriseOperator: `${apiPrefix}/commercialEnterprise/findEnterpriseOperator`,
-        findEnterpriseSocialSecurity: `${apiPrefix}/commercialEnterprise/findEnterpriseSocialSecurity`
+        findEnterpriseSocialSecurity: `${apiPrefix}/commercialEnterprise/findEnterpriseSocialSecurity`,
+        findEnterpriseSocialSecurityV2: `${apiPrefix}/commercialEnterprise/findEnterpriseSocialSecurity/v2`
     },
     Cooperate: {
         submitEnterpriseUnicomInfo: `${apiPrefix}/commercialEnterprise/submitEnterpriseUnicomInfo`,

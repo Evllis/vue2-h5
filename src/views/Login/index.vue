@@ -79,15 +79,13 @@
             title="****协议"
             show-cancel-button
             confirm-button-text="同意"
-            confirm-button-color="#3283ff"
             cancel-button-text="不同意"
-            cancel-button-color="#aaaaaa"
             :beforeClose="dialogClose"
         >
             <div>
                 <p>
                     <span>在使用商企服务产品前，请仔细阅读</span>
-                    <a href="javascript:void(0);" style="color: #3283ff" @click="show = true">****协议</a>。
+                    <a href="javascript:void(0);" style="color: #ff5f01" @click="show = true">****协议</a>。
                 </p>
                 <p>如您点击“同意”则代表您已阅读并同意上述条款，不同意则无法继续使用我们的产品。</p>
             </div>
@@ -107,7 +105,7 @@ import router from '@/router'
 
 import Agreement from '@/components/Agreement'
 
-import { sendMsg, loginRegister } from '@/api/login'
+import { sendMsg, loginRegisterV2 } from '@/api/login'
 
 import inactiveIcon from '@/assets/icon/checkbox-icon.png'
 import activeIcon from '@/assets/icon/checkbox-checked-icon.png'
@@ -184,14 +182,7 @@ const renderMobileCode = () => {
 }
 
 const validateInput = () => {
-    if (
-        phone.value &&
-        phone.value.length === 11 &&
-        isPhone(phone.value) &&
-        code.value &&
-        code.value.length === 6 &&
-        digitInteger(code.value)
-    ) {
+    if (phone.value && code.value) {
         buttonDisabled.value = false
     } else {
         buttonDisabled.value = true
@@ -205,7 +196,7 @@ const onSubmit = async () => {
         return false
     }
     try {
-        const res = await loginRegister({ phone: phone.value, code: code.value }).catch(() => {})
+        const res = await loginRegisterV2({ phone: phone.value, code: code.value }).catch(() => {})
         if (!isEmpty(res)) {
             wsCache.clear()
             wsCache.set('token', res.data.token)
@@ -341,8 +332,28 @@ const onSubmit = async () => {
             font-size: 14px;
             padding: 20px;
         }
-        button {
-            font-size: 14px;
+        .van-dialog__footer {
+            padding: 0 20px 25px 20px;
+            &::after {
+                display: none;
+            }
+            button {
+                font-size: 15px;
+                height: 43px;
+                border-radius: 6px;
+                &:first-child {
+                    border: 1px solid #ff5f01;
+                    color: #ff5f01;
+                }
+                &:last-child {
+                    margin-left: 10px;
+                    background-color: #ff5f01;
+                    color: white;
+                    &::after {
+                        display: none;
+                    }
+                }
+            }
         }
     }
 }

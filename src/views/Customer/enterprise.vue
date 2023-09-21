@@ -1,7 +1,7 @@
 <template>
     <div class="enterprise-page">
         <NavBar
-            title="企业基本信息"
+            title="客户基本信息"
             :left-arrow="!editAudit"
             @click-left="onClickLeft"
             :style="{ paddingLeft: `${editAudit ? '15px' : ''}` }"
@@ -152,8 +152,10 @@
                         v-model="formData.data.corporatePhone"
                         :rules="rules.corporatePhone"
                         :readonly="isDisabled"
+                        :formatter="phoneNumber"
                         name="corporatePhone"
                         label="法人联系方式"
+                        maxlength="11"
                         placeholder="请输入法人联系方式"
                     />
                 </div>
@@ -171,6 +173,7 @@
 import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem } from 'vant'
 import { reactive, ref, onMounted, getCurrentInstance } from 'vue'
 import { nonCharacter, isName, isIdCard, isPhone } from '@/utils/validate'
+import { phoneNumber } from '@/utils/formatter'
 import { isEmpty } from 'lodash-es'
 import router from '@/router'
 import { useCache } from '@/hooks/useCache'
@@ -375,14 +378,14 @@ const onSubmit = async () => {
                 })
                 if (!isEmpty(res)) {
                     // Person: 经办人, Operator: 门头
-                    const type = wsCache.get('role') === '1' ? 'Operator' : 'Person'
+                    // const type = wsCache.get('role') === '1' ? 'Operator' : 'Person'
                     // 这里需要判断身份, 跳转不同的页面
                     // 经办人: Person, 企业门头: Operator
                     // const enterpriseId = wsCache.get('enterpriseId')
                     if (!enterpriseId.value) {
                         wsCache.set('enterpriseId', res.data.id)
                     }
-                    router.push({ name: !editAudit.value ? type : 'Audit' })
+                    router.push({ name: !editAudit.value ? 'Operator' : 'Audit' })
                 }
             } catch (err) {
                 return false

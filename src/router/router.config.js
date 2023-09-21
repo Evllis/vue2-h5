@@ -44,7 +44,7 @@ export const asyncRouterMap = [
         component: () => import('@/views/Layouts/index'),
         redirect: '/customer/home',
         meta: {
-            title: '身份选择',
+            title: '补充信息',
             keepAlive: false
         },
         children: [
@@ -52,13 +52,13 @@ export const asyncRouterMap = [
                 path: 'home',
                 name: 'Customer',
                 component: () => import('@/views/Customer/index'),
-                meta: { title: '身份选择', keepAlive: false }
+                meta: { title: '补充信息', keepAlive: false }
             },
             {
                 path: 'enterprise',
                 name: 'Enterprise',
                 component: () => import('@/views/Customer/enterprise.vue'),
-                meta: { title: '企业基本信息', keepAlive: false }
+                meta: { title: '客户基本信息', keepAlive: false }
             },
             {
                 path: 'person',
@@ -70,7 +70,19 @@ export const asyncRouterMap = [
                 path: 'operator',
                 name: 'Operator',
                 component: () => import('@/views/Customer/operator.vue'),
-                meta: { title: '企业门头社保信息', keepAlive: false }
+                meta: { title: '客户补充信息', keepAlive: false }
+            },
+            {
+                path: 'list',
+                name: 'List',
+                component: () => import('@/views/Customer/list.vue'),
+                meta: { title: '客户列表', keepAlive: false }
+            },
+            {
+                path: 'disclaimer',
+                name: 'Disclaimer',
+                component: () => import('@/views/Customer/disclaimer.vue'),
+                meta: { title: '免责声明', keepAlive: false }
             }
         ]
     },

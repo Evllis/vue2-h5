@@ -127,12 +127,6 @@ body.van-overflow-hidden {
 //     }
 // }
 
-.van-button {
-    &--disabled {
-        background-color: var(--secondary-color) !important;
-    }
-}
-
 .van-cell {
     &.error-pos {
         .van-field__error-message {
@@ -266,7 +260,7 @@ body.van-overflow-hidden {
     border: 0;
     background-color: var(--primary-active-color);
     &:disabled {
-        background-color: #ffccae;
+        background-color: var(--secondary-color) !important;
     }
 }
 .van-nav-bar {

@@ -3,67 +3,81 @@
         <NavBar title="企业基本信息" left-arrow />
         <div class="flex customer-index__body">
             <div class="flex-1 customer-index__wrap">
-                <Field
-                    v-model="customer"
-                    :right-icon="inactiveIcon"
-                    name="industryType"
-                    label="您的身份"
-                    placeholder="请选择行业类型"
-                    class="select-cell"
-                >
-                    <template #input>
-                        <div id="drop-container" class="drop-container">
-                            <DropdownMenu>
-                                <DropdownItem
-                                    v-model="customer"
-                                    :options="columns"
-                                    get-container="#drop-container"
-                                ></DropdownItem>
-                            </DropdownMenu>
-                        </div>
-                    </template>
-                </Field>
-                <div>
-                    <VanButton block class="submit-button" native-type="button" @click="submitData">确定</VanButton>
-                </div>
+                <Form @submit="onSubmit" :validate-first="true" :validate-trigger="'onSubmit'">
+                    <Field
+                        v-model="formData.data.customerName"
+                        :rules="rules.customerName"
+                        name="customerName"
+                        label="姓名"
+                        placeholder="请填写姓名"
+                        @input="validateInput"
+                    />
+                    <Field
+                        v-model="formData.data.customerNumber"
+                        :rules="rules.customerNumber"
+                        name="customerNumber"
+                        label="工号"
+                        placeholder="请填写工号"
+                        @input="validateInput"
+                    />
+                    <div>
+                        <VanButton
+                            block
+                            type="info"
+                            class="submit-button"
+                            native-type="submit"
+                            :disabled="buttonDisabled"
+                            >开始</VanButton
+                        >
+                    </div>
+                </Form>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { NavBar, DropdownMenu, DropdownItem, Field } from 'vant'
+import { ref, reactive } from 'vue'
+import { NavBar, Form, Field } from 'vant'
 import router from '@/router'
-import { useCache } from '@/hooks/useCache'
+import { nonCharacter } from '@/utils/validate'
+import { editCustomerInfo } from '@/api/customer'
 
-import inactiveIcon from '@/assets/icon/select-icon.png'
-import { setRole } from '@/api/customer'
-import { isEmpty } from 'lodash-es'
+const formData = reactive({
+    data: {
+        customerName: '',
+        customerNumber: ''
+    }
+})
+const buttonDisabled = ref(true)
 
-const { wsCache } = useCache()
+const rules = reactive({
+    customerName: [
+        { required: true, message: '请填写姓名' },
+        { pattern: /^[\u4e00-\u9fa5·]{2,20}$/, message: '长度必须是2-20位中文或·' }
+    ],
+    customerNumber: [
+        { required: true, message: '请填写工号' },
+        { validator: nonCharacter, message: '禁止输入表情符号' }
+    ]
+})
 
-const customer = ref('1')
-// 身份角色 1-法人 2-经办人
-const columns = ref([
-    { text: '该企业的法人代表', value: '1' },
-    { text: '该企业的经办人', value: '2' }
-])
-
-const submitData = async () => {
+const onSubmit = async values => {
     try {
-        const res = await setRole({
-            data: {
-                role: customer.value
-            }
+        await editCustomerInfo({
+            data: values
         })
-        if (!isEmpty(res.data)) {
-            wsCache.set('token', res.data.token)
-            wsCache.set('role', customer.value)
-            router.push({ name: 'Enterprise' })
-        }
+        router.push({ name: 'List' })
     } catch (err) {
         return false
+    }
+}
+
+const validateInput = () => {
+    if (formData.data.customerName && formData.data.customerNumber) {
+        buttonDisabled.value = false
+    } else {
+        buttonDisabled.value = true
     }
 }
 </script>
@@ -85,7 +99,6 @@ const submitData = async () => {
         top: 50%;
         left: 0;
         width: 100%;
-        height: 192px;
         transform: translateY(-50%);
         z-index: 3;
     }
@@ -109,6 +122,12 @@ const submitData = async () => {
         font-size: 15px;
         border-radius: 10px;
         border: 0;
+        position: absolute;
+        bottom: -60px;
+        left: 50%;
+        margin: 0;
+        width: 80%;
+        transform: translateX(-50%);
     }
     :deep(.van-dropdown-item) {
         height: 88px;

@@ -1,7 +1,7 @@
 <template>
     <div class="operator-page">
         <NavBar
-            title="企业其它信息"
+            title="客户补充信息"
             :left-arrow="!editAudit"
             @click-left="backRouter"
             :style="{ paddingLeft: `${editAudit ? '15px' : ''}` }"
@@ -111,6 +111,18 @@
                             </div>
                         </template>
                     </Field>
+                    <Field
+                        v-model="unicomProvinceText"
+                        :right-icon="inactiveIcon"
+                        label="业务归属省/市"
+                        readonly
+                        clickable
+                        name="unicomProvince"
+                        placeholder="请选择业务归属省/市"
+                        class="select-wrap"
+                        :rules="rules.unicomProvince"
+                        @click="showPicker = true"
+                    />
                 </div>
                 <div class="flex submit-footer">
                     <VanButton
@@ -122,9 +134,10 @@
                         @click="backRouter"
                         >上一步</VanButton
                     >
-                    <VanButton block type="info" native-type="submit" class="submit-button">{{
+                    <!-- <VanButton block type="info" native-type="submit" class="submit-button">{{
                         editAudit ? '提交' : '下一步'
-                    }}</VanButton>
+                    }}</VanButton> -->
+                    <VanButton block type="info" native-type="submit" class="submit-button">提交</VanButton>
                 </div>
             </Form>
             <Popup
@@ -166,6 +179,22 @@
                     <VanImage :src="payImage" />
                 </div>
             </Popup>
+            <Popup v-model="showPicker" position="bottom" get-container="#app" @open="popupOpen">
+                <!-- <Area
+                :area-list="areaList.data"
+                :columns-num="2"
+                :value="areaValue"
+                @confirm="onConfirm"
+                @cancel="showPicker = false"
+            /> -->
+                <Picker
+                    show-toolbar
+                    ref="areaRef"
+                    :columns="areaList"
+                    @confirm="onConfirm"
+                    @cancel="showPicker = false"
+                />
+            </Popup>
         </div>
     </div>
 </template>
@@ -181,17 +210,18 @@ import {
     DropdownItem,
     ImagePreview,
     Popup,
+    Picker,
     Image as VanImage
 } from 'vant'
-import { reactive, ref, getCurrentInstance, onMounted } from 'vue'
+import { reactive, ref, getCurrentInstance, onMounted, nextTick } from 'vue'
 import { isEmpty, isArray } from 'lodash-es'
 import router from '@/router'
 import { useCache } from '@/hooks/useCache'
 import { formatterGtZeroInteger } from '@/utils'
 import * as imageConversion from 'image-conversion'
 
-import { uploadFile } from '@/api/common'
-import { submitEnterpriseSocialSecurity, findEnterpriseSocialSecurity } from '@/api/customer'
+import { uploadFile, regionInfo } from '@/api/common'
+import { submitEnterpriseSocialSecurityV2, findEnterpriseSocialSecurityV2 } from '@/api/customer'
 
 import cameraIcon from '@/assets/icon/camera-icon.png'
 import addIcon from '@/assets/icon/add-icon.png'
@@ -213,6 +243,7 @@ const urls = reactive({
     socialSecurityUrls: [],
     taxCertificateUrls: []
 })
+const unicomProvinceText = ref('')
 const formData = reactive({
     data: {
         type: '', // 页面入口来源 1-正常流程进入 2-审核驳回页面进入
@@ -220,9 +251,23 @@ const formData = reactive({
         socialSecurityType: '1',
         socialSecurityNumber: '',
         socialSecurityUrls: [],
-        taxCertificateUrls: []
+        taxCertificateUrls: [],
+        unicomProvince: '', // 归属联通省分公司
+        unicomProvinceCode: '', // 归属联通省code
+        unicomCity: '', // 归属联通市分公司
+        unicomCityCode: '' // 归属联通市code
     }
 })
+const areaIndex = reactive({
+    data: {
+        province: 0,
+        city: 0
+    }
+})
+const selectAreaData = ref([])
+const areaRef = ref()
+const areaList = ref([])
+const showPicker = ref(false)
 const columns = ref([
     { text: '公司自缴', value: '1' },
     { text: '三方机构代办', value: '2' }
@@ -249,7 +294,8 @@ const rules = reactive({
             },
             message: '社保缴纳截图至少上传1张'
         }
-    ]
+    ],
+    unicomProvince: [{ required: true, message: '请选择业务归属省/市' }]
 })
 
 const backRouter = () => {
@@ -259,6 +305,26 @@ const backRouter = () => {
 
 const previewExample = () => {
     ImagePreview([example])
+}
+
+const popupOpen = async () => {
+    await nextTick()
+    areaRef.value.setColumnIndex(0, areaIndex.data.province)
+    areaRef.value.setColumnIndex(1, areaIndex.data.city)
+    console.log(areaIndex.data)
+}
+
+const onConfirm = (columns, indexs) => {
+    areaIndex.data.province = indexs[0]
+    areaIndex.data.city = indexs[1]
+    const province = areaList.value[indexs[0]]
+    const city = province.children[indexs[1]]
+    selectAreaData.value = [
+        { name: province.text, code: province.code },
+        { name: city.text, code: city.code }
+    ]
+    unicomProvinceText.value = `${selectAreaData.value[0].name} / ${selectAreaData.value[1].name}`
+    showPicker.value = false
 }
 
 const imageCompress = async file => {
@@ -348,11 +414,21 @@ const onSubmit = async () => {
             .validate()
             .then(async () => {
                 try {
-                    await submitEnterpriseSocialSecurity({
+                    const data = Object.assign(formData.data, {
+                        enterpriseId,
+                        unicomProvince: selectAreaData.value[0].name,
+                        unicomProvinceCode: selectAreaData.value[0].code,
+                        unicomCity: selectAreaData.value[1].name,
+                        unicomCityCode: selectAreaData.value[1].code,
+                        type: editAudit.value ? '2' : '1'
+                    })
+                    console.log(33333333, data)
+                    await submitEnterpriseSocialSecurityV2({
                         data: formData.data
                     })
                     wsCache.set('socialSecurityNumber', formData.data.socialSecurityNumber)
-                    router.push({ name: !editAudit.value ? 'Cooperate' : 'Audit' })
+                    // router.push({ name: !editAudit.value ? 'Cooperate' : 'Audit' })
+                    router.push({ name: 'Audit' })
                 } catch (err) {
                     return false
                 }
@@ -368,12 +444,34 @@ const onSubmit = async () => {
     }
 }
 
+const getRegion = async () => {
+    const regions = await regionInfo({
+        hideloading: true
+    })
+    if (regions && !isEmpty(regions.data)) {
+        const areaData = []
+        regions.data.forEach(item => {
+            const childrenCity = []
+            item.child.forEach(elem => {
+                childrenCity.push({ text: elem.name, code: elem.code })
+            })
+            areaData.push({
+                text: item.name,
+                code: item.code,
+                children: childrenCity
+            })
+        })
+        areaList.value = areaData.map(item => item)
+    }
+}
+
 onMounted(async () => {
     const enterpriseId = wsCache.get('enterpriseId')
     editAudit.value = $store.getters.editAudit
     if (enterpriseId) {
         try {
-            const res = await findEnterpriseSocialSecurity({
+            await getRegion()
+            const res = await findEnterpriseSocialSecurityV2({
                 data: {
                     enterpriseId
                 },
