@@ -16,18 +16,22 @@
                     type="tel"
                     name="phone"
                     label=""
-                    placeholder="请输入手机号码"
+                    placeholder="请填写手机号"
                     class="mb-15px flex-row error-pos"
+                    maxlength="11"
+                    @input="validateInput"
                     :rules="rules.phone"
+                    :formatter="phoneNumber"
                 />
                 <Field
                     v-model="code"
                     type="digit"
                     name="code"
                     label=""
-                    placeholder="请输入验证码"
+                    placeholder="请填写验证码"
                     maxlength="6"
                     class="flex-row error-pos"
+                    @input="validateInput"
                     :rules="rules.code"
                 >
                     <template #button>
@@ -54,7 +58,9 @@
                     </template>
                 </Field>
                 <div>
-                    <VanButton block type="info" native-type="submit" class="submit-button">登录/注册</VanButton>
+                    <VanButton block type="info" native-type="submit" class="submit-button" :disabled="buttonDisabled"
+                        >登录/注册</VanButton
+                    >
                 </div>
             </Form>
         </div>
@@ -67,6 +73,25 @@
         >
             <Agreement />
         </Popup>
+        <VanDialog
+            v-model="dialogShow"
+            class="agreement-dialog"
+            title="****协议"
+            show-cancel-button
+            confirm-button-text="同意"
+            confirm-button-color="#3283ff"
+            cancel-button-text="不同意"
+            cancel-button-color="#aaaaaa"
+            :beforeClose="dialogClose"
+        >
+            <div>
+                <p>
+                    <span>在使用商企服务产品前，请仔细阅读</span>
+                    <a href="javascript:void(0);" style="color: #3283ff" @click="show = true">****协议</a>。
+                </p>
+                <p>如您点击“同意”则代表您已阅读并同意上述条款，不同意则无法继续使用我们的产品。</p>
+            </div>
+        </VanDialog>
     </div>
 </template>
 
@@ -74,6 +99,7 @@
 import { ref, reactive, getCurrentInstance } from 'vue'
 import { Form, Field, Popup } from 'vant'
 import { isPhone, digitInteger } from '@/utils/validate'
+import { phoneNumber } from '@/utils/formatter'
 import { isEmpty } from 'lodash-es'
 import { stepMap } from '@/store/config'
 import { useCache } from '@/hooks/useCache'
@@ -94,11 +120,11 @@ const formRef = ref()
 const rules = reactive({
     phone: [
         { required: true, message: '请填写手机号' },
-        { validator: isPhone, message: '请输入正确的手机号' }
+        { validator: isPhone, message: '手机号格式错误' }
     ],
     code: [
         { required: true, message: '请填写验证码' },
-        { validator: digitInteger, message: '请输入正确的验证码' }
+        { validator: digitInteger, message: '请填写正确的验证码' }
     ]
 })
 const agreement = ref(false)
@@ -113,6 +139,8 @@ const codeButton = reactive({
 const codeTimer = ref(0)
 const codeTime = ref(60)
 const show = ref(false)
+const dialogShow = ref(false)
+const buttonDisabled = ref(true)
 
 // 获取手机验证码
 const getCode = () => {
@@ -129,6 +157,13 @@ const getCode = () => {
             res.returnMsg || $toast.fail(res.returnMsg)
         })
         .catch(() => {})
+}
+
+const dialogClose = (action, done) => {
+    if (action === 'confirm') {
+        agreement.value = true
+    }
+    done()
 }
 
 const renderMobileCode = () => {
@@ -148,9 +183,25 @@ const renderMobileCode = () => {
     }, 1000)
 }
 
+const validateInput = () => {
+    if (
+        phone.value &&
+        phone.value.length === 11 &&
+        isPhone(phone.value) &&
+        code.value &&
+        code.value.length === 6 &&
+        digitInteger(code.value)
+    ) {
+        buttonDisabled.value = false
+    } else {
+        buttonDisabled.value = true
+    }
+}
+
 const onSubmit = async () => {
     if (!agreement.value) {
-        $toast('请阅读并同意协议')
+        // $toast('请阅读并同意协议')
+        dialogShow.value = true
         return false
     }
     try {
@@ -283,6 +334,15 @@ const onSubmit = async () => {
         }
         span {
             color: var(--primary-active-color);
+        }
+    }
+    :deep(.agreement-dialog) {
+        .van-dialog__content {
+            font-size: 14px;
+            padding: 20px;
+        }
+        button {
+            font-size: 14px;
         }
     }
 }

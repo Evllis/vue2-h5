@@ -127,6 +127,12 @@ body.van-overflow-hidden {
 //     }
 // }
 
+.van-button {
+    &--disabled {
+        background-color: var(--secondary-color) !important;
+    }
+}
+
 .van-cell {
     &.error-pos {
         .van-field__error-message {
