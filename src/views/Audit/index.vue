@@ -3,27 +3,33 @@
         <NavBar :title="auditParams.title" :left-arrow="false" :style="{ paddingLeft: '15px' }" />
         <div class="body-container audit-page__body">
             <div v-if="+auditStatus !== 3" class="flex flex-1 flex-col items-center justify-center -mt-16 audit-wrap">
-                <VanImage :src="auditParams.img" />
+                <VanImage v-if="auditParams.img" :src="auditParams.img" />
                 <!-- <p>{{ auditMsg }}</p> -->
-                <div v-if="+auditStatus === 2" class="flex flex-col items-center justify-center w-4/5">
+                <div v-if="+auditStatus === 2" class="flex flex-col items-center justify-center w-7/10">
                     <p>您的业务申请已提交，预计T+1审核完成</p>
                     <!-- <VanButton block type="info" native-type="button" class="submit-button">确定</VanButton> -->
                 </div>
-                <div v-if="+auditStatus === 5" class="flex flex-col items-center justify-center w-4/5">
-                    <p>业务申请已通过，请联系您的大客经理确认协议内容</p>
-                </div>
-                <div v-if="+auditStatus === 4" class="flex flex-col items-center justify-center w-4/5">
-                    <p>您司不符合准入标准，{{ auditExpireTime }}可再次提交审核</p>
+                <div v-if="+auditStatus === 4" class="flex flex-col items-center justify-center w-7/10">
+                    <p>您提交的业务申请不符合我司标准，敬请谅解!</p>
+                    <p class="!mt-0">{{ auditExpireTime }}后可重新提交</p>
                     <!-- <VanButton block type="info" native-type="button" class="submit-button">完成</VanButton> -->
+                </div>
+                <div v-if="+auditStatus === 5" class="flex flex-col items-center justify-center w-7/10">
+                    <p>您提交的业务申请已通过，我们将尽快联系您确定协议内容</p>
+                    <p>张三 1888888888</p>
+                </div>
+                <div v-if="+auditStatus === 8" class="flex flex-col items-center justify-center w-7/10">
+                    <p>协议内容有误，我们将尽快联系与您重新确定协议内容</p>
                 </div>
             </div>
             <!-- <div v-if="+auditStatus === 3">
                 <Preview :isSubmit="true" />
             </div> -->
-            <div v-else class="form-wrap !p-0" :style="{ backgroundColor: '#F8F8F8', paddingTop: '20px' }">
+            <div v-else class="form-wrap !p-0" :style="{ paddingTop: '20px' }">
+                <div class="audit-msg">抱歉，您的业务申请需要调整，请根据以下给出建议调整后重新提交：</div>
                 <div class="mt-0 !p-15px scroll-wrap">
                     <ul class="package-list">
-                        <li v-for="item in auditList" :key="item.step" class="package-item">
+                        <!-- <li v-for="item in auditList" :key="item.step" class="package-item">
                             <div class="flex items-center package-body">
                                 <div class="flex-1 flex flex-col package-wrap !mr-10px">
                                     <div class="flex package-info text-[var(--secondary-color)]">
@@ -44,12 +50,20 @@
                                     >
                                 </div>
                             </div>
+                        </li> -->
+                        <li v-for="item in auditList" :key="item.step" class="package-item">
+                            1. xxxxxxxxxxxxxxxxxxxxxxxxxxxxx<a
+                                href="javascript:void(0);"
+                                class="package-btn"
+                                @click="modifyAudit(item)"
+                                >去处理></a
+                            >
                         </li>
                     </ul>
                 </div>
                 <div class="flex submit-footer">
                     <VanButton block type="info" native-type="button" class="submit-button !m-0" @click="submitData"
-                        >全部提交</VanButton
+                        >提交</VanButton
                     >
                 </div>
             </div>
@@ -58,7 +72,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed, getCurrentInstance } from 'vue'
+import { onMounted, ref, reactive, computed, getCurrentInstance } from 'vue'
 import { NavBar, Image as VanImage } from 'vant'
 import { useCache } from '@/hooks/useCache'
 import { isEmpty } from 'lodash-es'
@@ -84,32 +98,38 @@ const auditList = ref([])
 const contractUrl = ref('')
 // const auditMsg = ref('')
 
-const auditParams = computed(() => {
-    if (+auditStatus.value === 2) {
-        return {
+const statusMap = reactive({
+    data: {
+        2: {
             img: auditIng,
             title: '审核中'
-        }
-    } else if (+auditStatus.value === 3) {
-        return {
-            img: auditIng,
+        },
+        3: {
+            img: '',
             title: '审核驳回'
-        }
-    } else if (+auditStatus.value === 4) {
-        return {
+        },
+        4: {
             img: auditFail,
             title: '审核拒绝'
-        }
-    } else if (+auditStatus.value === 5) {
-        return {
+        },
+        5: {
             img: auditSucc,
             title: '审核通过'
+        },
+        8: {
+            img: auditSucc,
+            title: '签署协议'
         }
     }
-    return {
-        img: auditFail,
-        title: ''
-    }
+})
+
+const auditParams = computed(() => {
+    return (
+        statusMap.data[auditStatus.value] || {
+            img: '',
+            title: ''
+        }
+    )
 })
 
 const modifyAudit = async item => {
@@ -161,7 +181,8 @@ onMounted(async () => {
                 wsCache.delete('signReject')
                 wsCache.delete('isSignSuccess')
                 // 旧 - res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
-                // 新 - 审核状态：1-未提交 2-资质审核中 3-资质驳回 4-资质拒绝 5-协议待上传 6-协议待签署 7-协议已签署 8-协议驳回
+                // 新 - 审核状态：1-未提交 2-资质审核中 3-资质驳回 4-资质拒绝 5-协议待上传(审核通过,协议未确认状态) 6-协议待签署 7-协议已签署 8-协议驳回(复核协议未通过)
+                res.data.auditStatus = 3
                 auditStatus.value = res.data.auditStatus
                 // 审核失效时间 auditStatus = 4 时存在
                 auditExpireTime.value = res.data.auditExpireTime || ''
@@ -188,12 +209,12 @@ onMounted(async () => {
                         name: 'Sign'
                     })
                 }
-                if (+auditStatus.value === 8) {
-                    wsCache.set('signReject', true)
-                    router.push({
-                        name: 'Sign'
-                    })
-                }
+                // if (+auditStatus.value === 8) {
+                //     wsCache.set('signReject', true)
+                //     router.push({
+                //         name: 'Sign'
+                //     })
+                // }
             }
         } catch (err) {
             return false
@@ -288,6 +309,21 @@ onMounted(async () => {
                     background-color: #ffccae;
                 }
             }
+        }
+        .audit-msg {
+            font-size: 14px;
+            line-height: 19px;
+            padding: 22px 15px 0 15px;
+        }
+        .package-item {
+            padding: 0;
+            line-height: 19px;
+            word-break: break-all;
+        }
+        .package-btn {
+            color: #ff5f01;
+            text-decoration: underline;
+            margin-left: 4px;
         }
     }
     :deep(.van-cell.custom-wrap) {

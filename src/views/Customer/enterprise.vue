@@ -323,7 +323,7 @@ const rules = reactive({
 })
 
 const onClickLeft = () => {
-    router.push({ name: 'Customer' })
+    router.push({ name: 'List' })
 }
 
 const afterRead = (file, details) => {
