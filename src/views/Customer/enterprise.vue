@@ -377,11 +377,6 @@ const onSubmit = async () => {
                     data: formData.data
                 })
                 if (!isEmpty(res)) {
-                    // Person: 经办人, Operator: 门头
-                    // const type = wsCache.get('role') === '1' ? 'Operator' : 'Person'
-                    // 这里需要判断身份, 跳转不同的页面
-                    // 经办人: Person, 企业门头: Operator
-                    // const enterpriseId = wsCache.get('enterpriseId')
                     if (!enterpriseId.value) {
                         wsCache.set('enterpriseId', res.data.id)
                     }
@@ -395,16 +390,8 @@ const onSubmit = async () => {
 }
 
 onMounted(async () => {
-    const phone = wsCache.get('phone') || ''
     enterpriseId.value = wsCache.get('enterpriseId') || ''
-    const role = wsCache.get('role')
     editAudit.value = $store.getters.editAudit
-    if (phone) {
-        isDisabled.value = +role === 1
-        if (isDisabled.value) {
-            formData.data.corporatePhone = phone
-        }
-    }
     if (enterpriseId.value) {
         try {
             const res = await findEnterpriseInfo({
@@ -415,11 +402,7 @@ onMounted(async () => {
             })
             if (!isEmpty(res.data)) {
                 if (res.data.businessLicense) {
-                    isDisabled.value = +role === 1
                     formData.data = res.data
-                    if (!isDisabled.value) {
-                        formData.data.corporatePhone = ''
-                    }
                     if (formData.data.industryType) {
                         placeholderShow.value = false
                         formData.data.industryType = `${formData.data.industryType}`

@@ -10,7 +10,7 @@
 <script setup>
 import { ref, onMounted, getCurrentInstance } from 'vue'
 import { NavBar } from 'vant'
-import router from '@/router'
+// import router from '@/router'
 
 import Preview from '@/components/Preview'
 
@@ -20,7 +20,7 @@ const { $store } = instance.proxy
 const editAudit = ref(false)
 
 const onClickLeft = () => {
-    router.push({ name: 'Receipt' })
+    // router.push({ name: 'Receipt' })
 }
 
 onMounted(async () => {

@@ -39,8 +39,8 @@ const { defineConfig } = require('@vue/cli-service')
 // }
 
 module.exports = defineConfig({
-    publicPath: './', // 署应用包时的基本 URL。 vue-router hash 模式使用
-    //  publicPath: '/app/', //署应用包时的基本 URL。  vue-router history模式使用
+    // publicPath: './', // 署应用包时的基本 URL。 vue-router hash 模式使用
+    publicPath: '/app/', //署应用包时的基本 URL。  vue-router history模式使用
     outputDir: 'dist', //  生产环境构建文件的目录
     assetsDir: 'static', //  outputDir的静态资源(js、css、img、fonts)目录
     lintOnSave: !IS_PROD,
@@ -49,6 +49,7 @@ module.exports = defineConfig({
         port: 9020, // 端口
         host: '0.0.0.0',
         open: false, // 启动后打开浏览器
+        https: true,
         client: {
             overlay: {
                 //  当出现编译器错误或警告时，在浏览器中显示全屏覆盖层
@@ -58,15 +59,6 @@ module.exports = defineConfig({
         },
         proxy: {
             //配置跨域
-            // '/api': {
-            //     target: 'https://www.techwis.cn',
-            //     // ws:true,
-            //     changOrigin: true,
-            //     secure: false,
-            //     pathRewrite: {
-            //         '^/api': '/'
-            //     }
-            // }
             '/api': {
                 target: 'https://www.techwis.cn',
                 changeOrigin: true,

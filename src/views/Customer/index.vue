@@ -1,6 +1,6 @@
 <template>
     <div class="relative customer-index">
-        <NavBar title="企业基本信息" left-arrow />
+        <NavBar title="补充信息" left-arrow />
         <div class="flex customer-index__body">
             <div class="flex-1 customer-index__wrap">
                 <Form @submit="onSubmit" :validate-first="true" :validate-trigger="'onSubmit'">

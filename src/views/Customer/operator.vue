@@ -134,9 +134,6 @@
                         @click="backRouter"
                         >上一步</VanButton
                     >
-                    <!-- <VanButton block type="info" native-type="submit" class="submit-button">{{
-                        editAudit ? '提交' : '下一步'
-                    }}</VanButton> -->
                     <VanButton block type="info" native-type="submit" class="submit-button">提交</VanButton>
                 </div>
             </Form>
@@ -180,13 +177,6 @@
                 </div>
             </Popup>
             <Popup v-model="showPicker" position="bottom" get-container="#app" @open="popupOpen">
-                <!-- <Area
-                :area-list="areaList.data"
-                :columns-num="2"
-                :value="areaValue"
-                @confirm="onConfirm"
-                @cancel="showPicker = false"
-            /> -->
                 <Picker
                     show-toolbar
                     ref="areaRef"
@@ -258,6 +248,7 @@ const formData = reactive({
         unicomCityCode: '' // 归属联通市code
     }
 })
+
 const areaIndex = reactive({
     data: {
         province: 0,
@@ -299,8 +290,7 @@ const rules = reactive({
 })
 
 const backRouter = () => {
-    const name = wsCache.get('role') === '1' ? 'Enterprise' : 'Person'
-    router.push({ name })
+    router.push({ name: 'Enterprise' })
 }
 
 const previewExample = () => {
@@ -311,7 +301,6 @@ const popupOpen = async () => {
     await nextTick()
     areaRef.value.setColumnIndex(0, areaIndex.data.province)
     areaRef.value.setColumnIndex(1, areaIndex.data.city)
-    console.log(areaIndex.data)
 }
 
 const onConfirm = (columns, indexs) => {
@@ -422,12 +411,8 @@ const onSubmit = async () => {
                         unicomCityCode: selectAreaData.value[1].code,
                         type: editAudit.value ? '2' : '1'
                     })
-                    console.log(33333333, data)
-                    await submitEnterpriseSocialSecurityV2({
-                        data: formData.data
-                    })
+                    await submitEnterpriseSocialSecurityV2({ data })
                     wsCache.set('socialSecurityNumber', formData.data.socialSecurityNumber)
-                    // router.push({ name: !editAudit.value ? 'Cooperate' : 'Audit' })
                     router.push({ name: 'Audit' })
                 } catch (err) {
                     return false
@@ -496,6 +481,21 @@ onMounted(async () => {
                               }
                           })
                         : []
+                    unicomProvinceText.value = `${formData.data.unicomProvince} / ${formData.data.unicomCity}`
+                    const provinceIndex = areaList.value.findIndex(
+                        item => item.code === formData.data.unicomProvinceCode
+                    )
+                    const cityIndex = areaList.value[provinceIndex].children.findIndex(
+                        item => item.code === formData.data.unicomCityCode
+                    )
+                    areaIndex.data = {
+                        province: provinceIndex,
+                        city: cityIndex
+                    }
+                    selectAreaData.value = [
+                        { name: formData.data.unicomProvince, code: formData.data.unicomProvinceCode },
+                        { name: formData.data.unicomCity, code: formData.data.unicomCityCode }
+                    ]
                 }
             }
         } catch (err) {

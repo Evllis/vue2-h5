@@ -2,7 +2,7 @@ import api from './index'
 // axios
 import request from '@/utils/request'
 
-// 设置用户身份
+// 文件上传
 export const uploadFile = d => {
     return request({
         url: api.Common.uploadFile,
@@ -33,6 +33,15 @@ export const updateStep = (d = {}) => {
 export const queryLicenseNum = (d = {}) => {
     return request({
         url: api.Common.queryLicenseNum,
+        method: 'post',
+        ...d
+    })
+}
+
+// 微信js-sdk签名
+export const shareContract = (d = {}) => {
+    return request({
+        url: api.Common.shareContract,
         method: 'post',
         ...d
     })

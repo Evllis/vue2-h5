@@ -1,54 +1,17 @@
 <template>
     <div class="sign-page">
-        <NavBar :title="title" :left-arrow="false" :style="{ paddingLeft: '15px' }" />
+        <NavBar :title="title" left-arrow @click-left="backRouter" />
         <div class="body-container sign-page__body">
-            <!-- <div class="loading-wrap">
-                <Loading />
-            </div> -->
-            <Form v-if="!isSign">
-                <div class="flex items-center flex-col buttons" v-if="isSignSuccess">
-                    <Button plain type="primary" native-type="button" @click="focusBig" class="mb-10px">
-                        <Icon name="plus" />
-                        <span class="span-text block">放大</span>
-                    </Button>
-                    <Button plain type="primary" native-type="button" @click="focusSmall" class="mb-10px">
-                        <Icon name="minus" />
-                        <span class="span-text block">缩小</span>
-                    </Button>
-                    <Button plain type="primary" native-type="button" class="save-pdf" @click="savePdf">
-                        <VanImage :src="savePdfIcon" class="w-20px h-20px" />
-                        <span class="span-text block">保存协议</span>
-                    </Button>
+            <div class="form-wrap">
+                <div class="form-item">
+                    <div>{{ contractCode }}</div>
+                    <a href="javascript:void(0);" class="link" @click="savePdf">下载</a>
                 </div>
-                <div class="form-wrap pt-25px">
-                    <div
-                        v-if="isRender"
-                        id="preview-pdf"
-                        :style="{ transform: `scale(${scale})`, 'transform-origin': 'left top' }"
-                    >
-                        <pdf
-                            :src="pdfdata"
-                            v-for="i in numPages"
-                            :key="i"
-                            :id="i"
-                            :page="i"
-                            :annotation="false"
-                            :text="true"
-                            :resize="true"
-                            @link-clicked="handle_pdf_link"
-                            class="relative"
-                        />
-                    </div>
-                </div>
-                <div v-if="!isSignSuccess" class="submit-footer">
-                    <VanButton block type="info" native-type="button" class="submit-button" @click="userSign"
-                        >确定</VanButton
-                    >
-                </div>
-            </Form>
-            <div v-if="signReject" class="flex flex-ai flex-col items-center sing-success mt-1/3">
-                <VanImage :src="auditFail" class="mb-24px" />
-                <p class="text-center">协议内容有误，请联系您的大客户经理确认协议内容</p>
+            </div>
+            <div class="submit-footer">
+                <VanButton block type="info" native-type="button" class="submit-button" @click="shareSign"
+                    >分享给客户：{{ enterpriseName }}</VanButton
+                >
             </div>
         </div>
         <Popup
@@ -109,20 +72,17 @@
 
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance, nextTick } from 'vue'
-import { NavBar, Form, Field, Image as VanImage, Button, Icon, Popup } from 'vant'
-import pdf from 'pdfvuer'
-import 'pdfjs-dist/build/pdf.worker.entry' // not needed since v1.9.1
+import { NavBar, Form, Field, Popup } from 'vant'
 import router from '@/router'
 import axios from 'axios'
+import NativeShare from 'nativeshare'
 import { isPhone, digitInteger } from '@/utils/validate'
 
 import { getRealName, realNameAuth, realNameSendMsg, signContract } from '@/api/sign'
-import { queryAudit } from '@/api/audit'
+import { shareContract } from '@/api/common'
 
 import { hideName, hideIdCard } from '@/utils'
 import { useCache } from '@/hooks/useCache'
-import auditFail from '@/assets/img/audit-fail.png'
-import savePdfIcon from '@/assets/icon/save-pdf-icon.png'
 import { isEmpty } from 'lodash-es'
 
 const { wsCache } = useCache()
@@ -148,7 +108,6 @@ const codeButton = reactive({
 })
 
 const IS_STAGING = process.env.VUE_APP_ENV === 'staging'
-const isRender = ref(true)
 const code = ref('')
 const title = ref('签署协议')
 const formRef = ref()
@@ -172,15 +131,21 @@ const corporate = reactive({
 
 const show = ref(false)
 
-const pdfdata = ref(undefined)
-const numPages = ref(0)
-const scale = ref(1)
 const codeTimer = ref(0)
 const codeTime = ref(60)
 const sendButtonDisabled = ref(false)
 const isSignSuccess = ref(false)
 const signReject = ref(false)
 const pdfUrl = ref('')
+const weixinConfig = reactive({
+    data: {}
+})
+const contractCode = ref('')
+const enterpriseName = ref('')
+
+const backRouter = () => {
+    router.push({ name: 'Login' })
+}
 
 // 获取手机验证码
 const getCode = () => {
@@ -270,7 +235,6 @@ const getRealNameAccess = async () => {
             }
         })
         if (!isEmpty(res)) {
-            // eslint-disable-next-line prettier/prettier
             formData.value = { ...res.data }
             corporate.data = {
                 corporateName: res.data.corporateName ? hideName(res.data.corporateName) : '',
@@ -278,17 +242,6 @@ const getRealNameAccess = async () => {
                 corporatePhone: res.data.corporatePhone
             }
         }
-    }
-}
-
-const userSign = () => {
-    show.value = true
-}
-
-const focusBig = () => {
-    scale.value = scale.value + 0.1
-    if (scale.value >= 2) {
-        scale.value = 2
     }
 }
 
@@ -305,14 +258,13 @@ const savePdf = () => {
         forbidClick: true
     })
     axios(pdfUrl.value, {
-        //pdf的位置
-        responseType: 'blob' //重要代码
+        responseType: 'blob'
     }).then(res => {
         const customUrl = pdfUrl.value.split('/')
         const name = customUrl[customUrl.length - 1].split('.')[0]
         const url = window.URL.createObjectURL(new Blob([res.data]))
         const link = document.createElement('a')
-        const fileName = `${name || 'download'}.pdf` //保存到本地的文件名称
+        const fileName = `${name || 'download'}.pdf`
         link.href = url
         link.setAttribute('download', fileName)
         document.body.appendChild(link)
@@ -322,37 +274,40 @@ const savePdf = () => {
     })
 }
 
-const focusSmall = () => {
-    scale.value = scale.value - 0.1
-    if (scale.value <= 1) {
-        scale.value = 1
+const shareSign = () => {
+    const nativeShare = new NativeShare()
+
+    const shareData = {
+        title: 'NativeShare',
+        desc: 'NativeShare是一个整合了各大移动端浏览器调用原生分享的插件',
+        // 如果是微信该link的域名必须要在微信后台配置的安全域名之内的。
+        link: 'https://github.com/fa-ge/NativeShare',
+        icon: 'https://pic3.zhimg.com/v2-080267af84aa0e97c66d5f12e311c3d6_xl.jpg',
+        // 不要过于依赖以下两个回调，很多浏览器是不支持的
+        success() {
+            alert('success')
+        },
+        fail() {
+            alert('fail')
+        }
     }
-}
 
-// const getElement = (parent, children) => {
-//     let timer = 0
-//     return new Promise(reject => {
-//         timer = setInterval(() => {
-//             const res = parent && parent.querySelector(children)
-//             if (res) {
-//                 clearInterval(timer)
-//                 reject(res)
-//             }
-//         }, 500)
-//     })
-// }
-// const getLoadSuccess = async () => {
-//     const previewPdf = document.querySelector('#preview-pdf')
-//     const isChildren = await getElement(previewPdf, 'div')
-//     const textLayer = await getElement(isChildren, '.textLayer')
-//     if (textLayer) {
-//         document.querySelector('html').classList.remove('overflow-hidden')
-//     }
-// }
+    nativeShare.setShareData(shareData)
 
-const handle_pdf_link = params => {
-    const page = document.getElementById(String(params.pageNumber))
-    page.scrollIntoView()
+    try {
+        nativeShare.call()
+        // 如果是分享到微信则需要 nativeShare.call('wechatFriend')
+        // 类似的命令有
+        //  default 默认，调用起底部的分享组件，当其他命令不支持的时候也会调用该命令
+        //  wechatTimeline 分享到朋友圈
+        //  wechatFriend 分享给微信好友
+        //  qqFriend 分享给QQ好友
+        //  qZone 分享到QQ空间
+        // $toast.success('支持')
+    } catch (err) {
+        // 如果不支持，你可以在这里做降级处理
+        $toast.fail('您的浏览器不支持该分享功能，请手动复制链接!')
+    }
 }
 
 const onSubmit = async () => {
@@ -387,37 +342,13 @@ const onSubmit = async () => {
                     isSignSuccess.value = true
                     wsCache.delete('pdfurl')
                     $toast.success({
-                        message: '签署成功',
-                        onClose: () => {
-                            renderPdf(res.data.contractUrl, true)
-                        }
+                        message: '签署成功'
                     })
-                    // window.location.reload()
                 } else {
                     $toast.fail(res.returnMsg || '签署失败')
                 }
             } catch (err) {
                 $toast.fail('签署失败')
-                // isSignSuccess.value = true
-                // wsCache.delete('pdfurl')
-                // $toast.success({
-                //     message: '签署成功',
-                //     onClose: () => {
-                //         $toast.loading({
-                //             message: '正在生成...',
-                //             duration: 0,
-                //             forbidClick: true,
-                //             loadingType: 'spinner'
-                //         })
-                //         renderPdf(
-                //             'www.techwis.cn/commercialEnterprise/contractFile/contract/河北2023071098610.pdf',
-                //             true
-                //         )
-                //     }
-                // })
-                // renderPdf('www.techwis.cn/commercialEnterprise/contractFile/contract/河北2023071098610.pdf', true)
-                // https://www.techwis.cn/commercialEnterprise/contractFile/contract/20230421901650704773.pdf
-                // www.techwis.cn/commercialEnterprise/contractFile/contract/河北2023071098610.pdf
             }
         })
         .catch(() => {})
@@ -430,67 +361,25 @@ const filterProtocol = url => {
     return url
 }
 
-const renderPdf = (url, render) => {
-    $toast.loading({
-        message: '正在生成...',
-        duration: 0,
-        forbidClick: true,
-        loadingType: 'spinner'
-    })
-    if (render) {
-        isRender.value = false
-    }
-    let pdfURL = ''
-    if (IS_STAGING) {
-        pdfURL = `${location.origin}/api/${url.split('www.techwis.cn/')[1]}`
-    } else {
-        pdfURL = filterProtocol(url)
-    }
-    pdfUrl.value = pdfURL
-    pdfdata.value = pdf.createLoadingTask({
-        url: pdfURL,
-        cMapPacked: true,
-        withCredentials: true,
-        cMapUrl: './pdf/cmaps/'
-    })
-    pdfdata.value.then(pdf => {
-        numPages.value = pdf.numPages
-        if (render) {
-            setTimeout(() => {
-                isRender.value = true
-                $toast.clear()
-                // getLoadSuccess()
-            }, 2000)
-        } else {
-            // getLoadSuccess()
+const getWeixinConfig = async () => {
+    const res = await shareContract({
+        data: {
+            url: window.location.href
         }
     })
-}
-
-const getPdfUrl = async () => {
-    const enterpriseId = wsCache.get('enterpriseId') || ''
-    const token = wsCache.get('token') || ''
-    if (enterpriseId && token) {
-        const res = await queryAudit({
-            headers: {
-                Authorization: token
-            },
-            data: {
-                enterpriseId: enterpriseId
-            },
-            hideloading: true
-        })
-        return res.data.contractUrl
-    }
-    return ''
+    console.log(res)
 }
 
 onMounted(async () => {
-    // document.querySelector('html').classList.add('overflow-hidden')
+    var broser = window.navigator.userAgent.toLowerCase()
+    if (broser.match(/MicroMessenger/i) == 'micromessenger') {
+        getWeixinConfig()
+    }
+    getWeixinConfig()
+    console.log(weixinConfig.data)
+    contractCode.value = wsCache.get('contractCode') || ''
+    enterpriseName.value = wsCache.get('enterpriseName') || ''
     let url = wsCache.get('pdfurl')
-    // url = 'www.techwis.cn/commercialEnterprise/contractFile/contract/20230421901650704771.pdf'
-    // 第一次不需要获取pdfurl, 之后每次刷新页面都需要重新获取pdfurl
-    wsCache.delete('pdfurl')
     const signReject1 = wsCache.get('signReject')
     const isSignSuccess1 = wsCache.get('isSignSuccess')
     isSign.value = !!router.currentRoute.params.isSign
@@ -499,14 +388,14 @@ onMounted(async () => {
     }
     if (signReject1) {
         signReject.value = true
-        // document.querySelector('html').classList.remove('overflow-hidden')
         isSign.value = true
     }
     if (url) {
-        renderPdf(decodeURIComponent(url), true)
-    } else {
-        const pdfUrl = await getPdfUrl()
-        renderPdf(decodeURIComponent(pdfUrl), true)
+        if (IS_STAGING) {
+            pdfUrl.value = `${location.origin}/api/${decodeURIComponent(url).split('www.techwis.cn/')[1]}`
+        } else {
+            pdfUrl.value = filterProtocol(decodeURIComponent(url))
+        }
     }
 })
 </script>
@@ -528,6 +417,22 @@ html {
     }
 }
 .sign-page {
+    .form-wrap {
+        background-color: #fbfbfb;
+    }
+    .form-item {
+        padding: 16px 0;
+        font-size: 14px;
+        color: #2a314d;
+        line-height: 14px;
+        display: flex;
+        justify-content: space-between;
+        background-color: white;
+        .link {
+            color: #ff5f01;
+            text-decoration: underline;
+        }
+    }
     .buttons {
         position: fixed;
         right: 15px;

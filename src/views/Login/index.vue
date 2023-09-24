@@ -191,7 +191,6 @@ const validateInput = () => {
 
 const onSubmit = async () => {
     if (!agreement.value) {
-        // $toast('请阅读并同意协议')
         dialogShow.value = true
         return false
     }
@@ -204,9 +203,6 @@ const onSubmit = async () => {
             if (res.data.step) {
                 routerName = stepMap.value[res.data.step]
                 wsCache.set('step', res.data.step)
-            }
-            if (res.data.role) {
-                wsCache.set('role', res.data.role)
             }
             if (res.data.enterpriseId) {
                 wsCache.set('enterpriseId', res.data.enterpriseId)

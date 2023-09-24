@@ -61,12 +61,6 @@ export const asyncRouterMap = [
                 meta: { title: '客户基本信息', keepAlive: false }
             },
             {
-                path: 'person',
-                name: 'Person',
-                component: () => import('@/views/Customer/person.vue'),
-                meta: { title: '企业经办人信息', keepAlive: false }
-            },
-            {
                 path: 'operator',
                 name: 'Operator',
                 component: () => import('@/views/Customer/operator.vue'),
@@ -86,91 +80,6 @@ export const asyncRouterMap = [
             }
         ]
     },
-    {
-        path: '/cooperate',
-        component: () => import('@/views/Layouts/index'),
-        redirect: '/cooperate/home',
-        meta: {
-            title: '客户经理信息绑定',
-            keepAlive: false
-        },
-        children: [
-            {
-                path: 'home',
-                name: 'Cooperate',
-                component: () => import('@/views/Cooperate/index'),
-                meta: { title: '客户经理信息绑定', keepAlive: false }
-            }
-        ]
-    },
-    // {
-    //     path: '/network',
-    //     component: () => import('@/views/Layouts/index'),
-    //     redirect: '/network/home',
-    //     meta: {
-    //         title: '入网清单',
-    //         keepAlive: false
-    //     },
-    //     children: [
-    //         {
-    //             path: 'home',
-    //             name: 'Network',
-    //             component: () => import('@/views/Network/index'),
-    //             meta: { title: '入网清单', keepAlive: false }
-    //         }
-    //     ]
-    // },
-    // {
-    //     path: '/procurement',
-    //     component: () => import('@/views/Layouts/index'),
-    //     redirect: '/procurement/home',
-    //     meta: {
-    //         title: '采购清单',
-    //         keepAlive: false
-    //     },
-    //     children: [
-    //         {
-    //             path: 'home',
-    //             name: 'Procurement',
-    //             component: () => import('@/views/Procurement/index'),
-    //             meta: { title: '采购清单', keepAlive: false }
-    //         }
-    //     ]
-    // },
-    // {
-    //     path: '/receipt',
-    //     component: () => import('@/views/Layouts/index'),
-    //     redirect: '/receipt/home',
-    //     meta: {
-    //         title: '合同预填写',
-    //         keepAlive: false
-    //     },
-    //     children: [
-    //         {
-    //             path: 'home',
-    //             name: 'Receipt',
-    //             component: () => import('@/views/Receipt/index'),
-    //             meta: { title: '合同预填写', keepAlive: false }
-    //         }
-    //     ]
-    // },
-    // {
-    //     path: '/preview',
-    //     component: () => import('@/views/Layouts/index'),
-    //     redirect: '/preview/home',
-    //     meta: {
-    //         title: '协议预览',
-    //         keepAlive: false
-    //     },
-    //     children: [
-    //         {
-    //             path: 'home',
-    //             name: 'Preview',
-    //             component: () => import('@/views/Preview/index'),
-    //             meta: { title: '协议预览', keepAlive: false }
-    //         }
-    //     ]
-    // },
     {
         path: '/audit',
         component: () => import('@/views/Layouts/index'),
