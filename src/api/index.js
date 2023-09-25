@@ -37,7 +37,7 @@ const api = {
         regionInfo: `${apiPrefix}/region/regionInfo`,
         updateStep: `${apiPrefix}/commercialEnterprise/updateStep`,
         queryLicenseNum: `${apiPrefix}/commercialEnterprise/queryLicenseNum`,
-        shareContract: `${apiPrefix}/weChat/shareContract`
+        getJsSdkConfig: `${apiPrefix}/weChat/getJsSdkConfig`
     }
 }
 

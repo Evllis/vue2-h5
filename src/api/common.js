@@ -39,9 +39,9 @@ export const queryLicenseNum = (d = {}) => {
 }
 
 // 微信js-sdk签名
-export const shareContract = (d = {}) => {
+export const getJsSdkConfig = (d = {}) => {
     return request({
-        url: api.Common.shareContract,
+        url: api.Common.getJsSdkConfig,
         method: 'post',
         ...d
     })

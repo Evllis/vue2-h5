@@ -79,7 +79,7 @@ import NativeShare from 'nativeshare'
 import { isPhone, digitInteger } from '@/utils/validate'
 
 import { getRealName, realNameAuth, realNameSendMsg, signContract } from '@/api/sign'
-import { shareContract } from '@/api/common'
+import { getJsSdkConfig } from '@/api/common'
 
 import { hideName, hideIdCard } from '@/utils'
 import { isBrowser } from '@/utils/is'
@@ -400,9 +400,9 @@ const filterProtocol = url => {
 }
 
 const getWeixinConfig = async () => {
-    const res = await shareContract({
+    const res = await getJsSdkConfig({
         data: {
-            url: window.location.href
+            url: window.location.href.split('#')[0]
         }
     })
     if (res.returnCode === '1000') {
@@ -434,6 +434,7 @@ onMounted(async () => {
     if (broser.match(/MicroMessenger/i) == 'micromessenger') {
         getWeixinConfig()
     }
+    getWeixinConfig()
     setShareData()
     let url = wsCache.get('pdfurl')
     const signReject1 = wsCache.get('signReject')
