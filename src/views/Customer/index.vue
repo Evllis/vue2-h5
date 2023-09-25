@@ -1,6 +1,6 @@
 <template>
     <div class="relative customer-index">
-        <NavBar title="补充信息" left-arrow />
+        <NavBar title="补充信息" :style="{ paddingLeft: '15px' }" />
         <div class="flex customer-index__body">
             <div class="flex-1 customer-index__wrap">
                 <Form @submit="onSubmit" :validate-first="true" :validate-trigger="'onSubmit'">
@@ -8,7 +8,8 @@
                         v-model="formData.data.customerName"
                         :rules="rules.customerName"
                         name="customerName"
-                        label="姓名"
+                        label=""
+                        class="mb-15px flex-row error-pos"
                         placeholder="请填写姓名"
                         @input="validateInput"
                     />
@@ -16,7 +17,8 @@
                         v-model="formData.data.customerNumber"
                         :rules="rules.customerNumber"
                         name="customerNumber"
-                        label="工号"
+                        label=""
+                        class="mb-15px flex-row error-pos"
                         placeholder="请填写工号"
                         @input="validateInput"
                     />
@@ -84,50 +86,53 @@ const validateInput = () => {
 
 <style lang="scss" scoped>
 .customer-index {
-    &::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 2;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
     &__body {
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 100%;
-        transform: translateY(-50%);
-        z-index: 3;
+        flex: 1;
+        padding-top: 46px;
     }
     &__wrap {
         border-radius: 10px;
         background-color: white;
-        margin: 0 35px;
-        padding: 33px 15px 0 15px;
+        padding: 33px 45px 0 45px;
         color: var(--primary-text-color);
         h3 {
             font-size: 13px;
             margin-bottom: 12px;
         }
     }
+    :deep(.van-cell) {
+        display: flex;
+        align-items: center;
+        border-radius: 10px;
+        height: 50px;
+        padding: 0 15px;
+        background-color: #f4f8fb;
+        font-size: 16px;
+        overflow: initial;
+        .van-field__body {
+            padding-bottom: 0;
+            flex: 1;
+            &::after {
+                display: none;
+            }
+        }
+        .van-cell__value {
+            display: flex;
+        }
+        .van-field__control {
+            line-height: inherit;
+        }
+    }
     .submit-button {
         background-color: var(--primary-active-color);
         margin-top: 23px;
-        line-height: 40px;
-        height: 40px;
+        line-height: 43px;
+        height: 43px;
         color: white;
         font-size: 15px;
         border-radius: 10px;
         border: 0;
-        position: absolute;
-        bottom: -60px;
-        left: 50%;
-        margin: 0;
-        width: 80%;
-        transform: translateX(-50%);
+        display: block;
     }
     :deep(.van-dropdown-item) {
         height: 88px;

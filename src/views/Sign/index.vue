@@ -4,7 +4,7 @@
         <div class="body-container sign-page__body">
             <div class="form-wrap">
                 <div class="form-item">
-                    <div>{{ contractCode }}</div>
+                    <div>《{{ contractCode }}》</div>
                     <a href="javascript:void(0);" class="link" @click="savePdf">下载</a>
                 </div>
             </div>
@@ -82,6 +82,8 @@ import { getRealName, realNameAuth, realNameSendMsg, signContract } from '@/api/
 import { shareContract } from '@/api/common'
 
 import { hideName, hideIdCard } from '@/utils'
+import { isBrowser } from '@/utils/is'
+import { weixinShare } from '@/utils/weixinShare'
 import { useCache } from '@/hooks/useCache'
 import { isEmpty } from 'lodash-es'
 
@@ -142,6 +144,8 @@ const weixinConfig = reactive({
 })
 const contractCode = ref('')
 const enterpriseName = ref('')
+const customerName = ref('')
+const linkUrl = ref('')
 
 const backRouter = () => {
     router.push({ name: 'Login' })
@@ -274,39 +278,73 @@ const savePdf = () => {
     })
 }
 
-const shareSign = () => {
-    const nativeShare = new NativeShare()
+const setShareData = () => {
+    if (isBrowser().safari) {
+        const meta1 = document.querySelector('#shareTitle')
+        meta1.content = '天安商企服务平台'
 
-    const shareData = {
-        title: 'NativeShare',
-        desc: 'NativeShare是一个整合了各大移动端浏览器调用原生分享的插件',
-        // 如果是微信该link的域名必须要在微信后台配置的安全域名之内的。
-        link: 'https://github.com/fa-ge/NativeShare',
-        icon: 'https://pic3.zhimg.com/v2-080267af84aa0e97c66d5f12e311c3d6_xl.jpg',
-        // 不要过于依赖以下两个回调，很多浏览器是不支持的
-        success() {
-            alert('success')
-        },
-        fail() {
-            alert('fail')
-        }
+        const meta2 = document.querySelector('#shareImage')
+        meta2.content = 'https://csdnimg.cn/medal/qixiebiaobing4@240.png'
+
+        const meta3 = document.querySelector('#shareDescription')
+        meta3.content = `您的大客经理${customerName.value}给您发送了一份协议（${contractCode.value}《集团客户服务协议》）并需要您签署，前往查看>`
     }
+}
 
-    nativeShare.setShareData(shareData)
-
-    try {
-        nativeShare.call()
-        // 如果是分享到微信则需要 nativeShare.call('wechatFriend')
-        // 类似的命令有
-        //  default 默认，调用起底部的分享组件，当其他命令不支持的时候也会调用该命令
-        //  wechatTimeline 分享到朋友圈
-        //  wechatFriend 分享给微信好友
-        //  qqFriend 分享给QQ好友
-        //  qZone 分享到QQ空间
-        // $toast.success('支持')
-    } catch (err) {
-        // 如果不支持，你可以在这里做降级处理
-        $toast.fail('您的浏览器不支持该分享功能，请手动复制链接!')
+const shareSign = async () => {
+    if (navigator.share) {
+        const blob = await axios('https://pic3.zhimg.com/v2-080267af84aa0e97c66d5f12e311c3d6_xl.jpg', {
+            responseType: 'blob'
+        }).then(res => res.data)
+        const file = new File([blob], 'v2-080267af84aa0e97c66d5f12e311c3d6_xl.jpg', { type: blob.type })
+        const filesArray = [file]
+        navigator
+            .share({
+                title: '天安商企服务平台',
+                files: filesArray,
+                text: `您的大客经理${customerName.value}给您发送了一份协议（${contractCode.value}《集团客户服务协议》）并需要您签署，前往查看>`,
+                url: window.location.href
+            })
+            .then(() => {
+                console.log('Thanks for sharing!')
+            })
+            .catch(console.error)
+    } else {
+        const nativeShare = new NativeShare()
+        const shareData = {
+            wechatConfig: {
+                appId: weixinConfig.data.appId,
+                nonceStr: weixinConfig.data.nonceStr,
+                signature: weixinConfig.data.signature,
+                timestamp: weixinConfig.data.timestamp
+            },
+            title: '天安商企服务平台',
+            desc: `您的大客经理${customerName.value}给您发送了一份协议（${contractCode.value}《集团客户服务协议》）并需要您签署，前往查看>`,
+            // 如果是微信该link的域名必须要在微信后台配置的安全域名之内的。
+            icon: 'https://pic3.zhimg.com/v2-080267af84aa0e97c66d5f12e311c3d6_xl.jpg',
+            // 不要过于依赖以下两个回调，很多浏览器是不支持的
+            success() {
+                alert('success')
+            },
+            fail() {
+                alert('fail')
+            }
+        }
+        nativeShare.setShareData(shareData)
+        try {
+            nativeShare.call('wechatFriend')
+            // 如果是分享到微信则需要 nativeShare.call('wechatFriend')
+            // 类似的命令有
+            //  default 默认，调用起底部的分享组件，当其他命令不支持的时候也会调用该命令
+            //  wechatTimeline 分享到朋友圈
+            //  wechatFriend 分享给微信好友
+            //  qqFriend 分享给QQ好友
+            //  qZone 分享到QQ空间
+            // $toast.success('支持')
+        } catch (err) {
+            // 如果不支持，你可以在这里做降级处理
+            $toast.fail('您的浏览器不支持该分享功能，请手动复制链接!')
+        }
     }
 }
 
@@ -367,18 +405,36 @@ const getWeixinConfig = async () => {
             url: window.location.href
         }
     })
-    console.log(res)
+    if (res.returnCode === '1000') {
+        weixinConfig.data = res.data
+        weixinShare(
+            {
+                appId: weixinConfig.data.appId,
+                nonceStr: weixinConfig.data.nonceStr,
+                signature: weixinConfig.data.signature,
+                timestamp: weixinConfig.data.timestamp,
+                jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
+            },
+            {
+                title: '天安商企服务平台',
+                desc: `您的大客经理${customerName.value}给您发送了一份协议（${contractCode.value}《集团客户服务协议》）并需要您签署，前往查看>`,
+                link: linkUrl.value,
+                imgUrl: 'https://csdnimg.cn/medal/qixiebiaobing4@240.png'
+            }
+        )
+    }
 }
 
 onMounted(async () => {
-    var broser = window.navigator.userAgent.toLowerCase()
+    contractCode.value = wsCache.get('contractCode') || ''
+    enterpriseName.value = wsCache.get('enterpriseName') || ''
+    customerName.value = wsCache.get('customerName') || ''
+    linkUrl.value = wsCache.get('linkUrl') || ''
+    const broser = window.navigator.userAgent.toLowerCase()
     if (broser.match(/MicroMessenger/i) == 'micromessenger') {
         getWeixinConfig()
     }
-    getWeixinConfig()
-    console.log(weixinConfig.data)
-    contractCode.value = wsCache.get('contractCode') || ''
-    enterpriseName.value = wsCache.get('enterpriseName') || ''
+    setShareData()
     let url = wsCache.get('pdfurl')
     const signReject1 = wsCache.get('signReject')
     const isSignSuccess1 = wsCache.get('isSignSuccess')

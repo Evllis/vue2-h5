@@ -148,6 +148,8 @@ onMounted(async () => {
                     contractUrl.value = res.data.contractUrl
                     wsCache.set('contractCode', res.data.contractCode)
                     wsCache.set('enterpriseName', res.data.enterpriseName)
+                    wsCache.set('customerName', res.data.customerName)
+                    wsCache.set('linkUrl', res.data.linkUrl)
                     wsCache.set('pdfurl', encodeURIComponent(contractUrl.value) || '')
                     router.push({
                         name: 'Sign'
