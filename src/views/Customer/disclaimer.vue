@@ -35,11 +35,11 @@ const backRouter = () => {
 <style lang="scss" scoped>
 .disclaimer-page {
     p {
-        font-size: 14px;
+        font-size: 16px;
         color: #2a314d;
-        line-height: 19px;
+        line-height: 22px;
         &.indent {
-            text-indent: 20px;
+            text-indent: 24px;
         }
     }
 }

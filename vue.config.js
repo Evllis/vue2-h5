@@ -1,4 +1,5 @@
 const path = require('path')
+const fs = require('fs')
 const defaultSettings = require('./src/config/index.js')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
@@ -49,7 +50,14 @@ module.exports = defineConfig({
         port: 9020, // 端口
         host: '0.0.0.0',
         open: false, // 启动后打开浏览器
-        https: true,
+        compress: true,
+        historyApiFallback: true,
+        allowedHosts: 'all',
+        https: {
+            key: fs.readFileSync(path.join(__dirname, './src/ssl/private.key')),
+            cert: fs.readFileSync(path.join(__dirname, './src/ssl/file.crt')),
+            ca: fs.readFileSync(path.join(__dirname, './src/ssl/file.crt'))
+        },
         client: {
             overlay: {
                 //  当出现编译器错误或警告时，在浏览器中显示全屏覆盖层

@@ -76,7 +76,7 @@
         <VanDialog
             v-model="dialogShow"
             class="agreement-dialog"
-            title="****协议"
+            title="信息授权协议"
             show-cancel-button
             confirm-button-text="同意"
             cancel-button-text="不同意"
@@ -85,7 +85,7 @@
             <div>
                 <p>
                     <span>在使用商企服务产品前，请仔细阅读</span>
-                    <a href="javascript:void(0);" style="color: #ff5f01" @click="show = true">****协议</a>。
+                    <a href="javascript:void(0);" style="color: #ff5f01" @click="show = true">信息授权协议</a>。
                 </p>
                 <p>如您点击“同意”则代表您已阅读并同意上述条款，不同意则无法继续使用我们的产品。</p>
             </div>

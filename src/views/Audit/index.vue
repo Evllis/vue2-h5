@@ -145,11 +145,16 @@ onMounted(async () => {
                     auditList.value = res.data.auditList.map(item => item)
                 }
                 if (+auditStatus.value === 6) {
+                    wsCache.set('linkUrl', res.data.linkUrl)
+                }
+                if (+auditStatus.value === 7) {
+                    wsCache.set('isSignSuccess', '1')
+                }
+                if (+auditStatus.value === 6 || +auditStatus.value === 7) {
                     contractUrl.value = res.data.contractUrl
                     wsCache.set('contractCode', res.data.contractCode)
                     wsCache.set('enterpriseName', res.data.enterpriseName)
                     wsCache.set('customerName', res.data.customerName)
-                    wsCache.set('linkUrl', res.data.linkUrl)
                     wsCache.set('pdfurl', encodeURIComponent(contractUrl.value) || '')
                     router.push({
                         name: 'Sign'

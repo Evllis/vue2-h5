@@ -1,14 +1,48 @@
 <template>
     <div class="sign-page">
-        <NavBar :title="title" left-arrow @click-left="backRouter" />
-        <div class="body-container sign-page__body">
-            <div class="form-wrap">
+        <NavBar :title="isSignSuccess ? '协议预览' : '签署协议'" left-arrow @click-left="backRouter" />
+        <div class="body-container sign-page__body" :style="isSignSuccess ? { 'padding-bottom': '0' } : ''">
+            <div class="form-wrap" :style="isSignSuccess ? { 'padding-bottom': '0' } : ''">
                 <div class="form-item">
-                    <div>《{{ contractCode }}》</div>
+                    <div class="title">
+                        <p>{{ contractCode }}</p>
+                        <p>《集团客户服务合同》</p>
+                    </div>
                     <a href="javascript:void(0);" class="link" @click="savePdf">下载</a>
                 </div>
+                <div v-if="isSignSuccess" class="pdf-cont flex-1">
+                    <div class="flex items-center flex-col buttons">
+                        <Button plain type="primary" native-type="button" @click="focusBig" class="mb-10px">
+                            <Icon name="plus" />
+                            <span class="span-text block">放大</span>
+                        </Button>
+                        <Button plain type="primary" native-type="button" @click="focusSmall" class="mb-10px">
+                            <Icon name="minus" />
+                            <span class="span-text block">缩小</span>
+                        </Button>
+                    </div>
+                    <div
+                        v-if="isRender"
+                        id="preview-pdf"
+                        :style="{ transform: `scale(${scale})`, 'transform-origin': 'left top' }"
+                    >
+                        <pdf
+                            :src="pdfdata"
+                            v-for="i in numPages"
+                            :key="i"
+                            :id="i"
+                            :page="i"
+                            :annotation="false"
+                            :text="true"
+                            :resize="true"
+                            :scaleNum="0.5"
+                            @link-clicked="handle_pdf_link"
+                            class="relative"
+                        />
+                    </div>
+                </div>
             </div>
-            <div class="submit-footer">
+            <div class="submit-footer" v-if="!isSignSuccess">
                 <VanButton block type="info" native-type="button" class="submit-button" @click="shareSign"
                     >分享给客户：{{ enterpriseName }}</VanButton
                 >
@@ -67,18 +101,28 @@
                 </div>
             </Form>
         </Popup>
+        <Overlay :show="overlayShow">
+            <div class="overlay-wrapper">
+                <img :src="overlayBg" class="overlay-bg" />
+                <img :src="overlayButton" class="overlay-button" @click.stop="overlayShow = false" />
+            </div>
+        </Overlay>
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance, nextTick } from 'vue'
-import { NavBar, Form, Field, Popup } from 'vant'
+import { NavBar, Form, Field, Popup, Overlay, Icon } from 'vant'
 import router from '@/router'
 import axios from 'axios'
+import pdf from 'pdfvuer'
+import 'pdfjs-dist/build/pdf.worker.entry' // not needed since v1.9.1
 import NativeShare from 'nativeshare'
+
 import { isPhone, digitInteger } from '@/utils/validate'
 
 import { getRealName, realNameAuth, realNameSendMsg, signContract } from '@/api/sign'
+import { queryAudit } from '@/api/audit'
 import { getJsSdkConfig } from '@/api/common'
 
 import { hideName, hideIdCard } from '@/utils'
@@ -86,6 +130,9 @@ import { isBrowser } from '@/utils/is'
 import { weixinShare } from '@/utils/weixinShare'
 import { useCache } from '@/hooks/useCache'
 import { isEmpty } from 'lodash-es'
+
+import overlayBg from '@/assets/img/overlay-bg.png'
+import overlayButton from '@/assets/img/overlay-button.png'
 
 const { wsCache } = useCache()
 const instance = getCurrentInstance()
@@ -111,10 +158,8 @@ const codeButton = reactive({
 
 const IS_STAGING = process.env.VUE_APP_ENV === 'staging'
 const code = ref('')
-const title = ref('签署协议')
 const formRef = ref()
 const phoneInputRef = ref()
-const isSign = ref(false)
 const phoneReadonly = ref(true)
 const isCodeSend = ref(false)
 const flowId = ref('')
@@ -132,12 +177,16 @@ const corporate = reactive({
 })
 
 const show = ref(false)
+const overlayShow = ref(false)
+const isRender = ref(true)
+const scale = ref(1)
+const numPages = ref(0)
+const pdfdata = ref(undefined)
 
 const codeTimer = ref(0)
 const codeTime = ref(60)
 const sendButtonDisabled = ref(false)
 const isSignSuccess = ref(false)
-const signReject = ref(false)
 const pdfUrl = ref('')
 const weixinConfig = reactive({
     data: {}
@@ -278,73 +327,65 @@ const savePdf = () => {
     })
 }
 
+const filterShareUrl = () =>
+    linkUrl.value ? filterProtocol(linkUrl.value) : 'https://www.techwis.cn/commercialEnterprise/user/'
+
 const setShareData = () => {
     if (isBrowser().safari) {
         const meta1 = document.querySelector('#shareTitle')
         meta1.content = '天安商企服务平台'
 
         const meta2 = document.querySelector('#shareImage')
-        meta2.content = 'https://csdnimg.cn/medal/qixiebiaobing4@240.png'
+        meta2.content = 'https://www.techwis.cn/commercialEnterprise/techwis.png'
 
         const meta3 = document.querySelector('#shareDescription')
-        meta3.content = `您的大客经理${customerName.value}给您发送了一份协议（${contractCode.value}《集团客户服务协议》）并需要您签署，前往查看>`
+        meta3.content = `您有一份协议待签署（${contractCode.value}《集团客户服务协议》），前往查看>`
+
+        const meta4 = document.querySelector('#shareUrl')
+        meta4.content = filterShareUrl()
     }
 }
 
 const shareSign = async () => {
-    if (navigator.share) {
-        const blob = await axios('https://pic3.zhimg.com/v2-080267af84aa0e97c66d5f12e311c3d6_xl.jpg', {
-            responseType: 'blob'
-        }).then(res => res.data)
-        const file = new File([blob], 'v2-080267af84aa0e97c66d5f12e311c3d6_xl.jpg', { type: blob.type })
-        const filesArray = [file]
-        navigator
-            .share({
-                title: '天安商企服务平台',
-                files: filesArray,
-                text: `您的大客经理${customerName.value}给您发送了一份协议（${contractCode.value}《集团客户服务协议》）并需要您签署，前往查看>`,
-                url: window.location.href
-            })
-            .then(() => {
-                console.log('Thanks for sharing!')
-            })
-            .catch(console.error)
-    } else {
-        const nativeShare = new NativeShare()
-        const shareData = {
-            wechatConfig: {
-                appId: weixinConfig.data.appId,
-                nonceStr: weixinConfig.data.nonceStr,
-                signature: weixinConfig.data.signature,
-                timestamp: weixinConfig.data.timestamp
-            },
-            title: '天安商企服务平台',
-            desc: `您的大客经理${customerName.value}给您发送了一份协议（${contractCode.value}《集团客户服务协议》）并需要您签署，前往查看>`,
-            // 如果是微信该link的域名必须要在微信后台配置的安全域名之内的。
-            icon: 'https://pic3.zhimg.com/v2-080267af84aa0e97c66d5f12e311c3d6_xl.jpg',
-            // 不要过于依赖以下两个回调，很多浏览器是不支持的
-            success() {
-                alert('success')
-            },
-            fail() {
-                alert('fail')
-            }
+    if (isBrowser().weixin) {
+        overlayShow.value = true
+        return false
+    }
+    const nativeShare = new NativeShare()
+    const shareData = {
+        wechatConfig: {
+            appId: weixinConfig.data.appId,
+            nonceStr: weixinConfig.data.nonceStr,
+            signature: weixinConfig.data.signature,
+            timestamp: weixinConfig.data.timestamp
+        },
+        title: '天安商企服务平台',
+        desc: `您有一份协议待签署（${contractCode.value}《集团客户服务协议》），前往查看>`,
+        // 如果是微信该link的域名必须要在微信后台配置的安全域名之内的。
+        link: filterShareUrl(),
+        icon: 'https://www.techwis.cn/commercialEnterprise/techwis.png',
+        // 不要过于依赖以下两个回调，很多浏览器是不支持的
+        success() {
+            alert('success')
+        },
+        fail() {
+            alert('fail')
         }
-        nativeShare.setShareData(shareData)
-        try {
-            nativeShare.call('wechatFriend')
-            // 如果是分享到微信则需要 nativeShare.call('wechatFriend')
-            // 类似的命令有
-            //  default 默认，调用起底部的分享组件，当其他命令不支持的时候也会调用该命令
-            //  wechatTimeline 分享到朋友圈
-            //  wechatFriend 分享给微信好友
-            //  qqFriend 分享给QQ好友
-            //  qZone 分享到QQ空间
-            // $toast.success('支持')
-        } catch (err) {
-            // 如果不支持，你可以在这里做降级处理
-            $toast.fail('您的浏览器不支持该分享功能，请手动复制链接!')
-        }
+    }
+    nativeShare.setShareData(shareData)
+    try {
+        nativeShare.call()
+        // 如果是分享到微信则需要 nativeShare.call('wechatFriend')
+        // 类似的命令有
+        //  default 默认，调用起底部的分享组件，当其他命令不支持的时候也会调用该命令
+        //  wechatTimeline 分享到朋友圈
+        //  wechatFriend 分享给微信好友
+        //  qqFriend 分享给QQ好友
+        //  qZone 分享到QQ空间
+        // $toast.success('支持')
+    } catch (err) {
+        // 如果不支持，你可以在这里做降级处理
+        $toast.fail('您的浏览器不支持该分享功能，请手动复制链接!')
     }
 }
 
@@ -412,40 +453,105 @@ const getWeixinConfig = async () => {
                 appId: weixinConfig.data.appId,
                 nonceStr: weixinConfig.data.nonceStr,
                 signature: weixinConfig.data.signature,
-                timestamp: weixinConfig.data.timestamp,
-                jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
+                timestamp: weixinConfig.data.timestamp
             },
             {
                 title: '天安商企服务平台',
-                desc: `您的大客经理${customerName.value}给您发送了一份协议（${contractCode.value}《集团客户服务协议》）并需要您签署，前往查看>`,
-                link: linkUrl.value,
-                imgUrl: 'https://csdnimg.cn/medal/qixiebiaobing4@240.png'
+                desc: `您有一份协议待签署（${contractCode.value}《集团客户服务协议》），前往查看>`,
+                link: decodeURIComponent(filterShareUrl()),
+                imgUrl: 'https://www.techwis.cn/commercialEnterprise/techwis.png'
             }
         )
     }
+}
+
+const focusBig = () => {
+    scale.value = scale.value + 0.1
+    if (scale.value >= 2) {
+        scale.value = 2
+    }
+}
+
+const focusSmall = () => {
+    scale.value = scale.value - 0.1
+    if (scale.value <= 1) {
+        scale.value = 1
+    }
+}
+
+const renderPdf = (url, render) => {
+    $toast.loading({
+        message: '正在生成...',
+        duration: 0,
+        forbidClick: true,
+        loadingType: 'spinner'
+    })
+    if (render) {
+        isRender.value = false
+    }
+    let pdfURL = ''
+    if (IS_STAGING) {
+        pdfURL = `${location.origin}/api/${url.split('www.techwis.cn/')[1]}`
+    } else {
+        pdfURL = filterProtocol(url)
+    }
+    pdfUrl.value = pdfURL
+    pdfdata.value = pdf.createLoadingTask({
+        url: pdfURL,
+        cMapPacked: true,
+        withCredentials: true,
+        cMapUrl: './pdf/cmaps/'
+    })
+    pdfdata.value.then(pdf => {
+        numPages.value = pdf.numPages
+        if (render) {
+            setTimeout(() => {
+                isRender.value = true
+                $toast.clear()
+                // getLoadSuccess()
+            }, 2000)
+        } else {
+            // getLoadSuccess()
+        }
+    })
+}
+
+const handle_pdf_link = params => {
+    const page = document.getElementById(String(params.pageNumber))
+    page.scrollIntoView()
+}
+
+const getPdfUrl = async () => {
+    const enterpriseId = wsCache.get('enterpriseId') || ''
+    const token = wsCache.get('token') || ''
+    if (enterpriseId && token) {
+        const res = await queryAudit({
+            headers: {
+                Authorization: token
+            },
+            data: {
+                enterpriseId: enterpriseId
+            },
+            hideloading: true
+        })
+        return res.data.contractUrl
+    }
+    return ''
 }
 
 onMounted(async () => {
     contractCode.value = wsCache.get('contractCode') || ''
     enterpriseName.value = wsCache.get('enterpriseName') || ''
     customerName.value = wsCache.get('customerName') || ''
-    linkUrl.value = wsCache.get('linkUrl') || ''
-    const broser = window.navigator.userAgent.toLowerCase()
-    if (broser.match(/MicroMessenger/i) == 'micromessenger') {
+    linkUrl.value = wsCache.get('linkUrl') ? decodeURIComponent(wsCache.get('linkUrl')) : ''
+    if (isBrowser().weixin) {
         getWeixinConfig()
     }
-    getWeixinConfig()
     setShareData()
     let url = wsCache.get('pdfurl')
-    const signReject1 = wsCache.get('signReject')
     const isSignSuccess1 = wsCache.get('isSignSuccess')
-    isSign.value = !!router.currentRoute.params.isSign
     if (isSignSuccess1) {
         isSignSuccess.value = true
-    }
-    if (signReject1) {
-        signReject.value = true
-        isSign.value = true
     }
     if (url) {
         if (IS_STAGING) {
@@ -453,6 +559,10 @@ onMounted(async () => {
         } else {
             pdfUrl.value = filterProtocol(decodeURIComponent(url))
         }
+        renderPdf(decodeURIComponent(url), true)
+    } else {
+        const pdfUrl = await getPdfUrl()
+        renderPdf(decodeURIComponent(pdfUrl), true)
     }
 })
 </script>
@@ -476,18 +586,30 @@ html {
 .sign-page {
     .form-wrap {
         background-color: #fbfbfb;
+        padding: 0 0 32px 0;
     }
     .form-item {
-        padding: 16px 0;
         font-size: 14px;
         color: #2a314d;
         line-height: 14px;
         display: flex;
         justify-content: space-between;
         background-color: white;
+        align-items: flex-end;
+        position: fixed;
+        left: 0;
+        top: 46px;
+        width: 100%;
+        padding: 16px 15px;
+        z-index: 1;
+        .title {
+            flex: 1;
+            line-height: 19px;
+        }
         .link {
             color: #ff5f01;
             text-decoration: underline;
+            margin-bottom: 2px;
         }
     }
     .buttons {
@@ -533,6 +655,22 @@ html {
             color: #ff5f01;
             max-width: 238px;
         }
+    }
+    .pdf-cont {
+        padding-top: 46px;
+    }
+    .overlay-bg {
+        max-width: 70%;
+        position: absolute;
+        right: 0;
+        top: 0;
+    }
+    .overlay-button {
+        max-width: 40%;
+        position: absolute;
+        bottom: 30vh;
+        left: 50%;
+        transform: translateX(-50%);
     }
 }
 .van-popup {
