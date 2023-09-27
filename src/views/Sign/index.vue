@@ -10,7 +10,7 @@
                     </div>
                     <a href="javascript:void(0);" class="link" @click="savePdf">下载</a>
                 </div>
-                <div v-if="isSignSuccess" class="pdf-cont flex-1">
+                <div class="pdf-cont flex-1">
                     <div class="flex items-center flex-col buttons">
                         <Button plain type="primary" native-type="button" @click="focusBig" class="mb-10px">
                             <Icon name="plus" />
@@ -421,7 +421,10 @@ const onSubmit = async () => {
                     isSignSuccess.value = true
                     wsCache.delete('pdfurl')
                     $toast.success({
-                        message: '签署成功'
+                        message: '签署成功',
+                        onClose: () => {
+                            renderPdf(res.data.contractUrl, true)
+                        }
                     })
                 } else {
                     $toast.fail(res.returnMsg || '签署失败')
@@ -640,7 +643,7 @@ html {
     }
     :deep(.page) {
         position: relative;
-        left: -16px;
+        left: -10px;
     }
     .van-count-down {
         color: inherit;
