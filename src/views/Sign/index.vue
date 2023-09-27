@@ -318,7 +318,7 @@ const savePdf = () => {
     const name = customUrl[customUrl.length - 1].split('.')[0]
     const link = document.createElement('a')
     const fileName = `${name || 'download'}.pdf`
-    if (isBrowser().weixin) {
+    if (isBrowser().android && isBrowser().weixin) {
         savePdfLink(link, pdfUrl.value, fileName)
         return false
     }

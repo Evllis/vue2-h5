@@ -16,6 +16,10 @@ export const isBrowser = () => {
         chrome: uaFlag.match(/chrome\/([\d.]+)/) ? uaFlag.match(/chrome\/([\d.]+)/)[1] : false,
         opera: uaFlag.match(/opera.([\d.]+)/) ? uaFlag.match(/opera.([\d.]+)/)[1] : false,
         safari: uaFlag.match(/version\/([\d.]+).*safari/) ? uaFlag.match(/version\/([\d.]+).*safari/)[1] : false,
-        weixin: uaFlag.match(/MicroMessenger/i) == 'micromessenger'
+        weixin: uaFlag.match(/MicroMessenger/i) == 'micromessenger',
+        mobile: !!uaFlag.match(
+            /phone|pad|pod|iphone|ipod|ios|ipad|android|mobile|blackberry|iemobile|mqqbrowser|juc|fennec|wosbrowser|browserng|webos|symbian|windows phone/i
+        ),
+        android: !!uaFlag.match(/android/i)
     }
 }
