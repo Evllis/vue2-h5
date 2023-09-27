@@ -481,7 +481,7 @@ const focusSmall = () => {
 
 const renderPdf = (url, render) => {
     $toast.loading({
-        message: '正在生成...',
+        message: '正在加载...',
         duration: 0,
         forbidClick: true,
         loadingType: 'spinner'

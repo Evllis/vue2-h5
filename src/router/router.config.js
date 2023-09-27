@@ -115,7 +115,7 @@ export const asyncRouterMap = [
         ]
     },
     {
-        path: '/Sign',
+        path: '/sign',
         component: () => import('@/views/Layouts/index'),
         redirect: '/sign/home',
         meta: {
