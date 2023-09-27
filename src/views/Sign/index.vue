@@ -305,7 +305,23 @@ const modifyPhone = async () => {
     phoneInputRef.value.focus()
 }
 
+const savePdfLink = (elem, pdfUrl, fileName) => {
+    elem.href = pdfUrl
+    elem.setAttribute('download', fileName)
+    document.body.appendChild(elem)
+    elem.click()
+    elem.remove()
+}
+
 const savePdf = () => {
+    const customUrl = pdfUrl.value.split('/')
+    const name = customUrl[customUrl.length - 1].split('.')[0]
+    const link = document.createElement('a')
+    const fileName = `${name || 'download'}.pdf`
+    if (isBrowser().weixin) {
+        savePdfLink(link, pdfUrl.value, fileName)
+        return false
+    }
     $toast.loading({
         message: '下载中...',
         forbidClick: true
@@ -313,16 +329,8 @@ const savePdf = () => {
     axios(pdfUrl.value, {
         responseType: 'blob'
     }).then(res => {
-        const customUrl = pdfUrl.value.split('/')
-        const name = customUrl[customUrl.length - 1].split('.')[0]
         const url = window.URL.createObjectURL(new Blob([res.data]))
-        const link = document.createElement('a')
-        const fileName = `${name || 'download'}.pdf`
-        link.href = url
-        link.setAttribute('download', fileName)
-        document.body.appendChild(link)
-        link.click()
-        link.remove()
+        savePdfLink(link, url, fileName)
         $toast.clear()
     })
 }
@@ -548,10 +556,12 @@ onMounted(async () => {
     customerName.value = wsCache.get('customerName') || ''
     linkUrl.value = wsCache.get('linkUrl') ? decodeURIComponent(wsCache.get('linkUrl')) : ''
     if (isBrowser().weixin) {
-        getWeixinConfig()
+        await getWeixinConfig()
     }
     setShareData()
     let url = wsCache.get('pdfurl')
+    // 第一次不需要获取pdfurl, 之后每次刷新页面都需要重新获取pdfurl
+    wsCache.delete('pdfurl')
     const isSignSuccess1 = wsCache.get('isSignSuccess')
     if (isSignSuccess1) {
         isSignSuccess.value = true
