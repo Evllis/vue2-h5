@@ -431,7 +431,7 @@ const onSubmit = async () => {
                     $toast.success({
                         message: '签署成功',
                         onClose: () => {
-                            renderPdf(res.data.contractUrl, true)
+                            renderPdf(decodeURIComponent(res.data.contractUrl), true)
                         }
                     })
                 } else {
@@ -520,7 +520,7 @@ const renderPdf = (url, render) => {
                 isRender.value = true
                 $toast.clear()
                 // getLoadSuccess()
-            }, 2000)
+            }, 5000)
         } else {
             // getLoadSuccess()
         }
