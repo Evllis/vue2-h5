@@ -38,7 +38,7 @@
                                     >
                                         <div class="flex flex-col items-center">
                                             <Icon :name="cameraIcon" />
-                                            <span class="normal-text">点击上传您与门头合照</span>
+                                            <span class="normal-text">点击上传客户与门头合照</span>
                                         </div>
                                     </div>
                                 </Uploader>

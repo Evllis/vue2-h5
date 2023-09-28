@@ -1,6 +1,6 @@
 <template>
     <div class="relative customer-index">
-        <NavBar title="补充信息" :style="{ paddingLeft: '15px' }" />
+        <NavBar title="联通客户经理信息填写" :style="{ paddingLeft: '15px' }" />
         <div class="flex customer-index__body">
             <div class="flex-1 customer-index__wrap">
                 <Form @submit="onSubmit" :validate-first="true" :validate-trigger="'onSubmit'">
