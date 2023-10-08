@@ -154,7 +154,9 @@ const getCode = () => {
             }
             res.returnMsg || $toast.fail(res.returnMsg)
         })
-        .catch(() => {})
+        .catch(() => {
+            $toast.fail('发送失败, 请稍候再试~~')
+        })
 }
 
 const dialogClose = (action, done) => {
@@ -201,6 +203,10 @@ const onSubmit = async () => {
             wsCache.set('token', res.data.token)
             let routerName = 'Customer'
             if (res.data.step) {
+                /**
+                 * TODO 临时修改为20, 测试客户列表
+                 */
+                res.data.step = '20'
                 routerName = stepMap.value[res.data.step]
                 wsCache.set('step', res.data.step)
             }
