@@ -210,8 +210,8 @@ const onSubmit = async () => {
                 routerName = stepMap.value[res.data.step]
                 wsCache.set('step', res.data.step)
             }
-            if (res.data.enterpriseId) {
-                wsCache.set('enterpriseId', res.data.enterpriseId)
+            if (res.data.customerId) {
+                wsCache.set('customerId', res.data.customerId)
             }
             if (res.data.phone) {
                 wsCache.set('phone', res.data.phone)

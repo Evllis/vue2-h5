@@ -15,7 +15,7 @@
             <div v-else class="flex flex-1 customer-section">
                 <div class="flex flex-col flex-1 customer-wrap">
                     <div class="customer-header">
-                        <span class="flex items-center customer-filter"
+                        <span class="flex items-center customer-filter" @click="show = true"
                             >点击筛选客户列表<i class="ml-7px customer-filter__icon"></i
                         ></span>
                     </div>
@@ -206,13 +206,26 @@
                 </div>
             </div>
         </div>
-        <Popup v-model="show" position="top" :style="{ height: '30%' }" />
+        <Popup v-model="show" position="top" round :style="{ height: '30%', top: '12.2667vw' }" get-container="#app">
+            <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
+                <div class="form-wrap pt-25px">
+                    <Field
+                        v-model="formData.data.name"
+                        :rules="rules.name"
+                        name="name"
+                        label="企业名称"
+                        placeholder="请输入您的企业名称"
+                    />
+                </div>
+            </Form>
+        </Popup>
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
-import { NavBar, Popup, PullRefresh, Image as VanImage } from 'vant'
+import { NavBar, Popup, PullRefresh, Form, Field, Image as VanImage } from 'vant'
+import { nonCharacter } from '@/utils/validate'
 import router from '@/router'
 
 import listEmpty from '@/assets/img/list-empty.png'
@@ -226,6 +239,28 @@ const isLoading = ref(false)
 const dataSet = reactive({
     list: []
 })
+const formData = reactive({
+    data: {
+        name: ''
+    }
+})
+const rules = reactive({
+    name: [
+        { required: true, message: '请填写企业名称' },
+        { pattern: /^.{4,50}$/, message: '长度必须是4-50位' },
+        { validator: nonCharacter, message: '请输入正确的企业名称' }
+    ]
+})
+const formRef = ref()
+
+const onSubmit = async () => {
+    formRef.value
+        .validate()
+        .then(async () => {
+            console.log(232222)
+        })
+        .catch(() => {})
+}
 
 // 新增业务申请
 const addBusiness = () => {
@@ -348,5 +383,10 @@ onMounted(() => {
             color: #ff5f01;
         }
     }
+}
+</style>
+<style lang="scss">
+#app > .van-overlay {
+    top: 12.2667vw;
 }
 </style>

@@ -17,7 +17,8 @@ const api = {
         submitEnterpriseSocialSecurity: `${apiPrefix}/commercialEnterprise/submitEnterpriseSocialSecurity`,
         submitEnterpriseSocialSecurityV2: `${apiPrefix}/commercialEnterprise/submitEnterpriseSocialSecurity/v2`,
         findEnterpriseInfo: `${apiPrefix}/commercialEnterprise/findEnterpriseInfo`,
-        findEnterpriseSocialSecurityV2: `${apiPrefix}/commercialEnterprise/findEnterpriseSocialSecurity/v2`
+        findEnterpriseSocialSecurityV2: `${apiPrefix}/commercialEnterprise/findEnterpriseSocialSecurity/v2`,
+        getEnterpriseList: `${apiPrefix}/commercialEnterprise/enterpriseList`
     },
     Preview: {
         enterpriseContractPreview: `${apiPrefix}/commercialEnterprise/enterpriseContractPreview`

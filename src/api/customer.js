@@ -46,3 +46,12 @@ export const submitEnterpriseSocialSecurityV2 = d => {
         ...d
     })
 }
+
+// 客户列表
+export const getEnterpriseList = d => {
+    return request({
+        url: api.Customer.getEnterpriseList,
+        method: 'post',
+        ...d
+    })
+}
