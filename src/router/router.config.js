@@ -77,6 +77,12 @@ export const asyncRouterMap = [
                 name: 'Disclaimer',
                 component: () => import('@/views/Customer/disclaimer.vue'),
                 meta: { title: '免责声明', keepAlive: false }
+            },
+            {
+                path: 'process',
+                name: 'Process',
+                component: () => import('@/views/Customer/process.vue'),
+                meta: { title: '查看进度', keepAlive: false }
             }
         ]
     },
