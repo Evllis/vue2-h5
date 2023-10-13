@@ -210,13 +210,9 @@ const onSubmit = async () => {
                 routerName = stepMap.value[res.data.step]
                 wsCache.set('step', res.data.step)
             }
-            // if (res.data.customerId) {
-            //     wsCache.set('customerId', res.data.customerId)
-            // }
-            /**
-             * TODO 临时使用enterpriseId做为customerId
-             */
-            wsCache.set('customerId', res.data.enterpriseId)
+            if (res.data.customerId) {
+                wsCache.set('customerId', res.data.customerId)
+            }
             if (res.data.phone) {
                 wsCache.set('phone', res.data.phone)
             }

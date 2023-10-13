@@ -1,8 +1,8 @@
 <template>
     <div class="list-page">
         <NavBar title="客户列表" :style="{ paddingLeft: `15px` }" />
-        <div :class="`body-container list-page__body ${isEmpty ? 'empty' : ''}`">
-            <div v-if="isEmpty" class="customer-wrap">
+        <div :class="`body-container list-page__body ${!dataSet.list.length ? 'empty' : ''}`">
+            <div v-if="!dataSet.list.length" class="customer-wrap">
                 <div class="flex justify-center mb-20px">
                     <VanImage :src="listEmpty" class="empty-png" />
                 </div>
@@ -24,14 +24,24 @@
                     <div class="flex-1 customer-refresh">
                         <PullRefresh v-model="isLoading" @refresh="onRefresh" class="h-full">
                             <ul class="customer-list">
-                                <li class="customer-item green">
+                                <li
+                                    v-for="item in dataSet.list"
+                                    :key="item.enterpriseId"
+                                    :class="`customer-item ${filterColorItem(item.status)}`"
+                                >
                                     <div class="flex justify-between customer-item__header">
-                                        <h4 class="customer-item__title">企业名称A</h4>
-                                        <span class="customer-item__status">业务申请：等待提交 ></span>
+                                        <h4 class="customer-item__title">{{ item.name }}</h4>
+                                        <span class="customer-item__status"
+                                            >业务申请：{{ filterStatusItem(item)[0].text }} ></span
+                                        >
                                     </div>
                                     <div class="customer-item__body">
-                                        <div class="customer-item__row">行业类型：金融</div>
-                                        <div class="customer-item__row">法定代表人：张三（18812345678）</div>
+                                        <div class="customer-item__row">
+                                            行业类型：{{ filterIndustryItem(item)[0].text }}
+                                        </div>
+                                        <div class="customer-item__row">
+                                            法定代表人：{{ item.corporateName }}（{{ item.corporatePhone }}）
+                                        </div>
                                     </div>
                                     <div class="flex items-center customer-item__footer">
                                         <VanButton
@@ -39,22 +49,17 @@
                                             type="info"
                                             native-type="button"
                                             class="customer-item__button"
-                                            @click="removeBusiness"
+                                            @click="removeBusiness(item)"
+                                            v-if="item.status === 1"
                                             >删除</VanButton
                                         >
-                                    </div>
-                                </li>
-                                <li class="customer-item green">
-                                    <div class="flex justify-between customer-item__header">
-                                        <h4 class="customer-item__title">企业名称A11111111</h4>
-                                        <span class="customer-item__status">业务申请：等待提交 ></span>
-                                    </div>
-                                    <div class="customer-item__body">
-                                        <div class="customer-item__row">行业类型：金融</div>
-                                        <div class="customer-item__row">法定代表人：张三（18812345678）</div>
-                                    </div>
-                                    <div class="flex items-center customer-item__footer">
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
+                                        <VanButton
+                                            block
+                                            type="info"
+                                            native-type="button"
+                                            class="customer-item__button"
+                                            @click="removeBusiness(item)"
+                                            v-if="item.status !== 1"
                                             >查看进度</VanButton
                                         >
                                         <VanButton
@@ -62,147 +67,17 @@
                                             type="info"
                                             native-type="button"
                                             class="customer-item__button"
-                                            @click="contactPerson"
+                                            @click="removeBusiness(item)"
+                                            v-if="item.status !== 1"
                                             >联系负责人</VanButton
                                         >
-                                    </div>
-                                </li>
-                                <li class="customer-item red">
-                                    <div class="flex justify-between customer-item__header">
-                                        <h4 class="customer-item__title">企业名称A</h4>
-                                        <span class="customer-item__status">业务申请：驳回 ></span>
-                                    </div>
-                                    <div class="customer-item__body">
-                                        <div class="customer-item__row">行业类型：金融</div>
-                                        <div class="customer-item__row">法定代表人：张三（18812345678）</div>
-                                        <div class="customer-item__row">
-                                            <div class="reject-info">
-                                                <p>您的业务申请需要调整，请根据以下给出建议调整后重新提交：</p>
-                                                <p>1、</p>
-                                                <p>2、</p>
-                                                <p>3、</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center customer-item__footer">
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >查看进度</VanButton
-                                        >
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >联系负责人</VanButton
-                                        >
-                                    </div>
-                                </li>
-                                <li class="customer-item green">
-                                    <div class="flex justify-between customer-item__header">
-                                        <h4 class="customer-item__title">企业名称A</h4>
-                                        <span class="customer-item__status">业务申请：等待确认 ></span>
-                                    </div>
-                                    <div class="customer-item__body">
-                                        <div class="customer-item__row">行业类型：金融</div>
-                                        <div class="customer-item__row">法定代表人：张三（18812345678）</div>
-                                    </div>
-                                    <div class="flex items-center customer-item__footer">
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >查看进度</VanButton
-                                        >
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >联系负责人</VanButton
-                                        >
-                                    </div>
-                                </li>
-                                <li class="customer-item green">
-                                    <div class="flex justify-between customer-item__header">
-                                        <h4 class="customer-item__title">企业名称A</h4>
-                                        <span class="customer-item__status">业务申请：等待签署 ></span>
-                                    </div>
-                                    <div class="customer-item__body">
-                                        <div class="customer-item__row">行业类型：金融</div>
-                                        <div class="customer-item__row">法定代表人：张三（18812345678）</div>
-                                    </div>
-                                    <div class="flex items-center customer-item__footer">
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >查看进度</VanButton
-                                        >
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >联系负责人</VanButton
-                                        >
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >查看协议</VanButton
-                                        >
-                                    </div>
-                                </li>
-                                <li class="customer-item green">
-                                    <div class="flex justify-between customer-item__header">
-                                        <h4 class="customer-item__title">企业名称A</h4>
-                                        <span class="customer-item__status">业务申请：等待签署 ></span>
-                                    </div>
-                                    <div class="customer-item__body">
-                                        <div class="customer-item__row">行业类型：金融</div>
-                                        <div class="customer-item__row">法定代表人：张三（18812345678）</div>
-                                        <div class="customer-item__row">
-                                            <div class="flex items-center justify-between sign-info">
-                                                请提醒客户尽快签署协议
-                                                <span>></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center customer-item__footer">
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >查看进度</VanButton
-                                        >
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >联系负责人</VanButton
-                                        >
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >查看协议</VanButton
-                                        >
-                                    </div>
-                                </li>
-                                <li class="customer-item red">
-                                    <div class="flex justify-between customer-item__header">
-                                        <h4 class="customer-item__title">企业名称A</h4>
-                                        <span class="customer-item__status">业务申请：重新签署 ></span>
-                                    </div>
-                                    <div class="customer-item__body">
-                                        <div class="customer-item__row">行业类型：金融</div>
-                                        <div class="customer-item__row">法定代表人：张三（18812345678）</div>
-                                        <div class="customer-item__row">
-                                            <div class="flex items-center justify-between sign-info">
-                                                请提醒客户尽快签署协议
-                                                <span>></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center customer-item__footer">
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >查看进度</VanButton
-                                        >
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >联系负责人</VanButton
-                                        >
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >查看协议</VanButton
-                                        >
-                                    </div>
-                                </li>
-                                <li class="customer-item green">
-                                    <div class="flex justify-between customer-item__header">
-                                        <h4 class="customer-item__title">企业名称A</h4>
-                                        <span class="customer-item__status">发货流程：等待发货 ></span>
-                                    </div>
-                                    <div class="customer-item__body">
-                                        <div class="customer-item__row">行业类型：金融</div>
-                                        <div class="customer-item__row">法定代表人：张三（18812345678）</div>
-                                    </div>
-                                    <div class="flex items-center customer-item__footer">
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >查看进度</VanButton
-                                        >
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
-                                            >联系负责人</VanButton
-                                        >
-                                        <VanButton block type="info" native-type="button" class="customer-item__button"
+                                        <VanButton
+                                            block
+                                            type="info"
+                                            native-type="button"
+                                            class="customer-item__button"
+                                            @click="removeBusiness(item)"
+                                            v-if="[6, 7, 8, 9, 10, 11].indexOf(item.status) !== -1"
                                             >查看协议</VanButton
                                         >
                                     </div>
@@ -346,7 +221,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { ref, reactive, onMounted, watch, getCurrentInstance } from 'vue'
 import {
     NavBar,
     Popup,
@@ -362,6 +237,7 @@ import { nonCharacter } from '@/utils/validate'
 import router from '@/router'
 import { getEnterpriseList } from '@/api/customer'
 import { useCache } from '@/hooks/useCache'
+import { isEmpty } from 'lodash-es'
 
 import listEmpty from '@/assets/img/list-empty.png'
 import inactiveIcon from '@/assets/icon/select-icon.png'
@@ -388,12 +264,13 @@ const actionSelect = (action, index) => {
 }
 
 const customerId = ref('')
-const isEmpty = ref(true)
 const dialogShow = ref(false)
 const show = ref(false)
 const isLoading = ref(false)
 const dataSet = reactive({
-    list: []
+    list: [],
+    currentPage: 1,
+    pageSize: 10
 })
 const formData = reactive({
     data: {
@@ -431,20 +308,34 @@ const columns = ref([
 ])
 const progressColumns = ref([
     { text: '全部', value: '0' },
-    { text: '资质审核', value: '2' },
+    { text: '业务申请', value: '2' },
     { text: '协议签署', value: '3' },
     { text: '发货流程', value: '4' }
 ])
 const statusColumns = ref([
     { text: '全部', value: '0' },
-    { text: '未提交', value: '1' },
-    { text: '资质审核中', value: '2' },
-    { text: '资质驳回', value: '3' },
-    { text: '资质拒绝', value: '4' },
+    { text: '等待提交', value: '1' },
+    { text: '等待审核', value: '2' },
+    { text: '驳回', value: '3' },
+    { text: '拒绝', value: '4' },
     { text: '等待确认', value: '5' },
-    { text: '协议待签署', value: '6' },
+    { text: '等待签署', value: '6' },
     { text: '等待发货', value: '9' },
-    { text: '已发货', value: '10' }
+    { text: '已发货', value: '10' },
+    { text: '已完成', value: '11' }
+])
+const statusItems = ref([
+    { text: '等待提交', value: '1' },
+    { text: '等待审核', value: '2' },
+    { text: '驳回', value: '3' },
+    { text: '拒绝', value: '4' },
+    { text: '等待确认', value: '5' },
+    { text: '等待签署', value: '6' },
+    { text: '等待发货', value: '7' },
+    { text: '等待确认', value: '8' },
+    { text: '等待发货', value: '9' },
+    { text: '已发货', value: '10' },
+    { text: '已完成', value: '11' }
 ])
 
 const onSubmit = async () => {
@@ -461,9 +352,7 @@ const resetFormData = () => {
         name: '',
         industryType: '0',
         progress: '0',
-        status: '0',
-        currentPage: 1,
-        pageSize: 10
+        status: '0'
     }
 }
 
@@ -491,11 +380,14 @@ const getEnterpriseListAccess = async () => {
     const res = await getEnterpriseList({
         data: {
             customerId: customerId.value,
+            currentPage: dataSet.currentPage,
+            pageSize: dataSet.pageSize,
             ...formData.data
         }
     })
     console.log(5555555, res)
     if (!isEmpty(res)) {
+        dataSet.list = res.data.enterpriseList || []
         console.log(3333333)
     }
 }
@@ -506,10 +398,25 @@ const removeBusiness = () => {
     console.log('删除业务')
 }
 
+const filterStatusItem = item => statusItems.value.filter(v => v.value === `${item.status}`)
+const filterIndustryItem = item => columns.value.filter(v => v.value === `${item.industryType}`)
+const filterColorItem = status => {
+    let color = ''
+    if ([1, 5, 6, 7, 8, 9].indexOf(status) !== -1) color = 'green'
+    if ([3].indexOf(status) !== -1) color = 'red'
+    return color
+}
+
 onMounted(() => {
-    isEmpty.value = false
-    // getEnterpriseListAccess()
+    getEnterpriseListAccess()
 })
+
+watch(
+    () => formData.data,
+    () => {
+        getEnterpriseListAccess()
+    }
+)
 </script>
 
 <style lang="scss" scoped>
