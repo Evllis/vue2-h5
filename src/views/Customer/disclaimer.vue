@@ -23,7 +23,12 @@ import router from '@/router'
 
 // 我已知晓
 const accept = () => {
-    router.push({ name: 'Enterprise' })
+    router.push({
+        name: 'Enterprise',
+        params: {
+            isClear: true
+        }
+    })
 }
 
 // 返回上一页

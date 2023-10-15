@@ -3,9 +3,7 @@ import Router from 'vue-router'
 import { cloneDeep } from 'lodash-es'
 import { constantRouterMap, asyncRouterMap } from './router.config.js'
 import { useTitle } from '@/hooks/useTitle'
-import { useCache } from '@/hooks/useCache'
-
-const { wsCache } = useCache()
+import $store from '@/store'
 
 // hack router push callback
 const originalPush = Router.prototype.push
@@ -30,16 +28,18 @@ const router = createRouter()
 
 router.beforeEach(async (to, from, next) => {
     // const token = router.app.$options.store.getters.token
-    const token = wsCache.get('token')
+    const token = $store.getters['app/token']
     if (to.path !== '/login' && !token) {
         next({
             path: '/login'
         })
     } else {
         if (to.path === '/login') {
+            await $store.dispatch('resetSettings')
             next()
         } else {
             if (!token) {
+                await $store.dispatch('resetSettings')
                 next('/login')
             } else {
                 next()
@@ -92,5 +92,7 @@ export function resetRouter() {
     const newRouter = createRouter()
     router.matcher = newRouter.matcher // reset router
 }
+
+export const currentRoute = () => router.history.current
 
 export default router

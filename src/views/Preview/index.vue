@@ -24,6 +24,6 @@ const onClickLeft = () => {
 }
 
 onMounted(async () => {
-    editAudit.value = $store.getters.editAudit
+    editAudit.value = $store.getters['app/editAudit']
 })
 </script>

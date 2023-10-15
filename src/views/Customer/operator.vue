@@ -134,7 +134,9 @@
                         @click="backRouter"
                         >上一步</VanButton
                     >
-                    <VanButton block type="info" native-type="submit" class="submit-button">提交</VanButton>
+                    <VanButton block type="info" native-type="submit" class="submit-button">{{
+                        editAudit ? '提交' : '下一步'
+                    }}</VanButton>
                 </div>
             </Form>
             <Popup
@@ -206,7 +208,6 @@ import {
 import { reactive, ref, getCurrentInstance, onMounted, nextTick } from 'vue'
 import { isEmpty, isArray } from 'lodash-es'
 import router from '@/router'
-import { useCache } from '@/hooks/useCache'
 import { formatterGtZeroInteger } from '@/utils'
 import * as imageConversion from 'image-conversion'
 
@@ -220,7 +221,6 @@ import inactiveIcon from '@/assets/icon/select-icon.png'
 import socialImage from '@/assets/img/social-image.png'
 import payImage from '@/assets/img/pay-image.png'
 
-const { wsCache } = useCache()
 const instance = getCurrentInstance()
 const { $toast, $store } = instance.proxy
 
@@ -395,7 +395,7 @@ const deleteRead = (file, details) => {
 }
 
 const onSubmit = async () => {
-    const enterpriseId = wsCache.get('enterpriseId')
+    const enterpriseId = $store.getters['app/enterpriseId']
     if (enterpriseId) {
         formData.data['enterpriseId'] = enterpriseId
         formData.data['type'] = !editAudit.value ? '1' : '2'
@@ -412,8 +412,8 @@ const onSubmit = async () => {
                         type: editAudit.value ? '2' : '1'
                     })
                     await submitEnterpriseSocialSecurityV2({ data })
-                    wsCache.set('socialSecurityNumber', formData.data.socialSecurityNumber)
-                    router.push({ name: 'Audit' })
+                    $store.commit('app/SET_EDIT_AUDIT', '')
+                    router.push({ name: editAudit.value ? 'List' : 'Audit' })
                 } catch (err) {
                     return false
                 }
@@ -451,8 +451,8 @@ const getRegion = async () => {
 }
 
 onMounted(async () => {
-    const enterpriseId = wsCache.get('enterpriseId')
-    editAudit.value = $store.getters.editAudit
+    const enterpriseId = $store.getters['app/enterpriseId']
+    editAudit.value = $store.getters['app/editAudit']
     if (enterpriseId) {
         try {
             await getRegion()

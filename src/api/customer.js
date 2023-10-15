@@ -55,3 +55,21 @@ export const getEnterpriseList = d => {
         ...d
     })
 }
+
+// 查看进度
+export const getProgressList = d => {
+    return request({
+        url: api.Customer.getProgressList,
+        method: 'post',
+        ...d
+    })
+}
+
+// 查看协议
+export const getContractInfo = d => {
+    return request({
+        url: api.Customer.getContractInfo,
+        method: 'post',
+        ...d
+    })
+}

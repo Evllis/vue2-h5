@@ -1,0 +1,5 @@
+export default {
+    SET_SOURCE: 'SET_SOURCE',
+    SET_CUSTOMER_ID: 'SET_CUSTOMER_ID',
+    SET_PHONE: 'SET_PHONE'
+}

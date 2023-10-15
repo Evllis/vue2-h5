@@ -41,9 +41,8 @@
 <script setup>
 import { onMounted, ref, reactive, computed, getCurrentInstance } from 'vue'
 import { NavBar, Image as VanImage } from 'vant'
-import { useCache } from '@/hooks/useCache'
 import { isEmpty } from 'lodash-es'
-import { stepMap } from '@/store/config'
+import { auditMap } from '@/store/config'
 import router from '@/router'
 
 import { queryAudit, auditStatusFourSubmit } from '@/api/audit'
@@ -52,7 +51,6 @@ import auditIng from '@/assets/img/audit-ing.png'
 import auditSucc from '@/assets/img/audit-success.png'
 import auditFail from '@/assets/img/audit-fail.png'
 
-const { wsCache } = useCache()
 const instance = getCurrentInstance()
 const { $toast, $store } = instance.proxy
 
@@ -96,9 +94,9 @@ const auditParams = computed(() => {
     )
 })
 
-const modifyAudit = async item => {
-    await $store.dispatch('setEditAudit', true)
-    router.push({ name: stepMap.value[item.step] })
+const modifyAudit = item => {
+    $store.commit('app/SET_EDIT_AUDIT', true)
+    router.push({ name: auditMap.value[item.step] })
 }
 
 const submitData = async () => {
@@ -121,8 +119,8 @@ const submitData = async () => {
 }
 
 onMounted(async () => {
-    enterpriseId.value = wsCache.get('enterpriseId')
-    const token = wsCache.get('token') || ''
+    enterpriseId.value = $store.getters['app/enterpriseId']
+    const token = $store.getters['app/token'] || ''
     if (enterpriseId.value && token) {
         try {
             const res = await queryAudit({
@@ -135,8 +133,7 @@ onMounted(async () => {
                 hideloading: true
             })
             if (!isEmpty(res)) {
-                wsCache.delete('signReject')
-                wsCache.delete('isSignSuccess')
+                $store.commit('sign/SET_SIGN_SUCCESS', '')
                 // 旧 - res.data.auditStatus: 审核状态：1-未提交 2-审核中 3-审核通过 4-审核驳回 5-审核拒绝
                 // 新 - 审核状态：1-未提交 2-资质审核中 3-资质驳回 4-资质拒绝 5-协议待上传(审核通过,协议未确认状态) 6-协议待签署 7-协议已签署 8-协议驳回(复核协议未通过)
                 auditStatus.value = res.data.auditStatus
@@ -145,17 +142,19 @@ onMounted(async () => {
                     auditList.value = res.data.auditList.map(item => item)
                 }
                 if (+auditStatus.value === 6) {
-                    wsCache.set('linkUrl', res.data.linkUrl)
+                    $store.commit('sign/SET_LINK_URL', res.data.linkUrl)
                 }
                 if (+auditStatus.value === 7) {
-                    wsCache.set('isSignSuccess', '1')
+                    $store.commit('sign/SET_SIGN_SUCCESS', '1')
                 }
                 if (+auditStatus.value === 6 || +auditStatus.value === 7) {
                     contractUrl.value = res.data.contractUrl
-                    wsCache.set('contractCode', res.data.contractCode)
-                    wsCache.set('enterpriseName', res.data.enterpriseName)
-                    wsCache.set('customerName', res.data.customerName)
-                    wsCache.set('pdfurl', encodeURIComponent(contractUrl.value) || '')
+                    $store.commit('app/SET_ENTERPRISE_NAME', res.data.enterpriseName)
+                    $store.commit('sign/BATCH_SETTINGS', {
+                        contractCode: res.data.contractCode,
+                        customerName: res.data.customerName,
+                        pdfUrl: encodeURIComponent(contractUrl.value) || ''
+                    })
                     router.push({
                         name: 'Sign'
                     })

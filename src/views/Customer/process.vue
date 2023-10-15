@@ -3,50 +3,14 @@
         <NavBar title="查看进度" left-arrow @click-left="backRouter" />
         <div class="body-container process-page__body">
             <div class="flex justify-between items-center process-page__header">
-                <span>企业名称A</span>
-                <span :class="className">业务进度：已完成 ></span>
+                <span>{{ name }}</span>
+                <span :class="className">业务进度：{{ progressName }} ></span>
             </div>
             <div class="process-page__wrap">
                 <ul class="process-page__list">
-                    <li class="process-page__item">
-                        <h4 class="process-page__item-title">完成签收</h4>
-                        <div class="process-page__item-date">2023-09-13 13:11:12</div>
-                    </li>
-                    <li class="process-page__item">
-                        <h4 class="process-page__item-title">供货方完成发货</h4>
-                        <div class="process-page__item-date">2023-09-13 13:11:12</div>
-                    </li>
-                    <li class="process-page__item">
-                        <h4 class="process-page__item-title">发起发货申请</h4>
-                        <div class="process-page__item-date">2023-09-13 13:11:12</div>
-                    </li>
-                    <li class="process-page__item">
-                        <h4 class="process-page__item-title">发起发货申请</h4>
-                        <div class="process-page__item-date">2023-09-13 13:11:12</div>
-                    </li>
-                    <li class="process-page__item">
-                        <h4 class="process-page__item-title">发起发货申请</h4>
-                        <div class="process-page__item-date">2023-09-13 13:11:12</div>
-                    </li>
-                    <li class="process-page__item">
-                        <h4 class="process-page__item-title">发起发货申请</h4>
-                        <div class="process-page__item-date">2023-09-13 13:11:12</div>
-                    </li>
-                    <li class="process-page__item">
-                        <h4 class="process-page__item-title">发起发货申请</h4>
-                        <div class="process-page__item-date">2023-09-13 13:11:12</div>
-                    </li>
-                    <li class="process-page__item">
-                        <h4 class="process-page__item-title">发起发货申请</h4>
-                        <div class="process-page__item-date">2023-09-13 13:11:12</div>
-                    </li>
-                    <li class="process-page__item">
-                        <h4 class="process-page__item-title">发起发货申请</h4>
-                        <div class="process-page__item-date">2023-09-13 13:11:12</div>
-                    </li>
-                    <li class="process-page__item">
-                        <h4 class="process-page__item-title">发起发货申请</h4>
-                        <div class="process-page__item-date">2023-09-13 13:11:12</div>
+                    <li v-for="item in progressList" :key="item.status" class="process-page__item">
+                        <h4 class="process-page__item-title">{{ statusName(item.status) }}</h4>
+                        <div class="process-page__item-date">{{ item.createTime }}</div>
                     </li>
                 </ul>
             </div>
@@ -55,23 +19,72 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, getCurrentInstance } from 'vue'
 import { NavBar, Toast } from 'vant'
 import router from '@/router'
+import { isEmpty } from 'lodash-es'
+import { getProgressList } from '@/api/customer'
+
+const instance = getCurrentInstance()
+const { $store } = instance.proxy
 
 const className = ref('')
+// 进度列表
+const progressList = ref([])
+// 进度
+const progressName = ref('')
+// 业务进度 2-资质审核 3-协议签署 4-发货流程
+const progress = {
+    2: '资质审核',
+    3: '协议签署',
+    4: '发货流程'
+}
+// 企业名称
+const name = ref('')
 
 // 返回上一页
 const backRouter = () => {
     router.back()
 }
 
-onMounted(() => {
+// 业务状态： 2-资质审核中(发起申请) 3-资质驳回 4-资质拒绝 5-协议待上传(业务申请通过)
+// 6-协议待签署(供货方发起协议) 9-等待发货(客户完成协议签署) 10-已发货
+const statusName = status => {
+    const json = {
+        2: '资质审核中',
+        3: '资质驳回',
+        4: '资质拒绝',
+        5: '协议待上传',
+        6: '协议待签署',
+        9: '等待发货',
+        10: '已发货',
+        11: '已完成'
+    }
+    return json[status] || ''
+}
+
+onMounted(async () => {
+    const enterpriseId = $store.getters['app/enterpriseId'] || ''
     Toast.loading({
         duration: 0,
         forbidClick: true,
-        message: '倒计时 3 秒'
+        message: '正在加载...'
     })
+    if (!enterpriseId) {
+        Toast.clear()
+        return
+    }
+    const res = await getProgressList({
+        data: {
+            enterpriseId
+        }
+    })
+    if (!isEmpty(res.data)) {
+        progressList.value = res.data.progressList || []
+        progressName.value = progress[res.data.progress] || ''
+        name.value = res.data.name || ''
+    }
+    console.log(4444, res)
 })
 </script>
 

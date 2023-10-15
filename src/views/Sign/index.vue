@@ -128,15 +128,13 @@ import { getJsSdkConfig } from '@/api/common'
 import { hideName, hideIdCard } from '@/utils'
 import { isBrowser } from '@/utils/is'
 import { weixinShare } from '@/utils/weixinShare'
-import { useCache } from '@/hooks/useCache'
 import { isEmpty } from 'lodash-es'
 
 import overlayBg from '@/assets/img/overlay-bg.png'
 import overlayButton from '@/assets/img/overlay-button.png'
 
-const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+const { $toast, $store } = instance.proxy
 
 const rules = reactive({
     phone: [
@@ -197,7 +195,9 @@ const customerName = ref('')
 const linkUrl = ref('')
 
 const backRouter = () => {
-    router.push({ name: 'Login' })
+    const source = $store.getters.source
+    $store.commit('SET_SOURCE', '')
+    router.push({ name: source || 'Login' })
 }
 
 // 获取手机验证码
@@ -206,7 +206,7 @@ const getCode = () => {
     formRef.value
         .validate('phone')
         .then(async () => {
-            const token = wsCache.get('token') || ''
+            const token = $store.getters['app/token'] || ''
             if (token) {
                 let res = null
                 if (!flowId.value) {
@@ -243,7 +243,7 @@ const getCode = () => {
                     $toast.fail(res.returnMsg || '发送失败')
                 }
             } else {
-                wsCache.clear()
+                await $store.dispatch('resetSettings')
                 $toast.fail({
                     message: '请重新登录',
                     onClose: () => {
@@ -276,8 +276,8 @@ const renderMobileCode = () => {
 
 const getRealNameAccess = async () => {
     if (corporate.data.corporateName) return false
-    const token = wsCache.get('token') || ''
-    const enterpriseId = wsCache.get('enterpriseId') || ''
+    const token = $store.getters['app/token'] || ''
+    const enterpriseId = $store.getters['app/enterpriseId'] || ''
     if (token && enterpriseId) {
         const res = await getRealName({
             headers: {
@@ -401,8 +401,8 @@ const onSubmit = async () => {
     formRef.value
         .validate()
         .then(async () => {
-            const enterpriseId = wsCache.get('enterpriseId')
-            const token = wsCache.get('token') || ''
+            const enterpriseId = $store.getters['app/enterpriseId']
+            const token = $store.getters['app/token'] || ''
             if (!enterpriseId || !token) {
                 $toast.fail({
                     message: '请重新登录',
@@ -427,7 +427,7 @@ const onSubmit = async () => {
                 })
                 if (+res.returnCode === 1000) {
                     isSignSuccess.value = true
-                    wsCache.delete('pdfurl')
+                    $store.commit('sign/SET_PDF_URL', '')
                     $toast.success({
                         message: '签署成功',
                         onClose: () => {
@@ -533,8 +533,8 @@ const handle_pdf_link = params => {
 }
 
 const getPdfUrl = async () => {
-    const enterpriseId = wsCache.get('enterpriseId') || ''
-    const token = wsCache.get('token') || ''
+    const enterpriseId = $store.getters['app/enterpriseId'] || ''
+    const token = $store.getters['app/token'] || ''
     if (enterpriseId && token) {
         const res = await queryAudit({
             headers: {
@@ -551,18 +551,18 @@ const getPdfUrl = async () => {
 }
 
 onMounted(async () => {
-    contractCode.value = wsCache.get('contractCode') || ''
-    enterpriseName.value = wsCache.get('enterpriseName') || ''
-    customerName.value = wsCache.get('customerName') || ''
-    linkUrl.value = wsCache.get('linkUrl') ? decodeURIComponent(wsCache.get('linkUrl')) : ''
+    contractCode.value = $store.getters['sign/contractCode'] || ''
+    enterpriseName.value = $store.getters['app/enterpriseName'] || ''
+    customerName.value = $store.getters['sign/customerName'] || ''
+    linkUrl.value = $store.getters['sign/linkUrl'] ? decodeURIComponent($store.getters['sign/linkUrl']) : ''
     if (isBrowser().weixin) {
         await getWeixinConfig()
     }
     setShareData()
-    let url = wsCache.get('pdfurl')
+    let url = $store.getters['sign/pdfUrl']
     // 第一次不需要获取pdfurl, 之后每次刷新页面都需要重新获取pdfurl
-    wsCache.delete('pdfurl')
-    const isSignSuccess1 = wsCache.get('isSignSuccess')
+    $store.commit('sign/SET_PDF_URL', '')
+    const isSignSuccess1 = $store.getters['sign/isSignSuccess']
     if (isSignSuccess1) {
         isSignSuccess.value = true
     }

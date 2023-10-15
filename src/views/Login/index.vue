@@ -100,7 +100,6 @@ import { isPhone, digitInteger } from '@/utils/validate'
 import { phoneNumber } from '@/utils/formatter'
 import { isEmpty } from 'lodash-es'
 import { stepMap } from '@/store/config'
-import { useCache } from '@/hooks/useCache'
 import router from '@/router'
 
 import Agreement from '@/components/Agreement'
@@ -110,9 +109,8 @@ import { sendMsg, loginRegisterV2 } from '@/api/login'
 import inactiveIcon from '@/assets/icon/checkbox-icon.png'
 import activeIcon from '@/assets/icon/checkbox-checked-icon.png'
 
-const { wsCache } = useCache()
 const instance = getCurrentInstance()
-const { $toast } = instance.proxy
+const { $toast, $store } = instance.proxy
 
 const formRef = ref()
 const rules = reactive({
@@ -199,32 +197,24 @@ const onSubmit = async () => {
     try {
         const res = await loginRegisterV2({ phone: phone.value, code: code.value }).catch(() => {})
         if (!isEmpty(res)) {
-            wsCache.clear()
-            wsCache.set('token', res.data.token)
+            console.log(4444, $store)
+            // await $store.dispatch('resetSettings')
+            $store.commit('app/SET_TOKEN', res.data.token)
             let routerName = 'Customer'
             if (res.data.step) {
-                /**
-                 * TODO 临时修改为20, 测试客户列表
-                 */
-                res.data.step = '20'
                 routerName = stepMap.value[res.data.step]
-                wsCache.set('step', res.data.step)
+                $store.commit('app/SET_STEP', res.data.step)
             }
             if (res.data.customerId) {
-                wsCache.set('customerId', res.data.customerId)
+                $store.commit('SET_CUSTOMER_ID', res.data.customerId)
             }
             if (res.data.phone) {
-                wsCache.set('phone', res.data.phone)
+                $store.commit('SET_PHONE', res.data.phone)
             }
+            console.log(5555, routerName)
             router.push({
                 name: routerName
             })
-            /**
-             * TODO 临时跳转查看进度页面
-             */
-            // router.push({
-            //     name: 'Process'
-            // })
         }
     } catch (err) {
         return false

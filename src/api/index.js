@@ -18,7 +18,9 @@ const api = {
         submitEnterpriseSocialSecurityV2: `${apiPrefix}/commercialEnterprise/submitEnterpriseSocialSecurity/v2`,
         findEnterpriseInfo: `${apiPrefix}/commercialEnterprise/findEnterpriseInfo`,
         findEnterpriseSocialSecurityV2: `${apiPrefix}/commercialEnterprise/findEnterpriseSocialSecurity/v2`,
-        getEnterpriseList: `${apiPrefix}/commercialEnterprise/enterpriseList`
+        getEnterpriseList: `${apiPrefix}/commercialEnterprise/enterpriseList`,
+        getProgressList: `${apiPrefix}/commercialEnterprise/getProgressList`,
+        getContractInfo: `${apiPrefix}/commercialEnterprise/getContractInfo`
     },
     Preview: {
         enterpriseContractPreview: `${apiPrefix}/commercialEnterprise/enterpriseContractPreview`
@@ -26,6 +28,9 @@ const api = {
     Audit: {
         queryAudit: `${apiPrefix}/commercialEnterprise/queryAudit`,
         auditStatusFourSubmit: `${apiPrefix}/commercialEnterprise/auditStatusFourSubmit`
+    },
+    Confirm: {
+        submitConsigneeConfirm: `${apiPrefix}/commercialEnterprise/submitConsigneeConfirm`
     },
     Sign: {
         signContract: `${apiPrefix}/commercialEnterprise/signContract`,

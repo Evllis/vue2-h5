@@ -22,68 +22,135 @@
                         ></span>
                     </div>
                     <div class="flex-1 customer-refresh">
-                        <PullRefresh v-model="isLoading" @refresh="onRefresh" class="h-full">
-                            <ul class="customer-list">
-                                <li
-                                    v-for="item in dataSet.list"
-                                    :key="item.enterpriseId"
-                                    :class="`customer-item ${filterColorItem(item.status)}`"
-                                >
-                                    <div class="flex justify-between customer-item__header">
-                                        <h4 class="customer-item__title">{{ item.name }}</h4>
-                                        <span class="customer-item__status"
-                                            >业务申请：{{ filterStatusItem(item)[0].text }} ></span
+                        <div v-if="skeletonLoading">
+                            <Skeleton title :row="3" class="mb-30px" />
+                            <Skeleton title :row="3" class="mb-30px" />
+                            <Skeleton title :row="3" class="mb-30px" />
+                            <Skeleton title :row="3" />
+                        </div>
+                        <div v-else>
+                            <PullRefresh v-model="isLoading" @refresh="onRefresh" class="h-full">
+                                <ul class="customer-list">
+                                    <List
+                                        v-model="dataSet.loading"
+                                        :finished="dataSet.finished"
+                                        finished-text="没有更多了"
+                                        @load="getEnterpriseListAccess"
+                                    >
+                                        <li
+                                            v-for="item in dataSet.list"
+                                            :key="item.enterpriseId"
+                                            :class="`customer-item ${filterColorItem(item.status)}`"
                                         >
-                                    </div>
-                                    <div class="customer-item__body">
-                                        <div class="customer-item__row">
-                                            行业类型：{{ filterIndustryItem(item)[0].text }}
-                                        </div>
-                                        <div class="customer-item__row">
-                                            法定代表人：{{ item.corporateName }}（{{ item.corporatePhone }}）
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center customer-item__footer">
-                                        <VanButton
-                                            block
-                                            type="info"
-                                            native-type="button"
-                                            class="customer-item__button"
-                                            @click="removeBusiness(item)"
-                                            v-if="item.status === 1"
-                                            >删除</VanButton
-                                        >
-                                        <VanButton
-                                            block
-                                            type="info"
-                                            native-type="button"
-                                            class="customer-item__button"
-                                            @click="removeBusiness(item)"
-                                            v-if="item.status !== 1"
-                                            >查看进度</VanButton
-                                        >
-                                        <VanButton
-                                            block
-                                            type="info"
-                                            native-type="button"
-                                            class="customer-item__button"
-                                            @click="removeBusiness(item)"
-                                            v-if="item.status !== 1"
-                                            >联系负责人</VanButton
-                                        >
-                                        <VanButton
-                                            block
-                                            type="info"
-                                            native-type="button"
-                                            class="customer-item__button"
-                                            @click="removeBusiness(item)"
-                                            v-if="[6, 7, 8, 9, 10, 11].indexOf(item.status) !== -1"
-                                            >查看协议</VanButton
-                                        >
-                                    </div>
-                                </li>
-                            </ul>
-                        </PullRefresh>
+                                            <div class="flex justify-between customer-item__header">
+                                                <h4 class="customer-item__title">{{ item.name }}</h4>
+                                                <span class="customer-item__status">
+                                                    <span v-if="[9, 10].indexOf(item.status) !== -1">发货流程：</span>
+                                                    <span v-else-if="[8, 6, 5].indexOf(item.status) !== -1"
+                                                        >协议签署：</span
+                                                    >
+                                                    <span v-else-if="item.status !== 11">业务申请：</span>
+                                                    {{ filterStatusItem(item)[0].text }} <Icon name="arrow" size="12" />
+                                                </span>
+                                            </div>
+                                            <div class="customer-item__body">
+                                                <div class="customer-item__row">
+                                                    行业类型：{{ filterIndustryItem(item)[0].text }}
+                                                </div>
+                                                <div class="customer-item__row">
+                                                    法定代表人：{{ item.corporateName }}（{{ item.corporatePhone }}）
+                                                </div>
+                                                <div v-if="item.status === 10" class="customer-item__row">
+                                                    <div
+                                                        class="flex items-center justify-between sign-info"
+                                                        @click="uploadSign(item)"
+                                                    >
+                                                        请上传签收确认单
+                                                        <Icon name="arrow" size="12" />
+                                                    </div>
+                                                </div>
+                                                <div v-else-if="item.status === 8" class="customer-item__row">
+                                                    <div class="reject-info">
+                                                        <p>协议有误，我们将尽快与您联系重新确认协议内容！</p>
+                                                    </div>
+                                                </div>
+                                                <div v-else-if="item.status === 6" class="customer-item__row">
+                                                    <div
+                                                        class="flex items-center justify-between sign-info"
+                                                        @click="previewSign(item)"
+                                                    >
+                                                        请提醒客户尽快签署协议！
+                                                        <Icon name="arrow" size="12" />
+                                                    </div>
+                                                </div>
+                                                <div v-else-if="item.status === 4" class="customer-item__row">
+                                                    <div class="reject-info">
+                                                        <p>您的业务申请不符合我司标准，原因如下，敬请谅解！</p>
+                                                        <p style="color: #ff5f01">{{ item.auditMsg }}</p>
+                                                        <p style="color: #ff5f01">
+                                                            {{ item.auditExpireTime }}后可重新提交
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div v-else-if="item.status === 3" class="customer-item__row">
+                                                    <div class="reject-info">
+                                                        <p>请根据以下给出建议调整后重新提交：</p>
+                                                        <p
+                                                            v-for="(v, index) in item.auditList"
+                                                            :key="v.step"
+                                                            class="flex items-center justify-between"
+                                                        >
+                                                            {{ index + 1 }}、{{ v.msg }}
+                                                            <span @click="modifyStep(v, item)" style="color: #ff5f01"
+                                                                >去处理<Icon name="arrow" size="12"
+                                                            /></span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center customer-item__footer">
+                                                <VanButton
+                                                    block
+                                                    type="info"
+                                                    native-type="button"
+                                                    class="customer-item__button"
+                                                    @click="removeBusiness(item)"
+                                                    v-if="item.status === 1"
+                                                    >删除</VanButton
+                                                >
+                                                <VanButton
+                                                    block
+                                                    type="info"
+                                                    native-type="button"
+                                                    class="customer-item__button"
+                                                    @click="previewProcess(item)"
+                                                    v-if="item.status !== 1"
+                                                    >查看进度</VanButton
+                                                >
+                                                <VanButton
+                                                    block
+                                                    type="info"
+                                                    native-type="button"
+                                                    class="customer-item__button"
+                                                    @click="contactPerson(item)"
+                                                    v-if="item.status !== 1"
+                                                    >联系负责人</VanButton
+                                                >
+                                                <VanButton
+                                                    block
+                                                    type="info"
+                                                    native-type="button"
+                                                    class="customer-item__button"
+                                                    @click="previewSign(item, true)"
+                                                    v-if="[6, 7, 8, 9, 10, 11].indexOf(item.status) !== -1"
+                                                    >查看协议</VanButton
+                                                >
+                                            </div>
+                                        </li>
+                                    </List>
+                                </ul>
+                            </PullRefresh>
+                        </div>
                     </div>
                 </div>
                 <div class="submit-footer">
@@ -93,14 +160,7 @@
                 </div>
             </div>
         </div>
-        <Popup
-            v-model="show"
-            position="top"
-            round
-            :style="{ top: '12.2667vw' }"
-            get-container="#app"
-            @closed="resetFormData"
-        >
+        <Popup v-model="show" position="top" round :style="{ top: '12.2667vw' }" get-container="#app">
             <Form @submit="onSubmit" ref="formRef" :validate-first="true" :validate-trigger="'onSubmit'">
                 <div class="form-wrap pt-25px">
                     <Field
@@ -183,7 +243,15 @@
                         @click="resetFormData"
                         >重置</VanButton
                     >
-                    <VanButton block type="info" native-type="submit" class="w-150px submit-button">查询</VanButton>
+                    <VanButton
+                        block
+                        type="info"
+                        native-type="submit"
+                        :loading="submitLoading"
+                        class="w-150px submit-button"
+                        loading-text="加载中..."
+                        >查询</VanButton
+                    >
                 </div>
                 <div class="flex justify-center mb-25px">
                     <span class="flex items-center customer-filter" @click="show = false"
@@ -221,7 +289,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, getCurrentInstance } from 'vue'
+import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
 import {
     NavBar,
     Popup,
@@ -231,31 +299,36 @@ import {
     DropdownMenu,
     DropdownItem,
     ActionSheet,
+    List,
+    Icon,
+    Skeleton,
     Image as VanImage
 } from 'vant'
 import { nonCharacter } from '@/utils/validate'
 import router from '@/router'
-import { getEnterpriseList } from '@/api/customer'
-import { useCache } from '@/hooks/useCache'
+import { getEnterpriseList, getContractInfo } from '@/api/customer'
+import { auditMap } from '@/store/config'
 import { isEmpty } from 'lodash-es'
 
 import listEmpty from '@/assets/img/list-empty.png'
 import inactiveIcon from '@/assets/icon/select-icon.png'
 
 const instance = getCurrentInstance()
-const { wsCache } = useCache()
-const { $toast } = instance.proxy
+const { $toast, $store } = instance.proxy
 
 // 动作面板
 const actionShow = ref(false)
-const actionTitle = ref('张三 18722448877')
+const actionTitle = ref('')
 const actions = reactive({
-    data: [{ name: '呼叫', value: 18722448877 }]
+    data: [{ name: '呼叫', value: null }]
 })
 const actionCancel = () => {
     console.log('22222222')
 }
-const contactPerson = () => {
+// 联系负责人
+const contactPerson = item => {
+    actionTitle.value = `${item.corporateName} ${item.corporatePhone}`
+    actions.data[0].value = item.corporatePhone
     actionShow.value = true
 }
 const actionSelect = (action, index) => {
@@ -263,14 +336,58 @@ const actionSelect = (action, index) => {
     window.location.href = 'tel://18755446688'
 }
 
+// 驳回修改
+const modifyStep = async (v, item) => {
+    // 审核驳回的步骤：1-企业基本信息 2-企业经办人信息 3-门头社保信息 4-与联通合作信息 5-入网清单 6-采购清单 7-合同预填写 8-协议预览
+    await $store.commit('app/BATCH_SETTINGS', { editAudit: true, enterpriseId: item.enterpriseId })
+    router.push({
+        name: auditMap.value[v.step]
+    })
+}
+
+// 协议预览
+const previewSign = async (item, isPreview) => {
+    $toast.loading({
+        message: '正在加载...',
+        duration: 0,
+        forbidClick: true,
+        loadingType: 'spinner'
+    })
+    const enterpriseId = item.enterpriseId
+    const res = await getContractInfo({
+        data: {
+            enterpriseId
+        }
+    })
+    if (!isEmpty(res.data)) {
+        $toast.clear()
+        $store.commit('sign/SET_SIGN_SUCCESS', isPreview ? '1' : '')
+        $store.commit('SET_SOURCE', 'List')
+        $store.commit('app/BATCH_SETTINGS', {
+            enterpriseId: res.data.enterpriseId,
+            enterpriseName: res.data.enterpriseName
+        })
+        $store.commit('sign/BATCH_SETTINGS', {
+            linkUrl: encodeURIComponent(res.data.linkUrl),
+            contractCode: res.data.contractCode,
+            pdfUrl: res.data.contractUrl
+        })
+        router.push('/sign')
+    }
+}
+
 const customerId = ref('')
 const dialogShow = ref(false)
 const show = ref(false)
+const submitLoading = ref(false)
+const skeletonLoading = ref(true)
 const isLoading = ref(false)
 const dataSet = reactive({
     list: [],
-    currentPage: 1,
-    pageSize: 10
+    currentPage: 0,
+    pageSize: 10,
+    loading: false,
+    finished: false
 })
 const formData = reactive({
     data: {
@@ -282,9 +399,25 @@ const formData = reactive({
 })
 const rules = reactive({
     name: [
-        { required: true, message: '请填写企业名称' },
-        { pattern: /^.{2,50}$/, message: '长度必须是2-50位' },
-        { validator: nonCharacter, message: '请输入正确的企业名称' }
+        // { required: true, message: '请填写企业名称' },
+        {
+            validator: () => {
+                if (formData.data.name && !/^.{2,50}$/.test(formData.data.name)) {
+                    return false
+                }
+                return true
+            },
+            message: '长度必须是2-50位'
+        },
+        {
+            validator: () => {
+                if (formData.data.name && !nonCharacter(formData.data.name)) {
+                    return false
+                }
+                return true
+            },
+            message: '请输入正确的企业名称'
+        }
     ],
     industryType: [{ required: true, message: '请选择行业类型' }],
     progress: [{ required: true, message: '请选择业务进度' }],
@@ -339,15 +472,26 @@ const statusItems = ref([
 ])
 
 const onSubmit = async () => {
+    submitLoading.value = true
     formRef.value
         .validate()
         .then(async () => {
+            dataSet.list.length = 0
+            dataSet.finished = false
+            dataSet.loading = true
+            dataSet.currentPage = 0
+            await getEnterpriseListAccess()
+            show.value = false
+            submitLoading.value = false
             console.log(232222, formData.data)
         })
-        .catch(() => {})
+        .catch(() => {
+            submitLoading.value = false
+        })
 }
 
 const resetFormData = () => {
+    formRef.value.resetValidation()
     formData.data = {
         name: '',
         industryType: '0',
@@ -368,27 +512,51 @@ const addBusiness = () => {
     router.push({ name: 'Disclaimer' })
 }
 
-const onRefresh = () => {
-    setTimeout(() => {
-        $toast('刷新成功')
-        isLoading.value = false
-    }, 1000)
+// 上传签收单
+const uploadSign = async item => {
+    $store.commit('app/BATCH_SETTINGS', { enterpriseId: item.enterpriseId, enterpriseName: item.name })
+    router.push({
+        name: 'Confirm'
+    })
+}
+
+const onRefresh = async () => {
+    dataSet.list.length = 0
+    dataSet.finished = false
+    dataSet.loading = true
+    dataSet.currentPage = 0
+    await getEnterpriseListAccess()
+    $toast('刷新成功')
+    isLoading.value = false
 }
 
 const getEnterpriseListAccess = async () => {
-    customerId.value = wsCache.get('customerId') || ''
-    const res = await getEnterpriseList({
-        data: {
-            customerId: customerId.value,
-            currentPage: dataSet.currentPage,
-            pageSize: dataSet.pageSize,
-            ...formData.data
+    if (dataSet.finished) return false
+    if (!dataSet.currentPage) skeletonLoading.value = true
+    dataSet.currentPage++
+    try {
+        const res = await getEnterpriseList({
+            data: {
+                customerId: customerId.value,
+                currentPage: dataSet.currentPage,
+                pageSize: dataSet.pageSize,
+                ...formData.data
+            },
+            hideloading: true
+        })
+        if (!isEmpty(res.data)) {
+            dataSet.list = [...dataSet.list, ...res.data.enterpriseList]
+            dataSet.loading = false
+            if (res.data.enterpriseList.length < 5 || dataSet.list.length === res.data.total) {
+                dataSet.finished = true
+            }
+            if (dataSet.currentPage === 1) setTimeout(() => (skeletonLoading.value = false), 500)
         }
-    })
-    console.log(5555555, res)
-    if (!isEmpty(res)) {
-        dataSet.list = res.data.enterpriseList || []
-        console.log(3333333)
+    } catch (err) {
+        if (dataSet.currentPage) {
+            dataSet.currentPage--
+        }
+        return false
     }
 }
 
@@ -403,25 +571,29 @@ const filterIndustryItem = item => columns.value.filter(v => v.value === `${item
 const filterColorItem = status => {
     let color = ''
     if ([1, 5, 6, 7, 8, 9].indexOf(status) !== -1) color = 'green'
-    if ([3].indexOf(status) !== -1) color = 'red'
+    if ([3, 4].indexOf(status) !== -1) color = 'red'
     return color
 }
 
+// 查看进度
+const previewProcess = async item => {
+    $store.commit('app/SET_ENTERPRISE_ID', item.enterpriseId)
+    router.push({ name: 'Process' })
+}
+
 onMounted(() => {
+    customerId.value = $store.getters['customerId'] || ''
     getEnterpriseListAccess()
 })
-
-watch(
-    () => formData.data,
-    () => {
-        getEnterpriseListAccess()
-    }
-)
 </script>
 
 <style lang="scss" scoped>
 @import '../../assets/css/mixin.scss';
 .list-page {
+    .van-skeleton__row,
+    .van-skeleton__title {
+        background-color: #ececec;
+    }
     & > :deep(.van-overlay) {
         z-index: 4000 !important;
     }
@@ -473,6 +645,10 @@ watch(
             .customer-item__status {
                 color: #ff5f01;
             }
+        }
+        &__title {
+            max-width: 160px;
+            @include textoverflow();
         }
         &__header {
             padding-bottom: 15px;

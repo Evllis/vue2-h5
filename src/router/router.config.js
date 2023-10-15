@@ -108,7 +108,7 @@ export const asyncRouterMap = [
         component: () => import('@/views/Layouts/index'),
         redirect: '/confirm/home',
         meta: {
-            title: '收货确认单',
+            title: '签收确认单',
             keepAlive: false
         },
         children: [
@@ -116,7 +116,7 @@ export const asyncRouterMap = [
                 path: 'home',
                 name: 'Confirm',
                 component: () => import('@/views/Confirm/index'),
-                meta: { title: '收货确认单', keepAlive: false }
+                meta: { title: '签收确认单', keepAlive: false }
             }
         ]
     },

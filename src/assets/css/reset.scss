@@ -42,9 +42,11 @@
         display: none;
     }
     .van-popup {
-        max-height: none;
+        // max-height: none;
         padding: 15px 20px;
-        @include border-1px(full, #e5e5e5, 8px);
+        border: 1px solid rgba(229, 229, 229, 0.4);
+        border-radius: 8px;
+        // @include border-1px(full, #e5e5e5, 8px);
     }
     .van-dropdown-item__option {
         flex-direction: row;

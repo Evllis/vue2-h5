@@ -175,8 +175,7 @@ import { reactive, ref, onMounted, getCurrentInstance } from 'vue'
 import { nonCharacter, isName, isIdCard, isPhone } from '@/utils/validate'
 import { phoneNumber } from '@/utils/formatter'
 import { isEmpty } from 'lodash-es'
-import router from '@/router'
-import { useCache } from '@/hooks/useCache'
+import router, { currentRoute } from '@/router'
 import * as imageConversion from 'image-conversion'
 
 import { submitEnterpriseInfo, findEnterpriseInfo } from '@/api/customer'
@@ -188,8 +187,8 @@ import cardFront from '@/assets/img/card-front.png'
 import cardBack from '@/assets/img/card-back.png'
 
 const instance = getCurrentInstance()
+const currentRoutes = currentRoute()
 const { $store } = instance.proxy
-const { wsCache } = useCache()
 // 行业类型：1  建筑业 2  制造业 3  交通运输、仓储业和邮政业 4  信息传输、计算机服务和软件业 5  批发和零售业 6  住宿、餐饮业 7  金融、保险业 8  房地产业 9  租赁和商务服务业 10  教育、培训 11  文化、体育、娱乐业 12  其它
 const columns = ref([
     { text: '建筑业', value: '1' },
@@ -378,9 +377,9 @@ const onSubmit = async () => {
                 })
                 if (!isEmpty(res)) {
                     if (!enterpriseId.value) {
-                        wsCache.set('enterpriseId', res.data.id)
+                        $store.commit('app/SET_ENTERPRISE_ID', res.data.id)
                     }
-                    router.push({ name: !editAudit.value ? 'Operator' : 'Audit' })
+                    router.push({ name: !editAudit.value ? 'Operator' : 'List' })
                 }
             } catch (err) {
                 return false
@@ -390,8 +389,11 @@ const onSubmit = async () => {
 }
 
 onMounted(async () => {
-    enterpriseId.value = wsCache.get('enterpriseId') || ''
-    editAudit.value = $store.getters.editAudit
+    if (currentRoutes.params.isClear) {
+        $store.commit('app/SET_ENTERPRISE_ID', '')
+    }
+    enterpriseId.value = $store.getters['app/enterpriseId']
+    editAudit.value = $store.getters['app/editAudit']
     if (enterpriseId.value) {
         try {
             const res = await findEnterpriseInfo({

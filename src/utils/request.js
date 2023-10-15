@@ -1,13 +1,12 @@
 import axios from 'axios'
 import { Toast } from 'vant'
 import router from '@/router'
-import { useCache } from '@/hooks/useCache'
+import $store from '@/store'
 
 // 根据环境不同引入不同api地址
 import { baseApi } from '@/config'
 import { useNProgress } from '@/hooks/useNProgress'
 
-const { wsCache } = useCache()
 const { start, done } = useNProgress()
 
 // create an axios instance
@@ -17,11 +16,11 @@ const service = axios.create({
     timeout: 5000 // request timeout
 })
 
-const getFail = res => {
+const getFail = async res => {
     if (res.returnCode && res.returnCode !== '1000') {
         // 登录失效, 清除token, 跳转到登录页面
         if (res.returnCode === '9997') {
-            wsCache.clear()
+            await $store.dispatch('resetSettings')
             Toast.fail({
                 message: res.returnMsg,
                 onClose: () => {
@@ -29,7 +28,7 @@ const getFail = res => {
                 }
             })
         } else {
-            Toast.fail(res.returnMsg)
+            Toast({ message: res.returnMsg, duration: 2000 })
             throw new Error()
         }
     }
@@ -43,11 +42,12 @@ service.interceptors.request.use(
         if (!config.hideloading) {
             // loading
             Toast.loading({
+                message: '正在加载...',
                 duration: 0,
                 forbidClick: false
             })
         }
-        const token = wsCache.get('token')
+        const token = $store.getters['app/token']
         if (token) {
             config.headers['Authorization'] = token
         }
@@ -65,7 +65,7 @@ service.interceptors.request.use(
 )
 // respone拦截器
 service.interceptors.response.use(
-    response => {
+    async response => {
         done()
         Toast.clear()
         const res = response.data
@@ -100,14 +100,18 @@ service.interceptors.response.use(
         //     //     Toast.success(res.returnMsg)
         //     // }
         // }
-        getFail(res)
-        return Promise.resolve(res)
+        try {
+            await getFail(res)
+            return Promise.resolve(res)
+        } catch (err) {
+            return Promise.reject(res || 'error')
+        }
     },
-    error => {
+    async error => {
         done()
         Toast.clear()
         const data = error.response.data
-        getFail(data)
+        await getFail(data)
         Toast.fail(data.returnMsg || error.message)
         return Promise.reject(data || error)
     }
