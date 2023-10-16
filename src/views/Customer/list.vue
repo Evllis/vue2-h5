@@ -48,11 +48,11 @@
                                             >
                                                 <h4 class="customer-item__title">{{ item.name }}</h4>
                                                 <span class="customer-item__status">
-                                                    <span v-if="[9, 10].indexOf(item.status) !== -1">发货流程：</span>
+                                                    <span v-if="[9, 10].indexOf(item.status) !== -1">发货流程:</span>
                                                     <span v-else-if="[8, 6, 5].indexOf(item.status) !== -1"
-                                                        >协议签署：</span
+                                                        >协议签署:</span
                                                     >
-                                                    <span v-else-if="item.status !== 11">业务申请：</span>
+                                                    <span v-else-if="item.status !== 11">业务申请:</span>
                                                     {{ filterStatusItem(item)[0].text }} <Icon name="arrow" size="12" />
                                                 </span>
                                             </div>
@@ -60,8 +60,11 @@
                                                 <div class="customer-item__row">
                                                     行业类型：{{ filterIndustryItem(item)[0].text }}
                                                 </div>
-                                                <div class="customer-item__row">
-                                                    法定代表人：{{ item.corporateName }}（{{ item.corporatePhone }}）
+                                                <div v-if="item.corporateName" class="customer-item__row">
+                                                    法定代表人：{{ item.corporateName }}
+                                                </div>
+                                                <div v-if="item.corporatePhone" class="customer-item__row">
+                                                    法人联系方式：{{ item.corporatePhone }}
                                                 </div>
                                                 <div v-if="item.status === 10" class="customer-item__row">
                                                     <div

@@ -4,7 +4,7 @@
         <div class="body-container process-page__body">
             <div class="flex justify-between items-center process-page__header">
                 <span>{{ name }}</span>
-                <span :class="className">业务进度：{{ progressName }} ></span>
+                <span :class="className">业务进度：{{ progressName }}</span>
             </div>
             <div class="process-page__wrap">
                 <ul class="process-page__list">
