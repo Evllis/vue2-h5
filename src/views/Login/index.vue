@@ -197,7 +197,6 @@ const onSubmit = async () => {
     try {
         const res = await loginRegisterV2({ phone: phone.value, code: code.value }).catch(() => {})
         if (!isEmpty(res)) {
-            console.log(4444, $store)
             // await $store.dispatch('resetSettings')
             $store.commit('app/SET_TOKEN', res.data.token)
             let routerName = 'Customer'
@@ -211,7 +210,6 @@ const onSubmit = async () => {
             if (res.data.phone) {
                 $store.commit('SET_PHONE', res.data.phone)
             }
-            console.log(5555, routerName)
             router.push({
                 name: routerName
             })

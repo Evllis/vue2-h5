@@ -29,7 +29,9 @@
                                 <Uploader
                                     v-model="doorHeadPhoto"
                                     name="doorHeadPhoto"
+                                    :disabled="isPreview"
                                     :after-read="afterRead"
+                                    :before-delete="beforeDelete"
                                     @delete="deleteRead"
                                 >
                                     <div
@@ -57,6 +59,7 @@
                                 <DropdownMenu>
                                     <DropdownItem
                                         v-model="formData.data.socialSecurityType"
+                                        :disabled="isPreview"
                                         :options="columns"
                                         get-container="#drop-container"
                                     ></DropdownItem>
@@ -70,6 +73,7 @@
                         label="社保缴纳人数"
                         placeholder="请输入社保缴纳人数"
                         class="!mb-0"
+                        :disabled="isPreview"
                         :formatter="formatterGtZeroInteger"
                         :rules="[{ required: true, message: '请填写社保缴纳人数' }]"
                     />
@@ -83,6 +87,8 @@
                                 <Uploader
                                     v-model="urls.socialSecurityUrls"
                                     :after-read="afterRead"
+                                    :before-delete="beforeDelete"
+                                    :disabled="isPreview"
                                     :max-count="6"
                                     :upload-icon="addIcon"
                                     @delete="deleteRead"
@@ -102,6 +108,8 @@
                                 <Uploader
                                     v-model="urls.taxCertificateUrls"
                                     :after-read="afterRead"
+                                    :before-delete="beforeDelete"
+                                    :disabled="isPreview"
                                     :max-count="6"
                                     :upload-icon="addIcon"
                                     @delete="deleteRead"
@@ -120,8 +128,9 @@
                         name="unicomProvince"
                         placeholder="请选择业务归属省/市"
                         class="select-wrap"
+                        :disabled="isPreview"
                         :rules="rules.unicomProvince"
-                        @click="showPicker = true"
+                        @click="previewRegion"
                     />
                 </div>
                 <div class="flex submit-footer">
@@ -134,7 +143,7 @@
                         @click="backRouter"
                         >上一步</VanButton
                     >
-                    <VanButton block type="info" native-type="submit" class="submit-button">{{
+                    <VanButton v-if="!isPreview" block type="info" native-type="submit" class="submit-button">{{
                         editAudit ? '提交' : '下一步'
                     }}</VanButton>
                 </div>
@@ -227,6 +236,7 @@ const { $toast, $store } = instance.proxy
 const socialShow = ref(false)
 const payShow = ref(false)
 const editAudit = ref(false)
+const isPreview = ref(false)
 const formRef = ref()
 const doorHeadPhoto = ref([])
 const urls = reactive({
@@ -387,6 +397,17 @@ const afterRead = async (file, details) => {
     }
 }
 
+const beforeDelete = () => {
+    if (isPreview.value) return false
+    return true
+}
+
+const previewRegion = () => {
+    if (beforeDelete()) {
+        showPicker.value = true
+    }
+}
+
 const deleteRead = (file, details) => {
     formData.data[details.name] =
         ['socialSecurityUrls', 'taxCertificateUrls'].indexOf(details.name) === -1
@@ -453,6 +474,7 @@ const getRegion = async () => {
 onMounted(async () => {
     const enterpriseId = $store.getters['app/enterpriseId']
     editAudit.value = $store.getters['app/editAudit']
+    isPreview.value = $store.getters['app/isPreview']
     if (enterpriseId) {
         try {
             await getRegion()

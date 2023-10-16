@@ -12,6 +12,7 @@
                     <Field
                         v-model="formData.data.name"
                         :rules="rules.name"
+                        :disabled="isPreview"
                         name="name"
                         label="企业名称"
                         placeholder="请输入您的企业名称"
@@ -19,6 +20,7 @@
                     <Field
                         v-model="formData.data.licenseNum"
                         :rules="rules.licenseNum"
+                        :disabled="isPreview"
                         name="licenseNum"
                         label="营业执照/社会信用代码"
                         placeholder="请输入您营业执照/社会信用代码"
@@ -26,6 +28,7 @@
                     <Field
                         v-model="formData.data.businessAddress"
                         :rules="rules.businessAddress"
+                        :disabled="isPreview"
                         name="businessAddress"
                         label="实际经营地址"
                         placeholder="请输入客户的实际经营地址"
@@ -46,6 +49,7 @@
                                     <DropdownItem
                                         v-model="formData.data.industryType"
                                         :options="columns"
+                                        :disabled="isPreview"
                                         get-container="#drop-container"
                                         @change="dropItemChange"
                                     ></DropdownItem>
@@ -65,6 +69,8 @@
                                     v-model="businessLicense"
                                     name="businessLicense"
                                     :after-read="afterRead"
+                                    :before-delete="beforeDelete"
+                                    :disabled="isPreview"
                                     @delete="deleteRead"
                                 >
                                     <div
@@ -92,6 +98,8 @@
                                         v-model="corporateIdFront"
                                         name="corporateIdFront"
                                         :after-read="afterRead"
+                                        :before-delete="beforeDelete"
+                                        :disabled="isPreview"
                                         @delete="deleteRead"
                                         class="mr-15px"
                                     >
@@ -117,6 +125,8 @@
                                         v-model="corporateIdBack"
                                         name="corporateIdBack"
                                         :after-read="afterRead"
+                                        :before-delete="beforeDelete"
+                                        :disabled="isPreview"
                                         @delete="deleteRead"
                                         class="mr-15px"
                                     >
@@ -137,6 +147,7 @@
                     <Field
                         v-model="formData.data.corporateName"
                         :rules="rules.corporateName"
+                        :disabled="isPreview"
                         name="corporateName"
                         label="法人姓名"
                         placeholder="请输入法人姓名"
@@ -144,6 +155,7 @@
                     <Field
                         v-model="formData.data.corporateId"
                         :rules="rules.corporateId"
+                        :disabled="isPreview"
                         name="corporateId"
                         label="法人身份证号"
                         placeholder="请输入法人身份证号"
@@ -153,6 +165,7 @@
                         :rules="rules.corporatePhone"
                         :readonly="isDisabled"
                         :formatter="phoneNumber"
+                        :disabled="isPreview"
                         name="corporatePhone"
                         label="法人联系方式"
                         maxlength="11"
@@ -226,6 +239,7 @@ const isDisabled = ref(false)
 const formRef = ref()
 // 是否是从驳回列表页进来的
 const editAudit = ref(false)
+const isPreview = ref(false)
 // 企业id
 const enterpriseId = ref('')
 const placeholderShow = ref(true)
@@ -359,6 +373,11 @@ const afterRead = (file, details) => {
     }
 }
 
+const beforeDelete = () => {
+    if (isPreview.value) return false
+    return true
+}
+
 const deleteRead = (file, details) => {
     if (['businessLicense', 'corporateIdFront', 'corporateIdBack'].indexOf(details.name) !== -1) {
         formData.data[details.name] = []
@@ -394,6 +413,7 @@ onMounted(async () => {
     }
     enterpriseId.value = $store.getters['app/enterpriseId']
     editAudit.value = $store.getters['app/editAudit']
+    isPreview.value = $store.getters['app/isPreview']
     if (enterpriseId.value) {
         try {
             const res = await findEnterpriseInfo({

@@ -42,7 +42,10 @@
                                             :key="item.enterpriseId"
                                             :class="`customer-item ${filterColorItem(item.status)}`"
                                         >
-                                            <div class="flex justify-between customer-item__header">
+                                            <div
+                                                class="flex justify-between customer-item__header"
+                                                @click="previewInfo(item)"
+                                            >
                                                 <h4 class="customer-item__title">{{ item.name }}</h4>
                                                 <span class="customer-item__status">
                                                     <span v-if="[9, 10].indexOf(item.status) !== -1">发货流程：</span>
@@ -306,7 +309,7 @@ import {
 } from 'vant'
 import { nonCharacter } from '@/utils/validate'
 import router from '@/router'
-import { getEnterpriseList, getContractInfo } from '@/api/customer'
+import { getEnterpriseList, getContractInfo, delEnterprise } from '@/api/customer'
 import { auditMap } from '@/store/config'
 import { isEmpty } from 'lodash-es'
 
@@ -323,7 +326,7 @@ const actions = reactive({
     data: [{ name: '呼叫', value: null }]
 })
 const actionCancel = () => {
-    console.log('22222222')
+    console.log('取消呼叫')
 }
 // 联系负责人
 const contactPerson = item => {
@@ -331,9 +334,8 @@ const contactPerson = item => {
     actions.data[0].value = item.corporatePhone
     actionShow.value = true
 }
-const actionSelect = (action, index) => {
-    console.log(action, index)
-    window.location.href = 'tel://18755446688'
+const actionSelect = action => {
+    window.location.href = `tel://${action.value}`
 }
 
 // 驳回修改
@@ -376,6 +378,7 @@ const previewSign = async (item, isPreview) => {
     }
 }
 
+const currentItem = ref({})
 const customerId = ref('')
 const dialogShow = ref(false)
 const show = ref(false)
@@ -483,7 +486,6 @@ const onSubmit = async () => {
             await getEnterpriseListAccess()
             show.value = false
             submitLoading.value = false
-            console.log(232222, formData.data)
         })
         .catch(() => {
             submitLoading.value = false
@@ -500,9 +502,24 @@ const resetFormData = () => {
     }
 }
 
-const dialogClose = (action, done) => {
+const dialogClose = async (action, done) => {
     if (action === 'confirm') {
-        console.log(44444444)
+        const res = await delEnterprise({
+            data: {
+                enterpriseId: currentItem.value.enterpriseId
+            },
+            hideloading: true
+        })
+        if (res.returnCode === '1000') {
+            $toast.success({
+                message: '删除成功'
+            })
+            onRefresh(false)
+        } else {
+            $toast.success({
+                message: '删除失败'
+            })
+        }
     }
     done()
 }
@@ -520,13 +537,13 @@ const uploadSign = async item => {
     })
 }
 
-const onRefresh = async () => {
+const onRefresh = async (isRefresh = true) => {
     dataSet.list.length = 0
     dataSet.finished = false
     dataSet.loading = true
     dataSet.currentPage = 0
     await getEnterpriseListAccess()
-    $toast('刷新成功')
+    if (isRefresh) $toast('刷新成功')
     isLoading.value = false
 }
 
@@ -561,17 +578,28 @@ const getEnterpriseListAccess = async () => {
 }
 
 // 删除业务
-const removeBusiness = () => {
+const removeBusiness = item => {
     dialogShow.value = true
-    console.log('删除业务')
+    currentItem.value = item
+}
+
+// 查看企业信息
+const previewInfo = item => {
+    if ([1, 3].indexOf(item.status) === -1) {
+        $store.commit('app/BATCH_SETTINGS', {
+            enterpriseId: item.enterpriseId,
+            isPreview: true
+        })
+        router.push({ name: 'Enterprise' })
+    }
 }
 
 const filterStatusItem = item => statusItems.value.filter(v => v.value === `${item.status}`)
 const filterIndustryItem = item => columns.value.filter(v => v.value === `${item.industryType}`)
 const filterColorItem = status => {
-    let color = ''
-    if ([1, 5, 6, 7, 8, 9].indexOf(status) !== -1) color = 'green'
+    let color = 'green'
     if ([3, 4].indexOf(status) !== -1) color = 'red'
+    else if ([11].indexOf(status) !== -1) color = ''
     return color
 }
 

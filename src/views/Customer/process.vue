@@ -84,7 +84,6 @@ onMounted(async () => {
         progressName.value = progress[res.data.progress] || ''
         name.value = res.data.name || ''
     }
-    console.log(4444, res)
 })
 </script>
 

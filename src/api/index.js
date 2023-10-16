@@ -20,7 +20,8 @@ const api = {
         findEnterpriseSocialSecurityV2: `${apiPrefix}/commercialEnterprise/findEnterpriseSocialSecurity/v2`,
         getEnterpriseList: `${apiPrefix}/commercialEnterprise/enterpriseList`,
         getProgressList: `${apiPrefix}/commercialEnterprise/getProgressList`,
-        getContractInfo: `${apiPrefix}/commercialEnterprise/getContractInfo`
+        getContractInfo: `${apiPrefix}/commercialEnterprise/getContractInfo`,
+        delEnterprise: `${apiPrefix}/commercialEnterprise/delEnterprise`
     },
     Preview: {
         enterpriseContractPreview: `${apiPrefix}/commercialEnterprise/enterpriseContractPreview`

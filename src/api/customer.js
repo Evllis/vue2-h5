@@ -73,3 +73,12 @@ export const getContractInfo = d => {
         ...d
     })
 }
+
+// 删除客户(企业)
+export const delEnterprise = d => {
+    return request({
+        url: api.Customer.delEnterprise,
+        method: 'post',
+        ...d
+    })
+}

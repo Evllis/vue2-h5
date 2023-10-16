@@ -4,7 +4,8 @@ const types = {
     SET_ENTERPRISE_ID: 'SET_ENTERPRISE_ID', // 企业id
     SET_ENTERPRISE_NAME: 'SET_ENTERPRISE_NAME', // 企业名称
     SET_STEP: 'SET_STEP', // 登录步骤
-    SET_EDIT_AUDIT: 'SET_EDIT_AUDIT' // 是否从查询页进入
+    SET_EDIT_AUDIT: 'SET_EDIT_AUDIT', // 是否从查询页进入
+    SET_IS_PREVIEW: 'SET_IS_PREVIEW' // 是否查看企业信息
 }
 
 const getDefaultState = () => {
@@ -14,7 +15,8 @@ const getDefaultState = () => {
         enterpriseId: '',
         enterpriseName: '',
         step: '',
-        editAudit: false
+        editAudit: false,
+        isPreview: false
     }
 }
 
@@ -26,7 +28,8 @@ const getters = {
     enterpriseId: state => state.enterpriseId,
     enterpriseName: state => state.enterpriseName,
     step: state => state.step,
-    editAudit: state => state.editAudit
+    editAudit: state => state.editAudit,
+    isPreview: state => state.isPreview
 }
 
 const actions = {
@@ -47,6 +50,9 @@ const actions = {
     },
     setEditAudit({ commit }, data) {
         commit(types.SET_EDIT_AUDIT, data)
+    },
+    setIsPreview({ commit }, data) {
+        commit(types.SET_IS_PREVIEW, data)
     }
 }
 
@@ -68,6 +74,9 @@ const mutations = {
     },
     [types.SET_EDIT_AUDIT](state, data) {
         state.editAudit = data
+    },
+    [types.SET_IS_PREVIEW](state, data) {
+        state.isPreview = data
     },
     BATCH_SETTINGS(state, data = {}) {
         Object.entries(data).forEach(k => (state[k[0]] = k[1]))
