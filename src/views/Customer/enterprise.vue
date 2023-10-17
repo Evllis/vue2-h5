@@ -288,7 +288,8 @@ const rules = reactive({
         {
             validator: queryLicenseNumAccess,
             message: () => {
-                return `该企业正在申请中，请使用末尾为${licensePhone.value.slice(-4)}的账户继续进行`
+                // return `该企业正在申请中，请使用末尾为${licensePhone.value.slice(-4)}的账户继续进行`
+                return `当前企业已提交业务申请`
             }
         }
     ],

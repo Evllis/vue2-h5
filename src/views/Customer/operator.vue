@@ -144,7 +144,7 @@
                         >上一步</VanButton
                     >
                     <VanButton
-                        v-if="!(status === 3 && !editAudit)"
+                        v-if="status === 1 && !editAudit"
                         block
                         type="info"
                         native-type="submit"
@@ -482,7 +482,7 @@ onActivated(async () => {
     const enterpriseId = $store.getters['app/enterpriseId']
     editAudit.value = $store.getters['app/editAudit']
     isPreview.value = $store.getters['app/isPreview']
-    status.value = $store.getters['app/status'] ? Number($store.getters['app/status']) : 1
+    status.value = Number($store.getters['app/status'])
     if (enterpriseId) {
         try {
             await getRegion()

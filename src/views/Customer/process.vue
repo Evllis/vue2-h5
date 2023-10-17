@@ -6,7 +6,7 @@
                 <span>{{ name }}</span>
                 <span :class="className">业务进度：{{ progressName }}</span>
             </div>
-            <div class="process-page__wrap">
+            <div class="process-page__wrap" :class="{ 'is-mark': progressList.length < 2 }">
                 <ul class="process-page__list">
                     <li v-for="item in progressList" :key="item.status" class="process-page__item">
                         <h4 class="process-page__item-title">{{ statusName(item.status) }}</h4>
@@ -102,6 +102,11 @@ onMounted(async () => {
         margin-left: 18px;
         margin-bottom: 130px;
         position: relative;
+        &.is-mark {
+            &::before {
+                display: none;
+            }
+        }
         &::before {
             content: '';
             width: 2px;
