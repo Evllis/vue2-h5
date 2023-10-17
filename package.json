@@ -7,7 +7,7 @@
   "scripts": {
     "serve": "vue-cli-service serve --mode staging",
     "build:prod": "vue-cli-service build --mode production && npm run clean && set NODE_ENV=prod && npm run zip",
-    "build:dev": "set NODE_ENV=dev && vue-cli-service build --mode development && npm run clean && npm run zip",
+    "build:dev": "vue-cli-service build --mode development && npm run clean && set NODE_ENV=dev && npm run zip",
     "lint": "vue-cli-service lint",
     "deps": "yarn upgrade-interactive --latest",
     "stage": "vue-cli-service build --mode staging",
