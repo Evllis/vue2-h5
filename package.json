@@ -6,11 +6,13 @@
   "author": "Alliestrasza <evllis.jolia@gmail.com>",
   "scripts": {
     "serve": "vue-cli-service serve --mode staging",
-    "build:prod": "vue-cli-service build --mode production",
-    "build:dev": "vue-cli-service build --mode development",
+    "build:prod": "vue-cli-service build --mode production && npm run clean && set NODE_ENV=prod && npm run zip",
+    "build:dev": "set NODE_ENV=dev && vue-cli-service build --mode development && npm run clean && npm run zip",
     "lint": "vue-cli-service lint",
     "deps": "yarn upgrade-interactive --latest",
-    "stage": "vue-cli-service build --mode staging"
+    "stage": "vue-cli-service build --mode staging",
+    "clean": "rimraf dist.zip",
+    "zip": "node export-zip.js"
   },
   "dependencies": {
     "@vueuse/core": "^10.0.2",
@@ -41,6 +43,7 @@
     "@vue/cli-plugin-router": "~5.0.8",
     "@vue/cli-plugin-vuex": "~5.0.8",
     "@vue/cli-service": "~5.0.8",
+    "archiver": "^6.0.1",
     "babel-eslint": "^10.1.0",
     "babel-plugin-import": "^1.13.5",
     "babel-plugin-transform-remove-console": "^6.9.4",
