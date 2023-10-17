@@ -35,7 +35,7 @@ const progressList = ref([])
 const progressName = ref('')
 // 业务进度 2-资质审核 3-协议签署 4-发货流程
 const progress = {
-    2: '资质审核',
+    2: '业务申请',
     3: '协议签署',
     4: '发货流程'
 }
