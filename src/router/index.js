@@ -62,6 +62,9 @@ router.afterEach(to => {
     if (to && to.meta && to.meta.title) {
         useTitle(to.meta.title)
     }
+    if (['Enterprise', 'Operator'].indexOf(to.name) === -1) {
+        $store.commit('app/SET_EDIT_AUDIT', '')
+    }
     document.addEventListener(
         'touchstart',
         function (event) {

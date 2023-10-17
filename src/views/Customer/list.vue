@@ -364,7 +364,7 @@ const actionSelect = action => {
 // 驳回修改
 const modifyStep = async (v, item) => {
     // 审核驳回的步骤：1-企业基本信息 2-企业经办人信息 3-门头社保信息 4-与联通合作信息 5-入网清单 6-采购清单 7-合同预填写 8-协议预览
-    await $store.commit('app/BATCH_SETTINGS', { editAudit: true, enterpriseId: item.enterpriseId })
+    await $store.commit('app/BATCH_SETTINGS', { editAudit: true, enterpriseId: item.enterpriseId, isPreview: false })
     router.push({
         name: auditMap.value[v.step]
     })
@@ -636,13 +636,12 @@ const reapplySign = async item => {
 
 // 查看企业信息
 const previewInfo = item => {
-    if ([1, 3].indexOf(item.status) === -1) {
-        $store.commit('app/BATCH_SETTINGS', {
-            enterpriseId: item.enterpriseId,
-            isPreview: true
-        })
-        router.push({ name: 'Enterprise' })
-    }
+    $store.commit('app/BATCH_SETTINGS', {
+        enterpriseId: item.enterpriseId,
+        status: item.status
+    })
+    $store.commit('app/SET_IS_PREVIEW', item.status === 1 ? false : true)
+    router.push({ name: 'Enterprise' })
 }
 
 const filterStatusItem = item => statusItems.value.filter(v => v.value === `${item.status}`)

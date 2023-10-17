@@ -398,6 +398,7 @@ const onSubmit = async () => {
                     if (!enterpriseId.value) {
                         $store.commit('app/SET_ENTERPRISE_ID', res.data.id)
                     }
+                    $store.commit('app/SET_EDIT_AUDIT', '')
                     router.push({ name: !editAudit.value ? 'Operator' : 'List' })
                 }
             } catch (err) {

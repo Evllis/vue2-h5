@@ -143,9 +143,14 @@
                         @click="backRouter"
                         >上一步</VanButton
                     >
-                    <VanButton block type="info" native-type="submit" class="submit-button">{{
-                        editAudit ? '提交' : '下一步'
-                    }}</VanButton>
+                    <VanButton
+                        v-if="!(status === 3 && !editAudit)"
+                        block
+                        type="info"
+                        native-type="submit"
+                        class="submit-button"
+                        >{{ editAudit ? '提交' : status === 1 ? '提交' : '下一步' }}</VanButton
+                    >
                 </div>
             </Form>
             <Popup
@@ -233,6 +238,7 @@ import payImage from '@/assets/img/pay-image.png'
 const instance = getCurrentInstance()
 const { $toast, $store } = instance.proxy
 
+const status = ref(1)
 const socialShow = ref(false)
 const payShow = ref(false)
 const editAudit = ref(false)
@@ -419,7 +425,7 @@ const onSubmit = async () => {
     const enterpriseId = $store.getters['app/enterpriseId']
     if (enterpriseId) {
         formData.data['enterpriseId'] = enterpriseId
-        formData.data['type'] = !editAudit.value ? '1' : '2'
+        formData.data['type'] = !editAudit.value ? (status.value === 1 ? '2' : '1') : '2'
         formRef.value
             .validate()
             .then(async () => {
@@ -430,11 +436,12 @@ const onSubmit = async () => {
                         unicomProvinceCode: selectAreaData.value[0].code,
                         unicomCity: selectAreaData.value[1].name,
                         unicomCityCode: selectAreaData.value[1].code,
-                        type: editAudit.value ? '2' : '1'
+                        type: editAudit.value ? (status.value === 1 ? '2' : '2') : '1'
                     })
                     await submitEnterpriseSocialSecurityV2({ data })
                     $store.commit('app/SET_EDIT_AUDIT', '')
-                    router.push({ name: editAudit.value ? 'List' : 'Audit' })
+                    $store.commit('app/SET_STATUS', '')
+                    router.push({ name: editAudit.value ? 'List' : status.value === 1 ? 'List' : 'Audit' })
                 } catch (err) {
                     return false
                 }
@@ -475,6 +482,7 @@ onActivated(async () => {
     const enterpriseId = $store.getters['app/enterpriseId']
     editAudit.value = $store.getters['app/editAudit']
     isPreview.value = $store.getters['app/isPreview']
+    status.value = $store.getters['app/status'] ? Number($store.getters['app/status']) : 1
     if (enterpriseId) {
         try {
             await getRegion()
