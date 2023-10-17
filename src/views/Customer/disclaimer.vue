@@ -18,16 +18,18 @@
 </template>
 
 <script setup>
+import { getCurrentInstance } from 'vue'
 import { NavBar } from 'vant'
 import router from '@/router'
 
+const instance = getCurrentInstance()
+const { $store } = instance.proxy
+
 // 我已知晓
 const accept = () => {
+    $store.commit('app/SET_ENTERPRISE_ID', '')
     router.push({
-        name: 'Enterprise',
-        params: {
-            isClear: true
-        }
+        name: 'Enterprise'
     })
 }
 

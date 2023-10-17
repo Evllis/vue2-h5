@@ -23,9 +23,13 @@ const createRouter = () =>
             if (savedPosition) {
                 return savedPosition
             }
+            if (to.meta.keepAlive) {
+                to.meta.savedPosition =
+                    document.documentElement.scrollTop || document.body.scrollTop || window.pageYOffset
+            }
             return {
                 x: 0,
-                y: 0
+                y: to.meta.savedPosition || 0
             }
         },
         routes: cloneDeep(constantRouterMap).concat(asyncRouterMap)

@@ -188,7 +188,7 @@ import { reactive, ref, onActivated, getCurrentInstance } from 'vue'
 import { nonCharacter, isName, isIdCard, isPhone } from '@/utils/validate'
 import { phoneNumber } from '@/utils/formatter'
 import { isEmpty } from 'lodash-es'
-import router, { currentRoute } from '@/router'
+import router from '@/router'
 import * as imageConversion from 'image-conversion'
 
 import { submitEnterpriseInfo, findEnterpriseInfo } from '@/api/customer'
@@ -200,7 +200,6 @@ import cardFront from '@/assets/img/card-front.png'
 import cardBack from '@/assets/img/card-back.png'
 
 const instance = getCurrentInstance()
-const currentRoutes = currentRoute()
 const { $store } = instance.proxy
 // 行业类型：1  建筑业 2  制造业 3  交通运输、仓储业和邮政业 4  信息传输、计算机服务和软件业 5  批发和零售业 6  住宿、餐饮业 7  金融、保险业 8  房地产业 9  租赁和商务服务业 10  教育、培训 11  文化、体育、娱乐业 12  其它
 const columns = ref([
@@ -406,9 +405,6 @@ const onSubmit = async () => {
 }
 
 onActivated(async () => {
-    if (currentRoutes.params.isClear) {
-        $store.commit('app/SET_ENTERPRISE_ID', '')
-    }
     enterpriseId.value = $store.getters['app/enterpriseId']
     editAudit.value = $store.getters['app/editAudit']
     isPreview.value = $store.getters['app/isPreview']
