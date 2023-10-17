@@ -18,7 +18,16 @@ const createRouter = () =>
     new Router({
         // mode: 'history', // 如果你是 history模式 需要配置vue.config.js publicPath
         // base: process.env.BASE_URL,
-        scrollBehavior: () => ({ y: 0 }),
+        // scrollBehavior: () => ({ y: 0 }),
+        scrollBehavior: (to, from, savedPosition) => {
+            if (savedPosition) {
+                return savedPosition
+            }
+            return {
+                x: 0,
+                y: 0
+            }
+        },
         routes: cloneDeep(constantRouterMap).concat(asyncRouterMap)
     })
 

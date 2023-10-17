@@ -143,7 +143,7 @@
                         @click="backRouter"
                         >上一步</VanButton
                     >
-                    <VanButton v-if="!isPreview" block type="info" native-type="submit" class="submit-button">{{
+                    <VanButton block type="info" native-type="submit" class="submit-button">{{
                         editAudit ? '提交' : '下一步'
                     }}</VanButton>
                 </div>
@@ -214,7 +214,7 @@ import {
     Picker,
     Image as VanImage
 } from 'vant'
-import { reactive, ref, getCurrentInstance, onMounted, nextTick } from 'vue'
+import { reactive, ref, getCurrentInstance, onActivated, nextTick } from 'vue'
 import { isEmpty, isArray } from 'lodash-es'
 import router from '@/router'
 import { formatterGtZeroInteger } from '@/utils'
@@ -471,7 +471,7 @@ const getRegion = async () => {
     }
 }
 
-onMounted(async () => {
+onActivated(async () => {
     const enterpriseId = $store.getters['app/enterpriseId']
     editAudit.value = $store.getters['app/editAudit']
     isPreview.value = $store.getters['app/isPreview']

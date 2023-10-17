@@ -58,19 +58,19 @@ export const asyncRouterMap = [
                 path: 'enterprise',
                 name: 'Enterprise',
                 component: () => import('@/views/Customer/enterprise.vue'),
-                meta: { title: '客户基本信息', keepAlive: false }
+                meta: { title: '客户基本信息', keepAlive: true }
             },
             {
                 path: 'operator',
                 name: 'Operator',
                 component: () => import('@/views/Customer/operator.vue'),
-                meta: { title: '客户补充信息', keepAlive: false }
+                meta: { title: '客户补充信息', keepAlive: true }
             },
             {
                 path: 'list',
                 name: 'List',
                 component: () => import('@/views/Customer/list.vue'),
-                meta: { title: '客户列表', keepAlive: false }
+                meta: { title: '客户列表', keepAlive: true }
             },
             {
                 path: 'disclaimer',

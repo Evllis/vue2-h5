@@ -1,8 +1,8 @@
 <template>
     <div class="list-page">
         <NavBar title="客户列表" :style="{ paddingLeft: `15px` }" />
-        <div :class="`body-container list-page__body ${!dataSet.list.length ? 'empty' : ''}`">
-            <div v-if="!dataSet.list.length" class="customer-wrap">
+        <div :class="`body-container list-page__body ${!dataSet.list.length && !isList ? 'empty' : ''}`">
+            <div v-if="!dataSet.list.length && !isList" class="customer-wrap">
                 <div class="flex justify-center mb-20px">
                     <VanImage :src="listEmpty" class="empty-png" />
                 </div>
@@ -92,8 +92,10 @@
                                                 <div v-else-if="item.status === 4" class="customer-item__row">
                                                     <div class="reject-info">
                                                         <p>您的业务申请不符合我司标准，原因如下，敬请谅解！</p>
-                                                        <p style="color: #ff5f01">{{ item.auditMsg }}</p>
-                                                        <p style="color: #ff5f01">
+                                                        <p style="color: #ff5f01" class="mt-10px">
+                                                            {{ item.auditMsg }}
+                                                        </p>
+                                                        <p style="color: #ff5f01" class="mt-10px">
                                                             {{ item.auditExpireTime }}后可重新提交
                                                         </p>
                                                     </div>
@@ -104,7 +106,7 @@
                                                         <p
                                                             v-for="(v, index) in item.auditList"
                                                             :key="v.step"
-                                                            class="flex items-center justify-between"
+                                                            class="flex items-center justify-between mt-10px"
                                                         >
                                                             {{ index + 1 }}、{{ v.msg }}
                                                             <span @click="modifyStep(v, item)" style="color: #ff5f01"
@@ -150,6 +152,15 @@
                                                     @click="previewSign(item, true)"
                                                     v-if="[6, 7, 8, 9, 10, 11].indexOf(item.status) !== -1"
                                                     >查看协议</VanButton
+                                                >
+                                                <VanButton
+                                                    block
+                                                    type="info"
+                                                    native-type="button"
+                                                    class="customer-item__button"
+                                                    @click="reapplySign(item)"
+                                                    v-if="item.status === 3"
+                                                    >重新申请</VanButton
                                                 >
                                             </div>
                                         </li>
@@ -232,10 +243,15 @@
                                 <DropdownMenu>
                                     <DropdownItem
                                         v-model="formData.data.status"
-                                        :options="statusColumns"
+                                        :options="filterStatusColumns"
                                         get-container="#drop-container"
                                     ></DropdownItem>
                                 </DropdownMenu>
+                                <div
+                                    v-show="formData.data.progress === '0'"
+                                    class="dropdownItem"
+                                    @click="statusOpen"
+                                ></div>
                             </div>
                         </template>
                     </Field>
@@ -295,7 +311,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { ref, reactive, onMounted, getCurrentInstance, watch } from 'vue'
 import {
     NavBar,
     Popup,
@@ -308,11 +324,13 @@ import {
     List,
     Icon,
     Skeleton,
+    Toast,
     Image as VanImage
 } from 'vant'
 import { nonCharacter } from '@/utils/validate'
 import router from '@/router'
 import { getEnterpriseList, getContractInfo, delEnterprise } from '@/api/customer'
+import { auditStatusFourSubmit } from '@/api/audit'
 import { auditMap } from '@/store/config'
 import { isEmpty } from 'lodash-es'
 
@@ -322,6 +340,8 @@ import inactiveIcon from '@/assets/icon/select-icon.png'
 const instance = getCurrentInstance()
 const { $toast, $store } = instance.proxy
 
+// 第一次进入时，是否有业务列表数据
+const isList = ref(false)
 // 动作面板
 const actionShow = ref(false)
 const actionTitle = ref('')
@@ -366,11 +386,12 @@ const previewSign = async (item, isPreview) => {
     })
     if (!isEmpty(res.data)) {
         $toast.clear()
-        $store.commit('sign/SET_SIGN_SUCCESS', isPreview ? '1' : '')
+        // 查看协议时, 如果状态为等待签署6, 则显示分享给客户按钮
+        $store.commit('sign/SET_SIGN_SUCCESS', item.status !== 6 && isPreview ? '1' : '')
         $store.commit('SET_SOURCE', 'List')
         $store.commit('app/BATCH_SETTINGS', {
             enterpriseId: res.data.enterpriseId,
-            enterpriseName: res.data.enterpriseName
+            enterpriseName: item.name
         })
         $store.commit('sign/BATCH_SETTINGS', {
             linkUrl: encodeURIComponent(res.data.linkUrl),
@@ -451,6 +472,7 @@ const progressColumns = ref([
     { text: '协议签署', value: '3' },
     { text: '发货流程', value: '4' }
 ])
+const filterStatusColumns = ref([])
 const statusColumns = ref([
     { text: '全部', value: '0' },
     { text: '等待提交', value: '1' },
@@ -532,6 +554,11 @@ const addBusiness = () => {
     router.push({ name: 'Disclaimer' })
 }
 
+// 筛选业务状态打开时
+const statusOpen = () => {
+    Toast('请先选择业务进度')
+}
+
 // 上传签收单
 const uploadSign = async item => {
     $store.commit('app/BATCH_SETTINGS', { enterpriseId: item.enterpriseId, enterpriseName: item.name })
@@ -550,7 +577,7 @@ const onRefresh = async (isRefresh = true) => {
     isLoading.value = false
 }
 
-const getEnterpriseListAccess = async () => {
+const getEnterpriseListAccess = async isInit => {
     if (dataSet.finished) return false
     if (!dataSet.currentPage) skeletonLoading.value = true
     dataSet.currentPage++
@@ -565,6 +592,7 @@ const getEnterpriseListAccess = async () => {
             hideloading: true
         })
         if (!isEmpty(res.data)) {
+            if (isInit && res.data.enterpriseList.length) isList.value = true
             dataSet.list = [...dataSet.list, ...res.data.enterpriseList]
             dataSet.loading = false
             if (res.data.enterpriseList.length < 5 || dataSet.list.length === res.data.total) {
@@ -584,6 +612,26 @@ const getEnterpriseListAccess = async () => {
 const removeBusiness = item => {
     dialogShow.value = true
     currentItem.value = item
+}
+
+// 状态驳回重新申请
+const reapplySign = async item => {
+    try {
+        await auditStatusFourSubmit({
+            data: {
+                enterpriseId: item.enterpriseId
+            }
+        })
+        $toast.success({
+            message: '申请成功',
+            onClose: () => {
+                item.status = 2
+            }
+        })
+    } catch (err) {
+        $toast.fail('申请失败，请重试')
+        return false
+    }
 }
 
 // 查看企业信息
@@ -612,9 +660,26 @@ const previewProcess = async item => {
     router.push({ name: 'Process' })
 }
 
+watch(
+    () => formData.data.progress,
+    n => {
+        // 默认全部
+        let keys = ['0', '1', '2', '3', '4', '5', '6', '9', '10', '11']
+        // 业务申请
+        if (n === '2') keys = ['0', '1', '2', '3', '4']
+        // 协议签署
+        if (n === '3') keys = ['0', '5', '6']
+        // 发货流程
+        if (n === '4') keys = ['0', '9', '10', '11']
+        filterStatusColumns.value = statusColumns.value.filter(v => keys.indexOf(v.value) !== -1)
+        formData.data.status = filterStatusColumns.value[0].value
+    },
+    { deep: true, immediate: true }
+)
+
 onMounted(() => {
     customerId.value = $store.getters['customerId'] || ''
-    getEnterpriseListAccess()
+    getEnterpriseListAccess(true)
 })
 </script>
 
@@ -645,6 +710,7 @@ onMounted(() => {
         }
     }
     .empty-png {
+        width: 223px;
         height: 223px;
     }
     .submit-button {
@@ -731,6 +797,14 @@ onMounted(() => {
             color: #ff5f01;
         }
     }
+}
+.dropdownItem {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
 }
 .customer-filter {
     color: #ff5f01;

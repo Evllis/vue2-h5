@@ -11,15 +11,20 @@
                                     <div v-show="!confirmImage.length" class="flex items-center justify-center h-full">
                                         <div class="flex flex-col items-center">
                                             <Icon :name="cameraIcon" />
-                                            <span class="normal-text">点击上传您的签收单</span>
+                                            <span class="normal-text">点击上传签收确认单</span>
                                         </div>
                                     </div>
                                 </Uploader>
                             </div>
                         </template>
                     </Field>
-                    <div>
-                        <VanButton block type="info" native-type="submit" class="submit-button" :loading="loading"
+                    <div class="flex justify-center">
+                        <VanButton
+                            block
+                            type="info"
+                            native-type="submit"
+                            class="submit-button w-310px"
+                            :loading="loading"
                             >上传</VanButton
                         >
                     </div>

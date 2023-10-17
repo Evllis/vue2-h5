@@ -184,7 +184,7 @@
 
 <script setup>
 import { NavBar, Form, Field, Uploader, Icon, DropdownMenu, DropdownItem } from 'vant'
-import { reactive, ref, onMounted, getCurrentInstance } from 'vue'
+import { reactive, ref, onActivated, getCurrentInstance } from 'vue'
 import { nonCharacter, isName, isIdCard, isPhone } from '@/utils/validate'
 import { phoneNumber } from '@/utils/formatter'
 import { isEmpty } from 'lodash-es'
@@ -407,7 +407,7 @@ const onSubmit = async () => {
         .catch(() => {})
 }
 
-onMounted(async () => {
+onActivated(async () => {
     if (currentRoutes.params.isClear) {
         $store.commit('app/SET_ENTERPRISE_ID', '')
     }

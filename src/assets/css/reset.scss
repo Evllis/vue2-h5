@@ -12,6 +12,11 @@
 .drop-container {
     width: 100%;
     position: relative;
+    .van-dropdown-menu__item--disabled {
+        .van-dropdown-menu__title {
+            color: #323233 !important;
+        }
+    }
     .van-dropdown-menu__bar {
         box-shadow: none;
         height: 16px;
@@ -128,6 +133,19 @@
 //         color: var(--primary-active-color);
 //     }
 // }
+
+.van-field--disabled .van-field__label {
+    color: #646566 !important;
+}
+
+.van-field__control:disabled {
+    color: #323233 !important;
+    -webkit-text-fill-color: #323233 !important;
+}
+
+.van-uploader__wrapper--disabled {
+    opacity: 1 !important;
+}
 
 .van-cell {
     &.error-pos {
