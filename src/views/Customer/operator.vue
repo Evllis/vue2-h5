@@ -151,6 +151,9 @@
                         class="submit-button"
                         >{{ editAudit ? '提交' : status === 1 ? '提交' : '下一步' }}</VanButton
                     >
+                    <VanButton v-if="status === 0" block type="info" native-type="submit" class="submit-button"
+                        >下一步</VanButton
+                    >
                 </div>
             </Form>
             <Popup
@@ -238,7 +241,7 @@ import payImage from '@/assets/img/pay-image.png'
 const instance = getCurrentInstance()
 const { $toast, $store } = instance.proxy
 
-const status = ref(1)
+const status = ref(0)
 const socialShow = ref(false)
 const payShow = ref(false)
 const editAudit = ref(false)

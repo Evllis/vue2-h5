@@ -551,6 +551,11 @@ const dialogClose = async (action, done) => {
 
 // 新增业务申请
 const addBusiness = () => {
+    $store.commit('app/BATCH_SETTINGS', {
+        editAudit: false,
+        isPreview: false,
+        status: 0
+    })
     router.push({ name: 'Disclaimer' })
 }
 

@@ -250,10 +250,6 @@ const dropItemChange = () => {
 
 const queryLicenseNumAccess = val => {
     return new Promise(resolve => {
-        if (val.length < 12) {
-            resolve(true)
-            return false
-        }
         try {
             queryLicenseNum({
                 data: {

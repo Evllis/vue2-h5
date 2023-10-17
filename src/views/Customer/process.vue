@@ -6,7 +6,7 @@
                 <span>{{ name }}</span>
                 <span :class="className">业务进度：{{ progressName }}</span>
             </div>
-            <div class="process-page__wrap" :class="{ 'is-mark': progressList.length < 2 }">
+            <div class="process-page__wrap">
                 <ul class="process-page__list">
                     <li v-for="item in progressList" :key="item.status" class="process-page__item">
                         <h4 class="process-page__item-title">{{ statusName(item.status) }}</h4>
@@ -102,11 +102,6 @@ onMounted(async () => {
         margin-left: 18px;
         margin-bottom: 130px;
         position: relative;
-        &.is-mark {
-            &::before {
-                display: none;
-            }
-        }
         &::before {
             content: '';
             width: 2px;
@@ -131,6 +126,18 @@ onMounted(async () => {
                 top: 0;
                 background: url('~@/assets/icon/process-mark-icon.png') no-repeat center;
                 background-size: 21px 21px;
+                z-index: 1;
+            }
+            &:last-child {
+                &::after {
+                    content: '';
+                    position: absolute;
+                    left: -42px;
+                    top: 14px;
+                    background-color: white;
+                    width: 20px;
+                    height: 100px;
+                }
             }
             &:last-child {
                 margin-bottom: 0;
