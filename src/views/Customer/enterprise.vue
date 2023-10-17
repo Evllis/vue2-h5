@@ -408,6 +408,7 @@ onActivated(async () => {
     enterpriseId.value = $store.getters['app/enterpriseId']
     editAudit.value = $store.getters['app/editAudit']
     isPreview.value = $store.getters['app/isPreview']
+    formRef.value.resetValidation()
     if (enterpriseId.value) {
         try {
             const res = await findEnterpriseInfo({

@@ -10,6 +10,9 @@ const actions = {
     setPhone({ commit }, data) {
         commit(types.SET_PHONE, data)
     },
+    setScrollTopMap({ commit }, data) {
+        commit(types.SET_SCROLL_TOP_MAP, data)
+    },
     resetSettings({ commit }) {
         commit('app/RESET_SETTINGS', {}, { root: true })
         commit('sign/RESET_SETTINGS', {}, { root: true })

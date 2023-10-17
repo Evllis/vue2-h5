@@ -9,6 +9,9 @@ const mutations = {
     },
     [types.SET_PHONE](state, data) {
         state.phone = data
+    },
+    [types.SET_SCROLL_TOP_MAP](state, data) {
+        state.scrollTopMap = Object.assign(state.scrollTopMap, data)
     }
 }
 

@@ -1,7 +1,8 @@
 const state = {
     source: '',
     customerId: '',
-    phone: ''
+    phone: '',
+    scrollTopMap: {}
 }
 
 export default state

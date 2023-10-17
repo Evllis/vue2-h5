@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, getCurrentInstance } from 'vue'
+import { ref, onActivated, getCurrentInstance } from 'vue'
 import { NavBar, Toast } from 'vant'
 import router from '@/router'
 import { isEmpty } from 'lodash-es'
@@ -63,7 +63,7 @@ const statusName = status => {
     return json[status] || ''
 }
 
-onMounted(async () => {
+onActivated(async () => {
     const enterpriseId = $store.getters['app/enterpriseId'] || ''
     Toast.loading({
         duration: 0,

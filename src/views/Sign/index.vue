@@ -111,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, getCurrentInstance, nextTick } from 'vue'
+import { ref, reactive, onActivated, getCurrentInstance, nextTick } from 'vue'
 import { NavBar, Form, Field, Popup, Overlay, Icon } from 'vant'
 import router from '@/router'
 import axios from 'axios'
@@ -550,7 +550,7 @@ const getPdfUrl = async () => {
     return ''
 }
 
-onMounted(async () => {
+onActivated(async () => {
     contractCode.value = $store.getters['sign/contractCode'] || ''
     enterpriseName.value = $store.getters['app/enterpriseName'] || ''
     customerName.value = $store.getters['sign/customerName'] || ''
@@ -563,9 +563,7 @@ onMounted(async () => {
     // 第一次不需要获取pdfurl, 之后每次刷新页面都需要重新获取pdfurl
     $store.commit('sign/SET_PDF_URL', '')
     const isSignSuccess1 = $store.getters['sign/isSignSuccess']
-    if (isSignSuccess1) {
-        isSignSuccess.value = true
-    }
+    isSignSuccess.value = !!isSignSuccess1
     if (url) {
         if (IS_STAGING) {
             pdfUrl.value = `${location.origin}/api/${decodeURIComponent(url).split('www.techwis.cn/')[1]}`

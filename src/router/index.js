@@ -23,9 +23,10 @@ const createRouter = () =>
             if (savedPosition) {
                 return savedPosition
             }
-            if (to.meta.keepAlive) {
-                to.meta.savedPosition =
-                    document.documentElement.scrollTop || document.body.scrollTop || window.pageYOffset
+            to.meta.savedPosition = 0
+            if (to.meta.isScroll && to.meta.keepAlive) {
+                const top = $store.getters.scrollTopMap(to.name)
+                to.meta.savedPosition = top || 0
             }
             return {
                 x: 0,
@@ -42,6 +43,12 @@ const router = createRouter()
 router.beforeEach(async (to, from, next) => {
     // const token = router.app.$options.store.getters.token
     const token = $store.getters['app/token']
+    if (from.meta.isScroll && to.meta.keepAlive) {
+        const top = document.documentElement.scrollTop || document.body.scrollTop || window.pageYOffset
+        $store.commit('SET_SCROLL_TOP_MAP', {
+            [from.name]: top
+        })
+    }
     if (to.path !== '/login' && !token) {
         next({
             path: '/login'

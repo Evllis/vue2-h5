@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import { ref, getCurrentInstance, reactive, onMounted } from 'vue'
+import { ref, getCurrentInstance, reactive, onActivated } from 'vue'
 import { NavBar, Form, Field, Uploader, Icon } from 'vant'
 import router from '@/router'
 
@@ -101,7 +101,7 @@ const onSubmit = async () => {
         })
 }
 
-onMounted(() => {
+onActivated(() => {
     enterpriseId.value = $store.getters['app/enterpriseId'] || ''
     enterpriseName.value = $store.getters['app/enterpriseName'] || ''
 })

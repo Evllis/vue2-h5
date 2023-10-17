@@ -70,19 +70,19 @@ export const asyncRouterMap = [
                 path: 'list',
                 name: 'List',
                 component: () => import('@/views/Customer/list.vue'),
-                meta: { title: '客户列表', keepAlive: true }
+                meta: { title: '客户列表', keepAlive: true, isScroll: true }
             },
             {
                 path: 'disclaimer',
                 name: 'Disclaimer',
                 component: () => import('@/views/Customer/disclaimer.vue'),
-                meta: { title: '免责声明', keepAlive: false }
+                meta: { title: '免责声明', keepAlive: true }
             },
             {
                 path: 'process',
                 name: 'Process',
                 component: () => import('@/views/Customer/process.vue'),
-                meta: { title: '查看进度', keepAlive: false }
+                meta: { title: '查看进度', keepAlive: true }
             }
         ]
     },
@@ -109,14 +109,14 @@ export const asyncRouterMap = [
         redirect: '/confirm/home',
         meta: {
             title: '签收确认单',
-            keepAlive: false
+            keepAlive: true
         },
         children: [
             {
                 path: 'home',
                 name: 'Confirm',
                 component: () => import('@/views/Confirm/index'),
-                meta: { title: '签收确认单', keepAlive: false }
+                meta: { title: '签收确认单', keepAlive: true }
             }
         ]
     },
@@ -126,14 +126,14 @@ export const asyncRouterMap = [
         redirect: '/sign/home',
         meta: {
             title: '签署协议',
-            keepAlive: false
+            keepAlive: true
         },
         children: [
             {
                 path: 'home',
                 name: 'Sign',
                 component: () => import('@/views/Sign/index'),
-                meta: { title: '签署协议', keepAlive: false }
+                meta: { title: '签署协议', keepAlive: true }
             }
         ]
     }
