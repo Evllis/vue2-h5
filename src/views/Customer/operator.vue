@@ -152,7 +152,7 @@
                         >{{ editAudit ? '提交' : status === 1 ? '提交' : '下一步' }}</VanButton
                     >
                     <VanButton v-if="status === 0" block type="info" native-type="submit" class="submit-button"
-                        >下一步</VanButton
+                        >提交</VanButton
                     >
                 </div>
             </Form>
@@ -492,7 +492,7 @@ onActivated(async () => {
     isPreview.value = $store.getters['app/isPreview']
     status.value = Number($store.getters['app/status'])
     await getRegion()
-    if (enterpriseId) {
+    if (status.value !== 0 && enterpriseId) {
         try {
             const res = await findEnterpriseSocialSecurityV2({
                 data: {
