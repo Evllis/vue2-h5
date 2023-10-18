@@ -11,7 +11,7 @@
     "lint": "vue-cli-service lint",
     "deps": "yarn upgrade-interactive --latest",
     "stage": "vue-cli-service build --mode staging",
-    "clean": "rimraf dist.zip",
+    "clean": "rimraf zip/**.zip",
     "zip": "node export-zip.js"
   },
   "dependencies": {
