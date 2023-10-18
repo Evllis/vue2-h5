@@ -486,9 +486,9 @@ onActivated(async () => {
     editAudit.value = $store.getters['app/editAudit']
     isPreview.value = $store.getters['app/isPreview']
     status.value = Number($store.getters['app/status'])
+    await getRegion()
     if (enterpriseId) {
         try {
-            await getRegion()
             const res = await findEnterpriseSocialSecurityV2({
                 data: {
                     enterpriseId
@@ -534,6 +534,28 @@ onActivated(async () => {
         } catch (err) {
             return false
         }
+    } else {
+        formData.data = {
+            type: '', // 页面入口来源 1-正常流程进入 2-审核驳回页面进入
+            doorHeadPhoto: [],
+            socialSecurityType: '1',
+            socialSecurityNumber: '',
+            socialSecurityUrls: [],
+            taxCertificateUrls: [],
+            unicomProvince: '', // 归属联通省分公司
+            unicomProvinceCode: '', // 归属联通省code
+            unicomCity: '', // 归属联通市分公司
+            unicomCityCode: '' // 归属联通市code
+        }
+        doorHeadPhoto.value = []
+        urls.socialSecurityUrls = []
+        urls.taxCertificateUrls = []
+        unicomProvinceText.value = ''
+        areaIndex.data = {
+            province: 0,
+            city: 0
+        }
+        selectAreaData.value = []
     }
 })
 </script>

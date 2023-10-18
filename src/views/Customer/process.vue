@@ -72,6 +72,9 @@ onActivated(async () => {
     })
     if (!enterpriseId) {
         Toast.clear()
+        progressList.value = []
+        progressName.value = ''
+        name.value = ''
         return
     }
     const res = await getProgressList({

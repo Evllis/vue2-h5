@@ -438,6 +438,23 @@ onActivated(async () => {
         } catch (err) {
             return false
         }
+    } else {
+        formData.data = {
+            name: '',
+            licenseNum: '',
+            businessAddress: '',
+            industryType: '',
+            businessLicense: '',
+            corporateIdFront: '',
+            corporateIdBack: '',
+            corporateName: '',
+            corporateId: '',
+            corporatePhone: ''
+        }
+        placeholderShow.value = true
+        businessLicense.value = []
+        corporateIdFront.value = []
+        corporateIdBack.value = []
     }
 })
 </script>
