@@ -365,7 +365,12 @@ const actionSelect = action => {
 // 驳回修改
 const modifyStep = async (v, item) => {
     // 审核驳回的步骤：1-企业基本信息 2-企业经办人信息 3-门头社保信息 4-与联通合作信息 5-入网清单 6-采购清单 7-合同预填写 8-协议预览
-    await $store.commit('app/BATCH_SETTINGS', { editAudit: true, enterpriseId: item.enterpriseId, isPreview: false })
+    await $store.commit('app/BATCH_SETTINGS', {
+        editAudit: true,
+        enterpriseId: item.enterpriseId,
+        isPreview: false,
+        status: item.status
+    })
     router.push({
         name: auditMap.value[v.step]
     })
