@@ -86,12 +86,24 @@ const onSubmit = async () => {
                 loading.value = false
                 $toast.success({
                     message: '签收确认单上传成功',
-                    duration: 0
+                    onClose: () => {
+                        router.push({
+                            name: 'List',
+                            params: {
+                                confirmId: enterpriseId.value
+                            }
+                        })
+                    }
                 })
             } catch (err) {
                 loading.value = false
                 $toast.fail({
-                    message: '签收确认单上传失败'
+                    message: '签收确认单上传失败',
+                    onClose: () => {
+                        router.push({
+                            name: 'List'
+                        })
+                    }
                 })
                 return false
             }
@@ -104,6 +116,7 @@ const onSubmit = async () => {
 onActivated(() => {
     enterpriseId.value = $store.getters['app/enterpriseId'] || ''
     enterpriseName.value = $store.getters['app/enterpriseName'] || ''
+    confirmImage.value = []
 })
 </script>
 

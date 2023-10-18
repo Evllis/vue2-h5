@@ -312,7 +312,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, getCurrentInstance, watch } from 'vue'
+import { ref, reactive, onMounted, onActivated, getCurrentInstance, watch } from 'vue'
 import {
     NavBar,
     Popup,
@@ -354,8 +354,8 @@ const actionCancel = () => {
 }
 // 联系负责人
 const contactPerson = item => {
-    actionTitle.value = `${item.corporateName} ${item.corporatePhone}`
-    actions.data[0].value = item.corporatePhone
+    actionTitle.value = `${item.operateName} ${item.operatePhone}`
+    actions.data[0].value = item.operatePhone
     actionShow.value = true
 }
 const actionSelect = action => {
@@ -685,6 +685,19 @@ watch(
 onMounted(() => {
     customerId.value = $store.getters['customerId'] || ''
     getEnterpriseListAccess(true)
+})
+
+onActivated(() => {
+    // 如果签收确认单上传完成，则返回列表页刷新状态
+    const confirmId = router.history.current.params.confirmId
+    if (confirmId) {
+        dataSet.list = dataSet.list.map(v => {
+            if (v.enterpriseId === confirmId) {
+                v.status = 11
+            }
+            return v
+        })
+    }
 })
 </script>
 
