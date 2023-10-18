@@ -1,7 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const defaultSettings = require('./src/config/index.js')
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
 
 const resolve = dir => path.join(__dirname, dir)
@@ -143,13 +143,13 @@ module.exports = defineConfig({
         /**
          * 打包分析
          */
-        if (IS_PROD) {
-            config.plugin('webpack-report').use(BundleAnalyzerPlugin, [
-                {
-                    analyzerMode: 'static'
-                }
-            ])
-        }
+        // if (IS_PROD) {
+        //     config.plugin('webpack-report').use(BundleAnalyzerPlugin, [
+        //         {
+        //             analyzerMode: 'static'
+        //         }
+        //     ])
+        // }
         config
             // https://webpack.js.org/configuration/devtool/#development
             .when(!IS_PROD, config => config.devtool('cheap-source-map'))
