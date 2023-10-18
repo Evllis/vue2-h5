@@ -160,7 +160,7 @@
                 v-model="socialShow"
                 position="right"
                 :style="{ width: '100%', height: '100%' }"
-                get-container="#app"
+                get-container=".operator-page"
             >
                 <NavBar title="查看示例" left-arrow @click-left="socialShow = false" />
                 <div class="example-body">
@@ -179,7 +179,12 @@
                     <P>网址：【 江苏：http://rs.jshrss.jiangsu.gov.cn 】</P>
                 </div>
             </Popup>
-            <Popup v-model="payShow" position="right" :style="{ width: '100%', height: '100%' }" get-container="#app">
+            <Popup
+                v-model="payShow"
+                position="right"
+                :style="{ width: '100%', height: '100%' }"
+                get-container=".operator-page"
+            >
                 <NavBar title="查看示例" left-arrow @click-left="payShow = false" />
                 <div class="example-body">
                     <p class="mark">纳税截图要求：</p>
@@ -574,6 +579,12 @@ onActivated(async () => {
         &::after {
             display: none;
         }
+    }
+    & > :deep(.van-overlay) {
+        z-index: 3001 !important;
+    }
+    & > :deep(.van-popup) {
+        z-index: 3002 !important;
     }
 }
 .example-body {
