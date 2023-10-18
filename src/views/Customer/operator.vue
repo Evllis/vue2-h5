@@ -503,7 +503,7 @@ onActivated(async () => {
     isPreview.value = $store.getters['app/isPreview']
     status.value = Number($store.getters['app/status'])
     await getRegion()
-    if (status.value !== 0 && enterpriseId) {
+    if (status.value !== 0 && status.value !== 1 && enterpriseId) {
         try {
             const res = await findEnterpriseSocialSecurityV2({
                 data: {
