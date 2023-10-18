@@ -185,7 +185,7 @@
                         :rules="rules.name"
                         name="name"
                         label="企业名称"
-                        placeholder="请输入您的企业名称"
+                        placeholder="请输入客户的企业名称"
                     />
                     <Field
                         v-model="formData.data.industryType"
@@ -690,6 +690,7 @@ onMounted(() => {
 onActivated(() => {
     // 如果签收确认单上传完成，则返回列表页刷新状态
     const confirmId = router.history.current.params.confirmId
+    const isRefresh = router.history.current.params.isRefresh
     if (confirmId) {
         dataSet.list = dataSet.list.map(v => {
             if (v.enterpriseId === confirmId) {
@@ -697,6 +698,9 @@ onActivated(() => {
             }
             return v
         })
+    }
+    if (isRefresh) {
+        onRefresh()
     }
 })
 </script>

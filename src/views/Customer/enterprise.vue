@@ -15,7 +15,7 @@
                         :disabled="isPreview"
                         name="name"
                         label="企业名称"
-                        placeholder="请输入您的企业名称"
+                        placeholder="请输入客户的企业名称"
                     />
                     <Field
                         v-model="formData.data.licenseNum"
@@ -23,7 +23,7 @@
                         :disabled="isPreview"
                         name="licenseNum"
                         label="营业执照/社会信用代码"
-                        placeholder="请输入您营业执照/社会信用代码"
+                        placeholder="请输入客户营业执照/社会信用代码"
                     />
                     <Field
                         v-model="formData.data.businessAddress"
@@ -332,7 +332,13 @@ const rules = reactive({
 })
 
 const onClickLeft = () => {
-    router.push({ name: 'List' })
+    const status = Number($store.getters['app/status'])
+    router.push({
+        name: 'List',
+        params: {
+            isRefresh: status === 0
+        }
+    })
 }
 
 const afterRead = (file, details) => {
