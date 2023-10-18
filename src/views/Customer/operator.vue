@@ -449,7 +449,13 @@ const onSubmit = async () => {
                     await submitEnterpriseSocialSecurityV2({ data })
                     $store.commit('app/SET_EDIT_AUDIT', '')
                     $store.commit('app/SET_STATUS', '')
-                    router.push({ name: editAudit.value ? 'List' : status.value === 1 ? 'List' : 'Audit' })
+                    // status: 0, 从未提交的新增企业
+                    // status: 1, 填过信息但从未成功提交的企业
+                    // 提交后都需要跳转到审核页，而不是列表页
+                    // 编辑修改进来的页面，并且提交成功后直接返回列表页
+                    router.push({
+                        name: editAudit.value ? 'List' : status.value === 0 || status.value === 1 ? 'Audit' : 'List'
+                    })
                 } catch (err) {
                     return false
                 }
