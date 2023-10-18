@@ -683,8 +683,11 @@ watch(
 )
 
 onMounted(() => {
+    const isRefresh = router.history.current.params.isRefresh
     customerId.value = $store.getters['customerId'] || ''
-    getEnterpriseListAccess(true)
+    if (!isRefresh) {
+        getEnterpriseListAccess(true)
+    }
 })
 
 onActivated(() => {
