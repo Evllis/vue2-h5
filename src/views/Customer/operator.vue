@@ -151,7 +151,12 @@
                         class="submit-button"
                         >{{ editAudit ? '提交' : status === 1 ? '提交' : '下一步' }}</VanButton
                     >
-                    <VanButton v-if="status === 0" block type="info" native-type="submit" class="submit-button"
+                    <VanButton
+                        v-if="status === 0 || editAudit"
+                        block
+                        type="info"
+                        native-type="submit"
+                        class="submit-button"
                         >提交</VanButton
                     >
                 </div>
