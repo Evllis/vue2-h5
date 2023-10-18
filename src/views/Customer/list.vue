@@ -243,6 +243,7 @@
                                 <DropdownMenu>
                                     <DropdownItem
                                         v-model="formData.data.status"
+                                        :disabled="formData.data.progress === '0'"
                                         :options="filterStatusColumns"
                                         get-container="#drop-container"
                                     ></DropdownItem>
