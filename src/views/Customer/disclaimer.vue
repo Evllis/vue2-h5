@@ -35,7 +35,8 @@ const accept = () => {
 
 // 返回上一页
 const backRouter = () => {
-    router.push({ name: 'List' })
+    // router.push({ name: 'List' })
+    router.back()
 }
 </script>
 

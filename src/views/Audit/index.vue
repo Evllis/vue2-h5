@@ -4,8 +4,28 @@
         <div class="body-container audit-page__body">
             <div v-if="+auditStatus !== 3" class="flex flex-1 flex-col items-center justify-center -mt-16 audit-wrap">
                 <VanImage v-if="auditParams.img" :src="auditParams.img" />
-                <div v-if="+auditStatus === 2" class="flex flex-col items-center justify-center w-7/10">
-                    <p>您的业务申请已提交，预计T+1审核完成</p>
+                <div v-if="+auditStatus === 2">
+                    <div class="flex flex-col items-center justify-center">
+                        <p>您的业务申请已提交，预计T+1审核完成</p>
+                    </div>
+                    <div class="flex justify-between items-center mt-20px">
+                        <VanButton
+                            block
+                            type="info"
+                            native-type="button"
+                            class="submit-button !w-140px !m-0 !mr-40px"
+                            @click="successAudit"
+                            >完成</VanButton
+                        >
+                        <VanButton
+                            block
+                            type="info"
+                            native-type="button"
+                            class="submit-button !m-0 !w-140px"
+                            @click="continueApply"
+                            >继续申请</VanButton
+                        >
+                    </div>
                 </div>
                 <div v-if="+auditStatus === 4" class="flex flex-col items-center justify-center w-7/10">
                     <p>您提交的业务申请不符合我司标准，敬请谅解!</p>
@@ -97,6 +117,21 @@ const auditParams = computed(() => {
 const modifyAudit = item => {
     $store.commit('app/SET_EDIT_AUDIT', true)
     router.push({ name: auditMap.value[item.step] })
+}
+
+// 完成：点击回到列表页，刷新列表
+const successAudit = () => {
+    router.push({ name: 'List' })
+}
+
+// 继续申请：与【新增业务申请】，点击免责声明-客户基本信息-客户补充信息-提交
+const continueApply = () => {
+    $store.commit('app/BATCH_SETTINGS', {
+        editAudit: false,
+        isPreview: false,
+        status: 0
+    })
+    router.push({ name: 'Disclaimer' })
 }
 
 const submitData = async () => {

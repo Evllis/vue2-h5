@@ -257,7 +257,7 @@ const queryLicenseNumAccess = val => {
                 },
                 hideloading: true
             }).then(res => {
-                if (String(res.data.status) === '2') {
+                if (String(res.data && res.data.status) === '2') {
                     licensePhone.value = res.data.phone
                     resolve(false)
                 } else {
