@@ -453,7 +453,6 @@ const onSubmit = async () => {
                     })
                     await submitEnterpriseSocialSecurityV2({ data })
                     $store.commit('app/SET_EDIT_AUDIT', '')
-                    $store.commit('app/SET_STATUS', '')
                     // status: 0, 从未提交的新增企业
                     // status: 1, 填过信息但从未成功提交的企业
                     // 提交后都需要跳转到审核页，而不是列表页
@@ -496,6 +495,24 @@ const getRegion = async () => {
         areaList.value = areaData.map(item => item)
     }
 }
+
+router.beforeEach(async (to, from, next) => {
+    const status = Number($store.getters['app/status'])
+    if (editAudit.value) {
+        if (to.name === 'List' && !('isRefresh' in to.params)) {
+            next({
+                name: 'List',
+                params: {
+                    isRefresh: status === 0
+                }
+            })
+        } else {
+            next()
+        }
+    } else {
+        next()
+    }
+})
 
 onActivated(async () => {
     const enterpriseId = $store.getters['app/enterpriseId']
