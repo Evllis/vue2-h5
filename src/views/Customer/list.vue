@@ -708,7 +708,7 @@ onActivated(() => {
         })
     }
     if (isRefresh) {
-        onRefresh()
+        onRefresh(false)
     }
 })
 </script>
