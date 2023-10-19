@@ -410,6 +410,20 @@ const onSubmit = async () => {
         .catch(() => {})
 }
 
+router.beforeEach(async (to, from, next) => {
+    const status = Number($store.getters['app/status'])
+    if (to.name === 'List' && !('isRefresh' in to.params)) {
+        next({
+            name: 'List',
+            params: {
+                isRefresh: status === 0
+            }
+        })
+    } else {
+        next()
+    }
+})
+
 onActivated(async () => {
     enterpriseId.value = $store.getters['app/enterpriseId']
     editAudit.value = $store.getters['app/editAudit']
